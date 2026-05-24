@@ -1,1312 +1,2755 @@
 <!DOCTYPE html>
-<!-- saved from url=(0040)https://prolifictracker.infinityfree.me/ -->
-<html lang="en"><head>
+<html lang="en">
 
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-20RGLDBXM5"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+<head>
 
-  gtag('config', 'G-20RGLDBXM5');
-</script>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EarnTrack</title>
+  <script>
+    (() => {
+      const storedMode = localStorage.getItem('prolific_theme_mode') || 'system';
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      document.documentElement.dataset.themeMode = storedMode;
+      document.documentElement.dataset.theme = storedMode === 'system' ? (prefersDark ? 'dark' : 'light') : storedMode;
 
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Prolific Earnings Tracker</title>
-<link rel="preconnect" href="https://fonts.googleapis.com/">
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-<style>
-  :root {
-    --bg: #0e0f11;
-    --bg2: #16181c;
-    --bg3: #1e2026;
-    --border: rgba(255,255,255,0.07);
-    --border2: rgba(255,255,255,0.12);
-    --text: #f0f0ee;
-    --muted: #7a7d87;
-    --accent: #00d4a0;
-    --accent2: #00b389;
-    --amber: #f5a623;
-    --red: #e05252;
-    --blue: #5b9cf6;
-    --mono: 'DM Mono', monospace;
-    --sans: 'Sora', sans-serif;
-    --radius: 10px;
-    --radius-lg: 16px;
-  }
+      // Seed initialization
+      let seed = { h: 171, s: 100 };
+      try {
+        const storedSeed = localStorage.getItem('prolific_theme_seed');
+        if (storedSeed) {
+          seed = JSON.parse(storedSeed);
+        }
+      } catch (e) { }
+      document.documentElement.style.setProperty('--hue', seed.h);
+      document.documentElement.style.setProperty('--sat', seed.s + '%');
+    })();
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com/">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Google+Sans+Code:wght@300..800&family=Google+Sans+Flex:wght@300..900&display=swap"
+    rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <style>
+    :root {
+      color-scheme: light;
+      --hue: 171;
+      --sat: 100%;
 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+      --md-primary: hsl(var(--hue), var(--sat), 21%);
+      --md-on-primary: #ffffff;
+      --md-primary-container: hsl(var(--hue), calc(var(--sat) * 0.8), 76%);
+      --md-on-primary-container: hsl(var(--hue), var(--sat), 8%);
 
-  body {
-    font-family: var(--sans);
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    font-size: 14px;
-    line-height: 1.6;
-  }
+      --md-secondary: hsl(var(--hue), calc(var(--sat) * 0.35), 33%);
+      --md-on-secondary: #ffffff;
+      --md-secondary-container: hsl(var(--hue), calc(var(--sat) * 0.35), 85%);
+      --md-on-secondary-container: hsl(var(--hue), calc(var(--sat) * 0.35), 10%);
 
-  /* Layout */
-  .app {
-    max-width: 960px;
-    margin: 0 auto;
-    padding: 2rem 1.5rem 4rem;
-  }
+      --md-tertiary: hsl(calc(var(--hue) + 60), calc(var(--sat) * 0.4), 33%);
+      --md-on-tertiary: #ffffff;
+      --md-tertiary-container: hsl(calc(var(--hue) + 60), calc(var(--sat) * 0.4), 85%);
+      --md-on-tertiary-container: hsl(calc(var(--hue) + 60), calc(var(--sat) * 0.4), 10%);
 
-  /* Header */
-  .header {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    margin-bottom: 2.5rem;
-    padding-bottom: 1.5rem;
-    border-bottom: 0.5px solid var(--border);
-  }
-  .header-left h1 {
-    font-size: 22px;
-    font-weight: 600;
-    letter-spacing: -0.02em;
-    color: var(--text);
-  }
-  .header-left p {
-    font-size: 12px;
-    color: var(--muted);
-    margin-top: 2px;
-    font-family: var(--mono);
-  }
-  .currency-select {
-    background: var(--bg2);
-    border: 0.5px solid var(--border2);
-    border-radius: 99px;
-    padding: 5px 28px 5px 14px;
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--text);
-    cursor: pointer;
-    outline: none;
-    transition: border-color 0.2s;
-    appearance: none;
-    -webkit-appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237a7d87'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 10px center;
-  }
-  .currency-select:hover, .currency-select:focus { border-color: var(--accent); }
-  .currency-select option { background: var(--bg2); color: var(--text); }
-  .rate-status {
-    font-size: 10px;
-    font-family: var(--mono);
-    color: var(--muted);
-    margin-left: 6px;
-  }
-  .rate-status.live { color: var(--accent); }
-  .rate-status.stale { color: var(--amber); }
+      --md-error: #ba1a1a;
+      --md-on-error: #ffffff;
+      --md-error-container: #ffdad6;
+      --md-on-error-container: #410002;
 
-  /* Metric cards */
-  .metrics {
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 12px;
-    margin-bottom: 1.5rem;
-  }
-  .metric {
-    background: var(--bg2);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1rem;
-    position: relative;
-    overflow: hidden;
-  }
-  .metric::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-    background: var(--accent);
-    opacity: 0;
-    transition: opacity 0.3s;
-  }
-  .metric.highlight::before { opacity: 1; }
-  .metric-label {
-    font-size: 11px;
-    color: var(--muted);
-    font-family: var(--mono);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    margin-bottom: 6px;
-  }
-  .metric-value {
-    font-size: 26px;
-    font-weight: 600;
-    font-family: var(--mono);
-    letter-spacing: -0.03em;
-    color: var(--text);
-  }
-  .metric-value.green { color: var(--accent); }
-  .metric-sub {
-    font-size: 11px;
-    color: var(--muted);
-    margin-top: 2px;
-    font-family: var(--mono);
-  }
+      --md-background: hsl(var(--hue), calc(var(--sat) * 0.12), 98%);
+      --md-on-background: hsl(var(--hue), calc(var(--sat) * 0.12), 10%);
 
-  /* Goal bar */
-  .goal-card {
-    background: var(--bg2);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1rem 1.25rem;
-    margin-bottom: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    flex-wrap: wrap;
-  }
-  .goal-label { font-size: 12px; color: var(--muted); font-family: var(--mono); white-space: nowrap; }
-  .goal-input-wrap { display: flex; align-items: center; gap: 6px; }
-  .goal-input-wrap span { font-size: 13px; color: var(--muted); }
-  input[type="number"].goal-input {
-    width: 72px;
-    background: var(--bg3);
-    border: 0.5px solid var(--border2);
-    border-radius: 6px;
-    color: var(--text);
-    font-family: var(--mono);
-    font-size: 14px;
-    padding: 4px 8px;
-    outline: none;
-  }
-  input[type="number"].goal-input:focus { border-color: var(--accent); }
-  .progress-track {
-    flex: 1;
-    min-width: 120px;
-    height: 6px;
-    background: var(--bg3);
-    border-radius: 99px;
-    overflow: hidden;
-  }
-  .progress-fill {
-    height: 100%;
-    border-radius: 99px;
-    background: var(--accent);
-    transition: width 0.4s ease;
-  }
-  .progress-fill.over { background: var(--amber); }
-  .progress-text { font-size: 12px; color: var(--muted); font-family: var(--mono); white-space: nowrap; }
+      --md-surface-container-lowest: #ffffff;
+      --md-surface-container-low: hsl(var(--hue), calc(var(--sat) * 0.12), 96%);
+      --md-surface-container: hsl(var(--hue), calc(var(--sat) * 0.12), 94%);
+      --md-surface-container-high: hsl(var(--hue), calc(var(--sat) * 0.12), 92%);
+      --md-surface-container-highest: hsl(var(--hue), calc(var(--sat) * 0.12), 90%);
 
-  /* Tabs + week nav */
-  .controls {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1.25rem;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-  .week-nav { display: flex; align-items: center; gap: 8px; }
-  .nav-btn {
-    background: var(--bg2);
-    border: 0.5px solid var(--border);
-    border-radius: 6px;
-    color: var(--muted);
-    font-size: 16px;
-    width: 28px;
-    height: 28px;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer;
-    transition: border-color 0.2s, color 0.2s;
-    font-family: var(--mono);
-  }
-  .nav-btn:hover { border-color: var(--border2); color: var(--text); }
-  .week-label {
-    font-size: 13px;
-    font-family: var(--mono);
-    color: var(--text);
-    min-width: 170px;
-    text-align: center;
-  }
-  .tabs { display: flex; gap: 4px; }
-  .tab {
-    font-size: 12px;
-    font-family: var(--mono);
-    padding: 5px 14px;
-    border-radius: 6px;
-    border: 0.5px solid var(--border);
-    background: none;
-    color: var(--muted);
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .tab:hover { border-color: var(--border2); color: var(--text); }
-  .tab.active { background: var(--accent); border-color: var(--accent); color: #000; font-weight: 500; }
+      --md-on-surface: hsl(var(--hue), calc(var(--sat) * 0.12), 10%);
+      --md-on-surface-variant: hsl(var(--hue), calc(var(--sat) * 0.08), 35%);
+      --md-outline: hsl(var(--hue), calc(var(--sat) * 0.06), 50%);
+      --md-outline-variant: hsl(var(--hue), calc(var(--sat) * 0.06), 80%);
 
-  /* Import zone */
-  .import-zone {
-    border: 1.5px dashed var(--border2);
-    border-radius: var(--radius);
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-    text-align: center;
-    transition: all 0.2s;
-    background: var(--bg2);
-    position: relative;
-  }
-  .import-zone:hover, .import-zone.drag-over {
-    border-color: var(--accent);
-    background: rgba(0,212,160,0.04);
-  }
-  .import-actions {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    margin-top: 10px;
-    position: relative;
-    z-index: 1;
-  }
-  .import-file-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 11px;
-    font-family: var(--mono);
-    padding: 5px 14px;
-    border-radius: 6px;
-    border: 0.5px solid var(--accent);
-    color: var(--accent);
-    background: rgba(0,212,160,0.08);
-    cursor: pointer;
-    transition: background 0.2s;
-    white-space: nowrap;
-  }
-  .import-file-btn:hover { background: rgba(0,212,160,0.16); }
-  .import-link-btn {
-    display: inline-flex;
-    align-items: center;
-    font-size: 11px;
-    font-family: var(--mono);
-    padding: 5px 14px;
-    border-radius: 6px;
-    border: 0.5px solid var(--border2);
-    color: var(--muted);
-    background: none;
-    text-decoration: none;
-    transition: border-color 0.2s, color 0.2s;
-    white-space: nowrap;
-  }
-  .import-link-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .import-icon {
-    width: 32px; height: 32px;
-    margin: 0 auto 8px;
-    background: rgba(0,212,160,0.1);
-    border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 16px;
-  }
-  .import-title { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 3px; }
-  .import-sub { font-size: 11px; color: var(--muted); font-family: var(--mono); }
-  .import-sub a { color: var(--accent); text-decoration: none; }
-  .import-sub a:hover { text-decoration: underline; }
-  .import-toast {
-    display: none;
-    margin-top: 8px;
-    font-size: 12px;
-    font-family: var(--mono);
-    padding: 6px 12px;
-    border-radius: 6px;
-    background: rgba(0,212,160,0.12);
-    color: var(--accent);
-    border: 0.5px solid rgba(0,212,160,0.25);
-  }
-  .import-toast.error { background: rgba(224,82,82,0.12); color: var(--red); border-color: rgba(224,82,82,0.25); }
+      --md-shadow: hsla(var(--hue), calc(var(--sat) * 0.12), 10%, 0.08);
+      --md-scrim: rgba(0, 0, 0, 0.42);
 
-  /* Manual add */
-  
-  .status-screened { background: rgba(245, 166, 35, 0.1); color: var(--amber); }
-  
-  .add-card {
-    background: var(--bg2);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1rem 1.25rem;
-    margin-bottom: 1.5rem;
-  }
-  .add-card-header {
-    font-size: 11px;
-    font-family: var(--mono);
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    margin-bottom: 10px;
-  }
-  .add-row { display: grid; grid-template-columns: 1fr 90px 90px 90px 120px auto; gap: 8px; align-items: end; }
-  .field-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; font-family: var(--mono); }
-  input[type="text"].field-input,
-  input[type="number"].field-input,
-  input[type="date"].field-input,
-  select.field-input {
-    width: 100%;
-    background: var(--bg3);
-    border: 0.5px solid var(--border2);
-    border-radius: 6px;
-    color: var(--text);
-    font-family: var(--sans);
-    font-size: 13px;
-    padding: 7px 10px;
-    outline: none;
-    height: 34px;
-    transition: border-color 0.2s;
-  }
-  input[type="text"].field-input:focus,
-  input[type="number"].field-input:focus,
-  input[type="date"].field-input:focus,
-  select.field-input:focus { border-color: var(--accent); }
-  input[type="date"].field-input::-webkit-calendar-picker-indicator { filter: invert(0.5); }
-  select.field-input option { background: var(--bg3); }
-  .add-btn {
-    height: 34px;
-    padding: 0 16px;
-    background: var(--accent);
-    border: none;
-    border-radius: 6px;
-    color: #000;
-    font-family: var(--mono);
-    font-size: 13px;
-    font-weight: 500;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: background 0.2s;
-  }
-  
-  /* Shrink the Buy Me A Coffee button */
-	.bmc-btn {
-		transform: scale(0.525); 
-		transform-origin: left bottom; 
-		margin-top: 10px;
-	}
+      --bg: var(--md-background);
+      --bg2: var(--md-surface-container-low);
+      --bg3: var(--md-surface-container);
+      --border: color-mix(in srgb, var(--md-outline-variant) 72%, transparent);
+      --border2: color-mix(in srgb, var(--md-outline) 56%, transparent);
+      --text: var(--md-on-surface);
+      --muted: var(--md-on-surface-variant);
+      --accent: var(--md-primary);
+
+      --accent2: hsl(var(--hue), var(--sat), 25%);
+      --amber: #a15c00;
+      --red: var(--md-error);
+      --blue: #3f5fbe;
+
+      --chart-bar: hsl(var(--hue), var(--sat), 28%);
+      --chart-bar-pending: hsl(var(--hue), calc(var(--sat) * 0.6), 60%);
+      --chart-empty: hsla(var(--hue), calc(var(--sat) * 0.12), 50%, 0.18);
+
+      --mono: 'Google Sans Mono', 'Google Sans Code', monospace;
+      --sans: 'Google Sans Flex', 'Google Sans Flex Variable', sans-serif;
+      --radius: 22px;
+      --radius-sm: 14px;
+      --radius-lg: 30px;
+      --motion: cubic-bezier(0.2, 0, 0, 1);
+    }
+
+    [data-theme="dark"] {
+      color-scheme: dark;
+      --md-primary: hsl(var(--hue), calc(var(--sat) * 0.58), 66%);
+      --md-on-primary: hsl(var(--hue), var(--sat), 10%);
+      --md-primary-container: hsl(var(--hue), var(--sat), 16%);
+      --md-on-primary-container: hsl(var(--hue), calc(var(--sat) * 0.8), 76%);
+
+      --md-secondary: hsl(var(--hue), calc(var(--sat) * 0.35), 75%);
+      --md-on-secondary: hsl(var(--hue), calc(var(--sat) * 0.35), 15%);
+      --md-secondary-container: hsl(var(--hue), calc(var(--sat) * 0.35), 25%);
+      --md-on-secondary-container: hsl(var(--hue), calc(var(--sat) * 0.35), 85%);
+
+      --md-tertiary: hsl(calc(var(--hue) + 60), calc(var(--sat) * 0.4), 75%);
+      --md-on-tertiary: hsl(calc(var(--hue) + 60), calc(var(--sat) * 0.4), 15%);
+      --md-tertiary-container: hsl(calc(var(--hue) + 60), calc(var(--sat) * 0.4), 25%);
+      --md-on-tertiary-container: hsl(calc(var(--hue) + 60), calc(var(--sat) * 0.4), 85%);
+
+      --md-error: #ffb4ab;
+      --md-on-error: #690005;
+      --md-error-container: #93000a;
+      --md-on-error-container: #ffdad6;
+
+      --md-background: hsl(var(--hue), calc(var(--sat) * 0.1), 7%);
+      --md-on-background: hsl(var(--hue), calc(var(--sat) * 0.1), 89%);
+
+      --md-surface-container-lowest: hsl(var(--hue), calc(var(--sat) * 0.1), 5%);
+      --md-surface-container-low: hsl(var(--hue), calc(var(--sat) * 0.1), 10%);
+      --md-surface-container: hsl(var(--hue), calc(var(--sat) * 0.1), 12%);
+      --md-surface-container-high: hsl(var(--hue), calc(var(--sat) * 0.1), 16%);
+      --md-surface-container-highest: hsl(var(--hue), calc(var(--sat) * 0.1), 20%);
+
+      --md-on-surface: hsl(var(--hue), calc(var(--sat) * 0.1), 89%);
+      --md-on-surface-variant: hsl(var(--hue), calc(var(--sat) * 0.08), 75%);
+      --md-outline: hsl(var(--hue), calc(var(--sat) * 0.06), 55%);
+      --md-outline-variant: hsl(var(--hue), calc(var(--sat) * 0.06), 30%);
+
+      --md-shadow: rgba(0, 0, 0, 0.42);
+      --md-scrim: rgba(0, 0, 0, 0.66);
+
+      --accent2: hsl(var(--hue), calc(var(--sat) * 0.8), 80%);
+      --amber: #ffc875;
+      --blue: #b7c6ff;
+
+      --chart-bar: hsl(var(--hue), calc(var(--sat) * 0.58), 66%);
+      --chart-bar-pending: hsl(var(--hue), calc(var(--sat) * 0.4), 40%);
+      --chart-empty: hsla(var(--hue), calc(var(--sat) * 0.15), 55%, 0.18);
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--sans);
+      background:
+        radial-gradient(circle at top left, color-mix(in srgb, var(--md-primary-container) 38%, transparent), transparent 28rem),
+        radial-gradient(circle at 95% 8%, color-mix(in srgb, var(--md-tertiary-container) 32%, transparent), transparent 24rem),
+        var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      font-size: 14px;
+      line-height: 1.6;
+      transition: background-color 0.25s var(--motion), color 0.25s var(--motion);
+    }
+
+    /* Layout */
+    .app {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2.25rem 1.5rem 4rem;
+    }
+
+    .dashboard-grid {
+      display: flex;
+      flex-direction: column-reverse;
+      gap: 1.25rem;
+    }
+
+    .dashboard-left {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      min-width: 0;
+    }
+
+    .dashboard-right {
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      min-width: 0;
+    }
+
+    @media (min-width: 992px) {
+      .dashboard-grid {
+        display: grid;
+        grid-template-columns: 1.55fr 1fr;
+        gap: 1.5rem;
+        align-items: start;
+      }
+
+      .dashboard-left {
+        gap: 1.5rem;
+      }
+
+      .dashboard-right {
+        gap: 1.5rem;
+      }
+
+      /* Optimize Metrics Grid in narrow column */
+      .metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 10px !important;
+      }
+
+      .metrics>*:first-child {
+        grid-column: span 2;
+      }
+
+      /* Optimize Add study manual card in narrow column */
+      .add-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 10px !important;
+      }
+
+      .add-row>*:nth-child(1) {
+        grid-column: span 2;
+      }
+
+      .add-row>*:nth-child(2) {
+        grid-column: span 1;
+      }
+
+      .add-row>*:nth-child(3) {
+        grid-column: span 1;
+      }
+
+      .add-row>*:nth-child(4) {
+        grid-column: span 1;
+      }
+
+      .add-row>*:nth-child(5) {
+        grid-column: span 1;
+      }
+
+      .add-row>*:nth-child(6) {
+        grid-column: span 2;
+      }
+
+      .controls {
+        margin-bottom: 1.5rem;
+      }
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 2.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .header-left h1 {
+      font-size: 34px;
+      font-weight: 600;
+      letter-spacing: 0;
+      color: var(--text);
+      line-height: 1.05;
+    }
+
+    .header-left p {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 2px;
+      font-family: var(--mono);
+    }
+
+    .currency-select {
+      background: var(--md-surface-container-high);
+      border: 1px solid transparent;
+      border-radius: 99px;
+      padding: 8px 34px 8px 14px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text);
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.2s var(--motion), background 0.2s var(--motion);
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237a7d87'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+    }
+
+    .currency-select:hover,
+    .currency-select:focus {
+      border-color: var(--accent);
+    }
+
+    .currency-select option {
+      background: var(--md-surface-container);
+      color: var(--text);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .theme-toggle {
+      display: flex;
+      gap: 4px;
+      padding: 4px;
+      border-radius: 99px;
+      background: var(--md-surface-container-high);
+      border: 1px solid var(--border);
+    }
+
+    .theme-btn {
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      border-radius: 99px;
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 7px 10px;
+      cursor: pointer;
+      transition: background 0.2s var(--motion), color 0.2s var(--motion), transform 0.2s var(--motion);
+    }
+
+    .theme-btn:hover {
+      color: var(--text);
+    }
+
+    .theme-btn.active {
+      background: var(--md-primary-container);
+      color: var(--md-on-primary-container);
+      font-weight: 600;
+    }
+
+    .settings-btn {
+      background: var(--md-surface-container-high);
+      border: 1px solid transparent;
+      border-radius: 99px;
+      padding: 8px 14px;
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text);
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.2s var(--motion), background 0.2s var(--motion);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      height: 36px;
+    }
+
+    .settings-btn:hover {
+      border-color: var(--accent);
+    }
+
+    /* Changelog Accordion Styles */
+    .changelog-entries {
+      display: flex;
+      flex-direction: column;
+      max-height: 380px;
+      overflow-y: auto;
+      padding-right: 6px;
+    }
+
+    .changelog-entries::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .changelog-entries::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .changelog-entries::-webkit-scrollbar-thumb {
+      background: var(--border2);
+      border-radius: 99px;
+    }
+
+    .changelog-entries::-webkit-scrollbar-thumb:hover {
+      background: var(--muted);
+    }
+
+    .changelog-item {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: rgba(0, 0, 0, 0.08);
+      margin-bottom: 0.75rem;
+      transition: border-color 0.2s var(--motion);
+    }
+
+    .changelog-item[open] {
+      border-color: var(--accent);
+    }
+
+    .changelog-item summary {
+      display: block !important;
+      /* Hides default triangle arrow natively in Firefox */
+      height: auto !important;
+      min-height: 0 !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      background: transparent !important;
+      outline: none;
+      cursor: pointer;
+      list-style: none;
+      /* Hides default triangle natively in Safari/modern browsers */
+      overflow: visible !important;
+    }
+
+    .changelog-item summary::-webkit-details-marker {
+      display: none !important;
+      /* Hides default triangle in Chrome/Safari/Edge */
+    }
+
+    .changelog-item summary::marker {
+      display: none !important;
+      /* Hides default triangle natively in standard browsers */
+    }
+
+    .changelog-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.85rem 1rem;
+      font-family: var(--sans);
+      font-weight: 500;
+      line-height: 1.4;
+      overflow: visible;
+    }
+
+    .changelog-ver {
+      font-family: var(--mono);
+      font-weight: 600;
+      color: var(--text);
+      font-size: 13px;
+    }
+
+    .changelog-date {
+      font-size: 12px;
+      color: var(--muted);
+      font-family: var(--mono);
+      text-align: right;
+    }
+
+    .changelog-icon {
+      font-size: 10px;
+      color: var(--muted);
+      transition: transform 0.2s var(--motion);
+      margin-left: 6px;
+    }
+
+    .changelog-item[open] .changelog-icon {
+      transform: rotate(180deg);
+    }
+
+    .changelog-content {
+      padding: 0.5rem 1.25rem 1rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .changelog-content ul {
+      margin-left: 1rem;
+    }
+
+    .changelog-content li {
+      color: var(--text);
+      margin-bottom: 0.4rem;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .changelog-content li:last-child {
+      margin-bottom: 0;
+    }
+
+    .changelog-content strong {
+      font-weight: 600 !important;
+    }
+
+    .rate-status {
+      font-size: 10px;
+      font-family: var(--mono);
+      color: var(--muted);
+      margin-left: 6px;
+    }
+
+    .rate-status.live {
+      color: var(--accent);
+    }
+
+    .rate-status.stale {
+      color: var(--amber);
+    }
+
+    /* Metric cards */
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .metric {
+      background: var(--md-surface-container-low);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.1rem;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 8px 20px -18px var(--md-shadow);
+    }
+
+    .metric::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--md-primary), var(--md-tertiary));
+      opacity: 0.9;
+      transition: opacity 0.3s var(--motion);
+    }
+
+    .metric.highlight {
+      background: var(--md-primary-container);
+      color: var(--md-on-primary-container);
+    }
+
+    .metric.highlight::before {
+      opacity: 1;
+    }
+
+    .metric.highlight .metric-label,
+    .metric.highlight .metric-sub,
+    .metric.highlight .metric-value {
+      color: var(--md-on-primary-container);
+    }
+
+    .metric-label {
+      font-size: 11px;
+      color: var(--muted);
+      font-family: var(--mono);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+    }
+
+    .metric-value {
+      font-size: 26px;
+      font-weight: 600;
+      font-family: var(--mono);
+      letter-spacing: 0;
+      color: var(--text);
+    }
+
+    .metric-value.green {
+      color: var(--accent);
+    }
+
+    .metric-sub {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 2px;
+      font-family: var(--mono);
+    }
+
+    /* Goal bar */
+    .goal-card {
+      background: var(--md-secondary-container);
+      color: var(--md-on-secondary-container);
+      border: 1px solid transparent;
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 8px;
+    }
+
+    .goal-label {
+      font-size: 12px;
+      color: var(--md-on-secondary-container);
+      font-family: var(--mono);
+      white-space: nowrap;
+    }
+
+    .goal-input-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .goal-input-wrap span {
+      font-size: 13px;
+      color: var(--md-on-secondary-container);
+    }
+
+    input[type="number"].goal-input {
+      width: 110px;
+      background: color-mix(in srgb, var(--md-surface-container-lowest) 62%, transparent);
+      border: 1px solid color-mix(in srgb, var(--md-on-secondary-container) 24%, transparent);
+      border-radius: var(--radius-sm);
+      color: var(--md-on-secondary-container);
+      font-family: var(--mono);
+      font-size: 14px;
+      padding: 4px 8px;
+      outline: none;
+    }
+
+    input[type="number"].goal-input:focus {
+      border-color: var(--accent);
+    }
+
+    .progress-track {
+      flex: 1;
+      min-width: 120px;
+      height: 6px;
+      background: color-mix(in srgb, var(--md-on-secondary-container) 16%, transparent);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 99px;
+      background: var(--md-primary);
+      transition: width 0.4s var(--motion);
+    }
+
+    .progress-fill.over {
+      background: var(--amber);
+    }
+
+    .progress-text {
+      font-size: 12px;
+      color: var(--md-on-secondary-container);
+      font-family: var(--mono);
+      white-space: nowrap;
+    }
+
+    /* Tabs + week nav */
+    .controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.25rem;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .week-nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nav-btn {
+      background: var(--md-surface-container);
+      border: 1px solid transparent;
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 16px;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s var(--motion), color 0.2s var(--motion), transform 0.2s var(--motion);
+      font-family: var(--mono);
+    }
+
+    .nav-btn:hover {
+      background: var(--md-surface-container-highest);
+      color: var(--text);
+    }
+
+    .week-label {
+      font-size: 13px;
+      font-family: var(--mono);
+      color: var(--text);
+      min-width: 170px;
+      text-align: center;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 4px;
+      padding: 4px;
+      border-radius: 999px;
+      background: var(--md-surface-container);
+    }
+
+    .tab {
+      font-size: 12px;
+      font-family: var(--mono);
+      padding: 5px 14px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      background: none;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.2s var(--motion);
+    }
+
+    .tab:hover {
+      border-color: var(--border2);
+      color: var(--text);
+    }
+
+    .tab.active {
+      background: var(--md-primary-container);
+      border-color: var(--md-primary-container);
+      color: var(--md-on-primary-container);
+      font-weight: 600;
+    }
+
+    /* Import zone */
+    .import-zone {
+      border: 1.5px dashed var(--border2);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      text-align: center;
+      transition: all 0.2s var(--motion);
+      background: var(--md-surface-container-low);
+      position: relative;
+    }
+
+    .import-zone:hover,
+    .import-zone.drag-over {
+      border-color: var(--accent);
+      background: color-mix(in srgb, var(--md-primary-container) 26%, var(--md-surface-container-low));
+    }
+
+    .import-actions {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 10px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .import-file-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-family: var(--mono);
+      padding: 8px 16px;
+      border-radius: 999px;
+      border: 1px solid var(--accent);
+      color: var(--md-on-primary);
+      background: var(--md-primary);
+      cursor: pointer;
+      transition: background 0.2s var(--motion), transform 0.2s var(--motion);
+      white-space: nowrap;
+    }
+
+    .import-file-btn:hover {
+      background: var(--accent2);
+    }
+
+    .import-link-btn {
+      display: inline-flex;
+      align-items: center;
+      font-size: 11px;
+      font-family: var(--mono);
+      padding: 8px 16px;
+      border-radius: 999px;
+      border: 1px solid var(--border2);
+      color: var(--muted);
+      background: none;
+      text-decoration: none;
+      transition: border-color 0.2s var(--motion), color 0.2s var(--motion), background 0.2s var(--motion);
+      white-space: nowrap;
+    }
+
+    .import-link-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .import-icon {
+      width: 32px;
+      height: 32px;
+      margin: 0 auto 8px;
+      background: var(--md-tertiary-container);
+      color: var(--md-on-tertiary-container);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .import-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 3px;
+    }
+
+    .import-sub {
+      font-size: 11px;
+      color: var(--muted);
+      font-family: var(--mono);
+    }
+
+    .import-sub a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .import-sub a:hover {
+      text-decoration: underline;
+    }
+
+    .import-toast {
+      display: none;
+      margin-top: 8px;
+      font-size: 12px;
+      font-family: var(--mono);
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      background: var(--md-primary-container);
+      color: var(--accent);
+      border: 1px solid color-mix(in srgb, var(--md-primary) 24%, transparent);
+    }
+
+    .import-toast.error {
+      background: var(--md-error-container);
+      color: var(--md-on-error-container);
+      border-color: color-mix(in srgb, var(--md-error) 28%, transparent);
+    }
+
+    /* Manual add */
+
+    .status-screened {
+      background: color-mix(in srgb, var(--amber) 18%, transparent);
+      color: var(--amber);
+    }
+
+    .add-card {
+      background: var(--md-surface-container-low);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+    }
+
+    .add-card-header {
+      font-size: 11px;
+      font-family: var(--mono);
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 10px;
+    }
+
+    .add-row {
+      display: grid;
+      grid-template-columns: 1fr 90px 90px 90px 120px auto;
+      gap: 8px;
+      align-items: end;
+    }
+
+    .field-label {
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 4px;
+      font-family: var(--mono);
+    }
+
+    input[type="text"].field-input,
+    input[type="number"].field-input,
+    input[type="date"].field-input,
+    select.field-input {
+      width: 100%;
+      background: var(--md-surface-container);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 13px;
+      padding: 7px 10px;
+      outline: none;
+      height: 34px;
+      transition: border-color 0.2s var(--motion), background 0.2s var(--motion);
+    }
+
+    input[type="text"].field-input:focus,
+    input[type="number"].field-input:focus,
+    input[type="date"].field-input:focus,
+    select.field-input:focus {
+      border-color: var(--accent);
+    }
+
+    input[type="date"].field-input::-webkit-calendar-picker-indicator {
+      filter: invert(0.5);
+    }
+
+    select.field-input option {
+      background: var(--md-surface-container);
+    }
+
+    .add-btn {
+      height: 34px;
+      padding: 0 16px;
+      background: var(--md-primary);
+      border: none;
+      border-radius: 999px;
+      color: var(--md-on-primary);
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.2s var(--motion), transform 0.2s var(--motion);
+    }
+
+    /* Shrink the Buy Me A Coffee button */
+    .bmc-btn {
+      transform: scale(0.525);
+      transform-origin: left bottom;
+      margin-top: 10px;
+    }
 
 
-  .add-btn:hover { background: var(--accent2); }
+    .add-btn:hover {
+      background: var(--accent2);
+    }
 
-  /* Table */
-  .table-card {
-    background: var(--bg2);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius);
-    overflow: hidden;
-    margin-bottom: 1.5rem;
-  }
-  .table-toolbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.75rem 1rem;
-    border-bottom: 0.5px solid var(--border);
-    gap: 10px;
-  }
-  .table-toolbar-left { display: flex; align-items: center; gap: 8px; }
-  .search-input {
-    background: var(--bg3);
-    border: 0.5px solid var(--border);
-    border-radius: 6px;
-    color: var(--text);
-    font-family: var(--sans);
-    font-size: 12px;
-    padding: 5px 10px;
-    outline: none;
-    width: 180px;
-    transition: border-color 0.2s;
-  }
-  .search-input:focus { border-color: var(--accent); }
-  .search-input::placeholder { color: var(--muted); }
-  .export-btn {
-    background: none;
-    border: 0.5px solid var(--border2);
-    border-radius: 6px;
-    color: var(--muted);
-    font-family: var(--mono);
-    font-size: 11px;
-    padding: 5px 12px;
-    cursor: pointer;
-    transition: all 0.2s;
-    white-space: nowrap;
-  }
-  .export-btn:hover { border-color: var(--accent); color: var(--accent); }
-  table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  th {
-    font-size: 10px;
-    font-family: var(--mono);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--muted);
-    text-align: left;
-    padding: 8px 12px;
-    border-bottom: 0.5px solid var(--border);
-    cursor: pointer;
-    user-select: none;
-    white-space: nowrap;
-  }
-  th:hover { color: var(--text); }
-  th .sort-arrow { margin-left: 4px; opacity: 0.4; }
-  th.sorted .sort-arrow { opacity: 1; color: var(--accent); }
-  td {
-    padding: 9px 12px;
-    border-bottom: 0.5px solid var(--border);
-    font-size: 13px;
-    vertical-align: middle;
-  }
-  tr:last-child td { border-bottom: none; }
-  tr:hover td { background: rgba(255,255,255,0.02); }
-  .td-name { font-weight: 500; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .td-date { font-family: var(--mono); font-size: 12px; color: var(--muted); }
-  .td-pay { font-family: var(--mono); color: var(--accent); font-weight: 500; }
-  .td-time { font-family: var(--mono); font-size: 12px; color: var(--muted); }
-  .rate-badge {
-    font-size: 10px;
-    font-family: var(--mono);
-    padding: 2px 8px;
-    border-radius: 99px;
-    white-space: nowrap;
-  }
-  .rate-good { background: rgba(0,212,160,0.12); color: var(--accent); border: 0.5px solid rgba(0,212,160,0.2); }
-  .rate-ok { background: rgba(245,166,35,0.12); color: var(--amber); border: 0.5px solid rgba(245,166,35,0.2); }
-  .rate-low { background: rgba(224,82,82,0.12); color: var(--red); border: 0.5px solid rgba(224,82,82,0.2); }
-  .status-badge {
-    font-size: 10px;
-    font-family: var(--mono);
-    padding: 2px 8px;
-    border-radius: 99px;
-  }
-  .status-approved { background: rgba(0,212,160,0.1); color: var(--accent); }
-  .status-awaiting { background: rgba(91,156,246,0.1); color: var(--blue); }
-  .status-rejected { background: rgba(224,82,82,0.1); color: var(--red); }
-  .del-btn {
-    background: none;
-    border: none;
-    color: var(--muted);
-    cursor: pointer;
-    font-size: 13px;
-    padding: 2px 6px;
-    border-radius: 4px;
-    transition: all 0.15s;
-    font-family: var(--mono);
-  }
-  .del-btn:hover { background: rgba(224,82,82,0.15); color: var(--red); }
-  .empty-state {
-    text-align: center;
-    padding: 3rem;
-    color: var(--muted);
-    font-size: 13px;
-    font-family: var(--mono);
-  }
-  .entry-count {
-    font-size: 11px;
-    font-family: var(--mono);
-    color: var(--muted);
-    white-space: nowrap;
-  }
+    /* Table */
+    .table-card {
+      background: var(--md-surface-container-low);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
 
-  /* Chart */
-  .chart-card {
-    background: var(--bg2);
-    border: 0.5px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1.25rem;
-  }
-  .chart-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1rem;
-  }
-  .chart-title { font-size: 11px; font-family: var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
-  .chart-legend { display: flex; gap: 12px; }
-  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; font-family: var(--mono); color: var(--muted); }
-  .legend-dot { width: 8px; height: 8px; border-radius: 2px; }
+    .table-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border);
+      gap: 10px;
+    }
 
-  .chart-range-tabs { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
-  .chart-range-btn {
-    background: none;
-    border: 0.5px solid var(--border);
-    border-radius: 6px;
-    color: var(--muted);
-    font-family: var(--mono);
-    font-size: 11px;
-    padding: 5px 10px;
-    cursor: pointer;
-    transition: all 0.2s;
-    white-space: nowrap;
-  }
-  .chart-range-btn:hover { border-color: var(--border2); color: var(--text); }
-  .chart-range-btn.active {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: #000;
-    font-weight: 600;
-  }
+    .table-toolbar-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-  .table-pagination {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    padding: 10px 12px;
-    border-top: 0.5px solid var(--border);
-  }
-  .page-btn {
-    background: none;
-    border: 0.5px solid var(--border2);
-    border-radius: 6px;
-    color: var(--muted);
-    font-family: var(--mono);
-    font-size: 12px;
-    padding: 6px 12px;
-    cursor: pointer;
-    transition: all 0.2s;
-    white-space: nowrap;
-  }
-  .page-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .page-btn:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
-    border-color: var(--border);
-  }
-  .page-label { font-family: var(--mono); font-size: 12px; color: var(--muted); white-space: nowrap; }
+    .search-input {
+      background: var(--md-surface-container);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 12px;
+      padding: 7px 12px;
+      outline: none;
+      width: 180px;
+      transition: border-color 0.2s var(--motion), background 0.2s var(--motion);
+    }
 
-  /* Responsive */
-  @media (max-width: 700px) {
-    .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .add-row { grid-template-columns: 1fr 1fr; }
-    .add-row > *:nth-child(1) { grid-column: span 2; }
-    .add-row > *:nth-child(6) { grid-column: span 2; }
-    .add-btn { width: 100%; }
-    .header { flex-direction: column; align-items: flex-start; gap: 10px; }
-  }
+    .search-input:focus {
+      border-color: var(--accent);
+    }
 
-  /* Scrollbar */
-  ::-webkit-scrollbar { width: 6px; height: 6px; }
-  ::-webkit-scrollbar-track { background: var(--bg2); }
-  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+    .search-input::placeholder {
+      color: var(--muted);
+    }
 
-  /* Confirm dialog */
-  .confirm-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.7);
-    z-index: 100;
-    align-items: center;
-    justify-content: center;
-  }
-  .confirm-overlay.open { display: flex; }
-  .confirm-box {
-    background: var(--bg2);
-    border: 0.5px solid var(--border2);
-    border-radius: var(--radius-lg);
-    padding: 1.5rem;
-    max-width: 340px;
-    width: 90%;
-    text-align: center;
-  }
-  .confirm-box h3 { font-size: 16px; margin-bottom: 8px; }
-  .confirm-box p { font-size: 13px; color: var(--muted); margin-bottom: 1.25rem; }
-  .confirm-btns { display: flex; gap: 8px; justify-content: center; }
-  .btn-cancel {
-    padding: 7px 20px;
-    background: none;
-    border: 0.5px solid var(--border2);
-    border-radius: 6px;
-    color: var(--text);
-    cursor: pointer;
-    font-family: var(--sans);
-    font-size: 13px;
-  }
-  .btn-danger {
-    padding: 7px 20px;
-    background: var(--red);
-    border: none;
-    border-radius: 6px;
-    color: #fff;
-    cursor: pointer;
-    font-family: var(--sans);
-    font-size: 13px;
-  }
-</style>
+    .export-btn {
+      background: var(--md-surface-container);
+      border: 1px solid var(--border2);
+      border-radius: 999px;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 7px 14px;
+      cursor: pointer;
+      transition: all 0.2s var(--motion);
+      white-space: nowrap;
+    }
+
+    .export-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th {
+      font-size: 10px;
+      font-family: var(--mono);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      text-align: left;
+      padding: 8px clamp(4px, 0.8vw, 12px);
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    th:hover {
+      color: var(--text);
+    }
+
+    th .sort-arrow {
+      margin-left: 4px;
+      opacity: 0.4;
+    }
+
+    th.sorted .sort-arrow {
+      opacity: 1;
+      color: var(--accent);
+    }
+
+    td {
+      padding: 9px clamp(4px, 0.8vw, 12px);
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+      vertical-align: middle;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: color-mix(in srgb, var(--md-primary-container) 13%, transparent);
+    }
+
+    .td-name {
+      font-weight: 500;
+      max-width: clamp(80px, 12vw, 220px);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .td-date {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .td-pay {
+      font-family: var(--mono);
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    .td-time {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .rate-badge {
+      font-size: 10px;
+      font-family: var(--mono);
+      padding: 2px 8px;
+      border-radius: 99px;
+      white-space: nowrap;
+    }
+
+    .rate-good {
+      background: var(--md-primary-container);
+      color: var(--md-on-primary-container);
+      border: 1px solid color-mix(in srgb, var(--md-primary) 22%, transparent);
+    }
+
+    .rate-ok {
+      background: color-mix(in srgb, var(--amber) 18%, transparent);
+      color: var(--amber);
+      border: 1px solid color-mix(in srgb, var(--amber) 24%, transparent);
+    }
+
+    .rate-low {
+      background: var(--md-error-container);
+      color: var(--md-on-error-container);
+      border: 1px solid color-mix(in srgb, var(--md-error) 22%, transparent);
+    }
+
+    .status-badge {
+      font-size: 10px;
+      font-family: var(--mono);
+      padding: 2px 8px;
+      border-radius: 99px;
+      white-space: nowrap;
+    }
+
+    .status-approved {
+      background: var(--md-primary-container);
+      color: var(--md-on-primary-container);
+    }
+
+    .status-awaiting {
+      background: var(--md-secondary-container);
+      color: var(--md-on-secondary-container);
+    }
+
+    .status-rejected {
+      background: var(--md-error-container);
+      color: var(--md-on-error-container);
+    }
+
+    .del-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 13px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      transition: all 0.15s var(--motion);
+      font-family: var(--mono);
+    }
+
+    .del-btn:hover {
+      background: var(--md-error-container);
+      color: var(--md-on-error-container);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem;
+      color: var(--muted);
+      font-size: 13px;
+      font-family: var(--mono);
+    }
+
+    .entry-count {
+      font-size: 11px;
+      font-family: var(--mono);
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    /* Chart */
+    .chart-card {
+      background: var(--md-surface-container-low);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+    }
+
+    .chart-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .chart-title {
+      font-size: 11px;
+      font-family: var(--mono);
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .chart-legend {
+      display: flex;
+      gap: 12px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-family: var(--mono);
+      color: var(--muted);
+    }
+
+    .legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+    }
+
+    .chart-range-tabs {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      padding: 4px;
+      border-radius: 999px;
+      background: var(--md-surface-container);
+    }
+
+    .chart-range-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 999px;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 5px 10px;
+      cursor: pointer;
+      transition: all 0.2s var(--motion);
+      white-space: nowrap;
+    }
+
+    .chart-range-btn:hover {
+      border-color: var(--border2);
+      color: var(--text);
+    }
+
+    .chart-range-btn.active {
+      background: var(--md-primary-container);
+      border-color: var(--md-primary-container);
+      color: var(--md-on-primary-container);
+      font-weight: 600;
+    }
+
+    .status-summary-card {
+      background: var(--md-surface-container-low);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+    }
+
+    .status-summary-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .status-summary-title {
+      font-size: 11px;
+      font-family: var(--mono);
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .status-summary-sub {
+      font-size: 11px;
+      font-family: var(--mono);
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .status-summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .status-summary-item {
+      background: var(--md-surface-container);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px;
+      min-width: 0;
+    }
+
+    .status-summary-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      font-size: 10px;
+      font-family: var(--mono);
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 5px;
+    }
+
+    .status-summary-count {
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 18px;
+      font-weight: 600;
+      line-height: 1.2;
+    }
+
+    .status-summary-amount {
+      color: var(--accent);
+      font-family: var(--mono);
+      font-size: 12px;
+      margin-top: 2px;
+    }
+
+    .table-pagination {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .page-btn {
+      background: var(--md-surface-container);
+      border: 1px solid var(--border2);
+      border-radius: 999px;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 12px;
+      padding: 6px 12px;
+      cursor: pointer;
+      transition: all 0.2s var(--motion);
+      white-space: nowrap;
+    }
+
+    .page-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .page-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      border-color: var(--border);
+    }
+
+    .page-label {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    /* Responsive */
+    @media (max-width: 700px) {
+      .metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .status-summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .status-summary-header {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .add-row {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .add-row>*:nth-child(1) {
+        grid-column: span 2;
+      }
+
+      .add-row>*:nth-child(6) {
+        grid-column: span 2;
+      }
+
+      .add-btn {
+        width: 100%;
+      }
+
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg2);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border2);
+      border-radius: 3px;
+    }
+
+    /* Confirm dialog */
+    .confirm-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: var(--md-scrim);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .confirm-overlay.open {
+      display: flex;
+    }
+
+    .confirm-box {
+      background: var(--md-surface-container-high);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      max-width: 340px;
+      width: 90%;
+      text-align: center;
+    }
+
+    .confirm-box h3 {
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+
+    .confirm-box p {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 1.25rem;
+    }
+
+    .confirm-btns {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .btn-cancel {
+      padding: 7px 20px;
+      background: var(--md-surface-container);
+      border: 1px solid var(--border2);
+      border-radius: 999px;
+      color: var(--text);
+      cursor: pointer;
+      font-family: var(--sans);
+      font-size: 13px;
+    }
+
+    .btn-danger {
+      padding: 7px 20px;
+      background: var(--md-error);
+      border: none;
+      border-radius: 999px;
+      color: var(--md-on-error);
+      cursor: pointer;
+      font-family: var(--sans);
+      font-size: 13px;
+    }
+
+    /* Floating Action Button (FAB) */
+    .fab {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      background: var(--md-primary-container);
+      color: var(--md-on-primary-container);
+      border: none;
+      box-shadow: 0 4px 16px var(--md-shadow), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      transition: transform 0.2s var(--motion), background 0.2s var(--motion), box-shadow 0.2s var(--motion);
+    }
+
+    .fab:hover {
+      background: var(--accent);
+      color: var(--md-on-primary);
+      transform: translateY(-4px) scale(1.05);
+      box-shadow: 0 8px 24px var(--md-shadow);
+    }
+
+    .fab:active {
+      transform: scale(0.95);
+    }
+
+    /* Import Modal and Backdrop Blur overlay */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s var(--motion);
+    }
+
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-card {
+      background: var(--md-surface-container-high);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius-lg);
+      padding: 2.25rem 2rem 1.75rem;
+      width: 90%;
+      max-width: 500px;
+      position: relative;
+      box-shadow: 0 12px 36px var(--md-shadow);
+      transform: scale(0.92);
+      transition: transform 0.3s var(--motion);
+    }
+
+    .modal-overlay.open .modal-card {
+      transform: scale(1);
+    }
+
+    .modal-close-btn {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      background: none;
+      border: none;
+      font-size: 16px;
+      color: var(--muted);
+      cursor: pointer;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      transition: background 0.2s var(--motion), color 0.2s var(--motion);
+    }
+
+    .modal-close-btn:hover {
+      background: var(--md-surface-container);
+      color: var(--text);
+    }
+
+    /* Material You Theme Presets & Color Picker */
+    .seed-pill {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      box-shadow: 0 2px 6px var(--md-shadow);
+      transition: transform 0.2s var(--motion), border-color 0.2s var(--motion);
+      padding: 0;
+      outline: none;
+    }
+
+    .seed-pill:hover {
+      transform: scale(1.15);
+    }
+
+    .seed-pill.active {
+      border-color: var(--text);
+      transform: scale(1.15);
+      box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--text);
+    }
+
+    .color-picker-wrapper {
+      position: relative;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      overflow: hidden;
+      background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px var(--md-shadow);
+      transition: transform 0.2s var(--motion), border-color 0.2s var(--motion);
+    }
+
+    .color-picker-wrapper:hover {
+      transform: scale(1.15);
+    }
+
+    .color-picker-wrapper input[type="color"] {
+      position: absolute;
+      top: -5px;
+      left: -5px;
+      width: 38px;
+      height: 38px;
+      opacity: 0;
+      cursor: pointer;
+    }
+  </style>
 </head>
+
 <body>
-<div class="app">
+  <div class="app">
 
-  <div class="header">
-    <div class="header-left">
-		<h1>Prolific Tracker</h1>
-		<p id="lastUpdated">last updated 29 Mar</p>
-		<a class="export-btn" href="https://psychedelicwave69.github.io/ProlificTracker/changelog.html" style="display:inline-block; margin-top:8px;">Changelog</a>
-		<a class="export-btn" href="https://www.reddit.com/user/Cold-Appearance-3400/" target="_blank" style="display:inline-block; margin-top:8px; margin-left:4px;">Feedback</a>
-		<div style="margin-top: 5px;">
-			<script type="text/javascript" src="./index_files/button.prod.min.js.download" data-name="bmc-button" data-slug="psychedelicwave" data-color="#40DCA5" data-emoji="☕" data-font="Cookie" data-text="Buy me a coffee" data-outline-color="#000000" data-font-color="#ffffff" data-coffee-color="#FFDD00"></script><style>.bmc-btn svg {
-    height: 32px !important;
-    margin-bottom: 0px !important;
-    box-shadow: none !important;
-    border: none !important;
-    vertical-align: middle !important;
-    transform: scale(0.9);
-    flex-shrink: 0;
-}
-
-.bmc-btn {
-    min-width: 210px;
-    color: #ffffff !important;
-    background-color: #40DCA5 !important;
-    height: 60px;
-    border-radius: 12px;
-    font-size: 28px;
-    font-weight: Normal;
-    border: none;
-    padding: 0px 24px;
-    line-height: 27px;
-    text-decoration: none !important;
-    display: inline-flex !important;
-    align-items: center;
-    font-family: 'Cookie', cursive !important;
-    -webkit-box-sizing: border-box !important;
-    box-sizing: border-box !important;
-}
-
-.bmc-btn:hover, .bmc-btn:active, .bmc-btn:focus {
-    text-decoration: none !important;
-    cursor: pointer;
-}
-
-.bmc-btn-text {
-   text-align: left;
-   margin-left: 8px;
-   display: inline-block;
-   line-height: 0;
-   width: 100%;
-   flex-shrink: 0;
-   font-family: [FONT] !important;
-   white-space: nowrap;
-}
-
-.logo-outline {
-    fill: #000000;
-}
-
-.logo-coffee {
-    fill: #FFDD00;
-}</style><link href="./index_files/css" rel="stylesheet"><div class="bmc-btn-container"><a class="bmc-btn" target="_blank" href="https://buymeacoffee.com/psychedelicwave">☕<span class="bmc-btn-text">Buy me a coffee</span></a></div>
-
-		</div>
-	</div>
-    <div style="display:flex;align-items:center;gap:6px;">
-      <select class="currency-select" id="currencySelect" onchange="setCurrency(this.value)">
-        <option value="GBP">🇬🇧 GBP</option>
-        <option value="USD">🇺🇸 USD</option>
-        <option value="EUR">🇪🇺 EUR</option>
-        <option value="SAR">🇸🇦 SAR</option>
-      </select>
-      <span class="rate-status" id="rateStatus">···</span>
-    </div>
-  </div>
-
-  <div class="metrics">
-    <div class="metric" id="metricEarnedCard">
-      <div class="metric-label">Total earned</div>
-      <div class="metric-value green" id="metricEarned">£32.03</div>
-      <div class="metric-sub" id="metricEarnedSub">this week</div>
-    </div>
-    <div class="metric">
-      <div class="metric-label">Total bonuses</div>
-      <div class="metric-value" style="color: var(--accent);" id="metricBonus">£0.00</div>
-      <div class="metric-sub" id="metricBonusSub">this week</div>
-    </div>
-    <div class="metric">
-      <div class="metric-label">Time spent</div>
-      <div class="metric-value" id="metricTime">2h 55m</div>
-      <div class="metric-sub" id="metricTimeSub">this week</div>
-    </div>
-    <div class="metric">
-      <div class="metric-label">Avg hourly rate</div>
-      <div class="metric-value" id="metricRate">£10.98</div>
-      <div class="metric-sub">Prolific min: £6/hr</div>
-    </div>
-    <div class="metric">
-      <div class="metric-label">Studies done</div>
-      <div class="metric-value" id="metricStudies">16</div>
-      <div class="metric-sub" id="metricStudiesSub">this week</div>
-    </div>
-  </div>
-
-  <div class="goal-card">
-    <span class="goal-label">Weekly goal</span>
-    <div class="goal-input-wrap">
-      <span id="goalSymbol">£</span>
-      <input type="number" class="goal-input" id="goalInput" value="60" min="1" step="1" oninput="updateGoal()">
-    </div>
-    <div class="progress-track" style="flex:1; min-width: 80px;">
-      <div class="progress-fill" id="progressFill" style="width: 32%;"></div>
-    </div>
-    <span class="progress-text" id="progressText">£32.03 / £100.00</span>
-  </div>
-
-  <div class="controls">
-    <div class="week-nav">
-      <button class="nav-btn" onclick="changeWeek(-1)">‹</button>
-      <span class="week-label" id="weekLabel">23 Mar – 29 Mar</span>
-      <button class="nav-btn" onclick="changeWeek(1)">›</button>
-    </div>
-    <div class="tabs">
-      <button class="tab active" onclick="switchTab(&#39;week&#39;, this)">Week</button>
-      <button class="tab" onclick="switchTab(&#39;month&#39;, this)">Month</button>
-      <button class="tab" onclick="switchTab(&#39;all&#39;, this)">All time</button>
-    </div>
-  </div>
-
-  <div class="import-zone" id="importZone">
-    <div class="import-icon">📥</div>
-    <div class="import-title">Import from Prolific CSV</div>
-    <div class="import-sub">Drag &amp; drop your CSV here, or use the buttons below</div>
-    <div class="import-actions">
-      <label class="import-file-btn">
-        Browse file
-        <input type="file" accept=".csv" id="csvInput" onchange="handleFileInput(this)" style="display:none;">
-      </label>
-      <a class="import-link-btn" href="https://app.prolific.com/submissions" target="_blank">Download from Prolific ↗</a>
-    </div>
-    <div class="import-toast" id="importToast"></div>
-  </div>
-
-  <div class="add-card">
-    <div class="add-card-header">Add study manually</div>
-    <div class="add-row">
-      <div>
-        <div class="field-label">Study name</div>
-        <input type="text" class="field-input" id="studyName" placeholder="e.g. Memory &amp; attention task">
-      </div>
-      <div>
-        <div class="field-label" id="payFieldLabel">Pay (£)</div>
-        <input type="number" class="field-input" id="studyPay" placeholder="0.00" min="0" step="0.01">
-      </div>
-      <div>
-        <div class="field-label">Bonus (£)</div>
-        <input type="number" class="field-input" id="studyBonus" placeholder="0.00" min="0" step="0.01">
-      </div>
-      <div>
-        <div class="field-label">Minutes</div>
-        <input type="number" class="field-input" id="studyMins" placeholder="0" min="1" step="1">
-      </div>
-      <div>
-        <div class="field-label">Date</div>
-        <input type="date" class="field-input" id="studyDate">
-      </div>
-      <div style="display:flex; align-items:flex-end;">
-        <button class="add-btn" onclick="addManual()">+ Add</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="table-card">
-    <div class="table-toolbar">
-      <div class="table-toolbar-left">
-        <input type="text" class="search-input" id="searchInput" placeholder="Search studies..." oninput="render()">
-        <span class="entry-count" id="entryCount">16 studies</span>
-      </div>
-      <div style="display:flex; gap:6px;">
-        <button class="export-btn" onclick="exportCSV()">Export CSV</button>
-        <button class="export-btn" onclick="confirmClearAll()" style="color: var(--red); border-color: rgba(224,82,82,0.3);">Clear all</button>
-      </div>
-    </div>
-    <div id="tableContainer"><div style="overflow-x:auto;"><table>
-      <thead><tr>
-        <th class="" onclick="setSort(&#39;name&#39;)">Study <span class="sort-arrow">↕</span></th>
-        <th class="sorted" onclick="setSort(&#39;date&#39;)">Date <span class="sort-arrow">↓</span></th>
-        <th class="" onclick="setSort(&#39;pay&#39;)">Pay <span class="sort-arrow">↕</span></th>
-        <th class="" onclick="setSort(&#39;mins&#39;)">Time <span class="sort-arrow">↕</span></th>
-        <th class="" onclick="setSort(&#39;rate&#39;)">Rate <span class="sort-arrow">↕</span></th>
-        <th>Status</th>
-        <th></th>
-      </tr></thead>
-      <tbody>
-      <tr>
-          <td class="td-name" title="Factors influencing alcohol drinking motivation">Factors influencing alcohol drinking motivation</td>
-          <td class="td-date">25 Mar</td>
-          <td class="td-pay">£3.00</td>
-          <td class="td-time">18m</td>
-          <td><span class="rate-badge rate-good">£10.00/hr</span></td>
-          <td><span class="status-badge status-awaiting">Awaiting</span></td>
-          <td><button class="del-btn" onclick="deleteEntry(1774456675179)">✕</button></td>
-        </tr><tr>
-          <td class="td-name" title="3 min experiment on the perception of faces">3 min experiment on the perception of faces</td>
-          <td class="td-date">25 Mar</td>
-          <td class="td-pay">£0.78</td>
-          <td class="td-time">2m</td>
-          <td><span class="rate-badge rate-good">£23.40/hr</span></td>
-          <td><span class="status-badge status-awaiting">Awaiting</span></td>
-          <td><button class="del-btn" onclick="deleteEntry(1774456675180)">✕</button></td>
-        </tr><tr>
-          <td class="td-name" title="Experiences at Work">Experiences at Work</td>
-          <td class="td-date">25 Mar</td>
-          <td class="td-pay">£1.50</td>
-          <td class="td-time">5m</td>
-          <td><span class="rate-badge rate-good">£18.00/hr</span></td>
-          <td><span class="status-badge status-awaiting">Awaiting</span></td>
-          <td><button class="del-btn" onclick="deleteEntry(1774456675181)">✕</button></td>
-        </tr><tr>
-          <td class="td-name" title="Study about your beliefs">Study about your beliefs</td>
-          <td class="td-date">25 Mar</td>
-          <td class="td-pay">£0.66</td>
-          <td class="td-time">4m</td>
-          <td><span class="rate-badge rate-good">£9.88/hr</span></td>
-          <td><span class="status-badge status-awaiting">Awaiting</span></td>
-          <td><button class="del-btn" onclick="deleteEntry(1774456675183)">✕</button></td>
-        </tr><tr>
-          <td class="td-name" title="Study on decision making (additional bonus up to 3.2 GBP)">Study on decision making (additional bonus up to 3.2 GBP)</td>
-          <td class="td-date">25 Mar</td>
-          <td class="td-pay">£2.50</td>
-          <td class="td-time">19m</td>
-          <td><span class="rate-badge rate-ok">£7.89/hr</span></td>
-          <td><span class="status-badge status-approved">Approved</span></td>
-          <td><button class="del-btn" onclick="deleteEntry(1774456675185)">✕</button></td>
-        </tr><tr>
-          <td class="td-name" title="Feeding PAC-MAN (THIS STUDY INCLUDES A VIDEO CALL)">Feeding PAC-MAN (THIS STUDY INCLUDES A VIDEO CALL)</td>
-          <td class="td-date">25 Mar</td>
-          <td class="td-pay">£4.00</td>
-          <td class="td-time">32m</td>
-          <td><span class="rate-badge rate-ok">£7.50/hr</span></td>
-          <td><span class="status-badge status-awaiting">Awaiting</span></td>
-          <td><button class="del-btn" onclick="deleteEntry(1774456675186)">✕</button></td>
-        </tr><tr>
-          <td class="td-name" title="Video Evaluatio">Video Evaluatio</td>
-          <td class="td-date">25 Mar</td>
-          <td class="td-pay">£0.35</td>
-          <td class="td-time">17m</td>
-          <td><span class="rate-badge rate-low">£1.24/hr</span></td>
-          <td><span class="status-badge status-awaiting">Awaiting</span></td>
-          <td><button class="del-btn" onclick="deleteEntry(1774456675187)">✕</button></td>
-        </tr><tr>
-          <td class="td-name" title="UK Economic Trends">UK Economic Trends</td>
-          <td class="td-date">24 Mar</td>
-          <td class="td-pay">£2.13</td>
-          <td class="td-time">8m</td>
-          <td><span class="rate-badge rate-good">£15.99/hr</span></td>
-          <td><span class="status-badge status-approved">Approved</span></td>
-          <td><button class="del-btn" onclick="deleteEntry(1774456675188)">✕</button></td>
-        </tr><tr>
-          <td class="td-name" title="Bystanders in public harassment">Bystanders in public harassment</td>
-          <td class="td-date">24 Mar</td>
-          <td class="td-pay">£4.50</td>
-          <td class="td-time">14m</td>
-          <td><span class="rate-badge rate-good">£19.29/hr</span></td>
-          <td><span class="status-badge status-approved">Approved</span></td>
-          <td><button class="del-btn" onclick="deleteEntry(1774456675190)">✕</button></td>
-        </tr><tr>
-          <td class="td-name" title="Image Labeling">Image Labeling</td>
-          <td class="td-date">24 Mar</td>
-          <td class="td-pay">£3.88</td>
-          <td class="td-time">11m</td>
-          <td><span class="rate-badge rate-good">£21.14/hr</span></td>
-          <td><span class="status-badge status-awaiting">Awaiting</span></td>
-          <td><button class="del-btn" onclick="deleteEntry(1774456675192)">✕</button></td>
-        </tr>
-      </tbody>
-    </table></div>
-        <div class="table-pagination">
-          <button class="page-btn" onclick="setTablePage(0)" disabled="">Prev</button>
-          <span class="page-label">Page 1 / 2</span>
-          <button class="page-btn" onclick="setTablePage(2)">Next</button>
+    <div class="header">
+      <div class="header-left">
+        <h1>EarnTrack</h1>
+        <div style="margin-top: 5px; font-size: 11px; color: var(--muted); font-family: var(--mono);" id="lastUpdated">
         </div>
       </div>
-  </div>
+      <div class="header-actions" style="display:flex; gap:10px;">
+        <button class="settings-btn" onclick="openChangelogModal()" title="View Changelog" type="button">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+          <span>Changelog</span>
+        </button>
 
-  <div class="chart-card">
-    <div class="chart-header">
-      <span class="chart-title" id="chartTitle">Monthly earnings — last 12 months</span>
-      <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap; justify-content:flex-end;">
-        <div class="chart-legend">
-          <div class="legend-item"><div class="legend-dot" style="background: #00d4a0;"></div>Earnings</div>
+        <button class="settings-btn" onclick="openSettingsModal()" title="Open Settings" type="button">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path
+              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z">
+            </path>
+          </svg>
+          <span>Settings</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+      <div class="week-nav">
+        <button class="nav-btn" onclick="changeWeek(-1)">‹</button>
+        <span class="week-label" id="weekLabel">23 Mar – 29 Mar</span>
+        <button class="nav-btn" onclick="changeWeek(1)">›</button>
+      </div>
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab(&#39;week&#39;, this)">Week</button>
+        <button class="tab" onclick="switchTab(&#39;month&#39;, this)">Month</button>
+        <button class="tab" onclick="switchTab(&#39;all&#39;, this)">All time</button>
+      </div>
+    </div>
+
+    <div class="dashboard-grid">
+      <div class="dashboard-left">
+        <!-- Chart Card -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <span class="chart-title" id="chartTitle">Monthly earnings — last 12 months</span>
+            <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap; justify-content:flex-end;">
+              <div class="chart-legend">
+                <div class="legend-item">
+                  <div class="legend-dot" style="background: var(--accent);"></div>Earnings
+                </div>
+              </div>
+              <div class="chart-range-tabs" aria-label="Chart range">
+                <button id="chartRange14d" class="chart-range-btn" onclick="setChartRange(&#39;14d&#39;)">Daily</button>
+                <button id="chartRange12m" class="chart-range-btn active"
+                  onclick="setChartRange(&#39;12m&#39;)">Monthly</button>
+                <button id="chartRange5y" class="chart-range-btn" onclick="setChartRange(&#39;5y&#39;)">Yearly</button>
+              </div>
+            </div>
+          </div>
+          <div style="position: relative; width: 100%; height: 180px;">
+            <canvas id="earningsChart" style="display: block; box-sizing: border-box; height: 180px; width: 870px;"
+              width="870" height="180"></canvas>
+          </div>
         </div>
-        <div class="chart-range-tabs" aria-label="Chart range">
-          <button id="chartRange14d" class="chart-range-btn" onclick="setChartRange(&#39;14d&#39;)">Daily</button>
-          <button id="chartRange12m" class="chart-range-btn active" onclick="setChartRange(&#39;12m&#39;)">Monthly</button>
-          <button id="chartRange5y" class="chart-range-btn" onclick="setChartRange(&#39;5y&#39;)">Yearly</button>
+
+        <!-- Status Summary Card -->
+        <div class="status-summary-card">
+          <div class="status-summary-header">
+            <div class="status-summary-title">Status totals</div>
+            <div class="status-summary-sub">All time</div>
+          </div>
+          <div class="status-summary-grid" id="statusSummaryGrid"></div>
+        </div>
+
+        <!-- Table Card -->
+        <div class="table-card">
+          <div class="table-toolbar">
+            <div class="table-toolbar-left">
+              <input type="text" class="search-input" id="searchInput" placeholder="Search studies..."
+                oninput="render()">
+              <span class="entry-count" id="entryCount">16 studies</span>
+            </div>
+            <div style="display:flex; gap:6px;">
+              <button class="export-btn" onclick="exportCSV()">Export CSV</button>
+              <button class="export-btn" onclick="confirmClearAll()"
+                style="color: var(--red); border-color: color-mix(in srgb, var(--md-error) 32%, transparent);">Clear
+                all</button>
+            </div>
+          </div>
+          <div id="tableContainer">
+            <div style="overflow-x:auto;">
+              <table>
+                <thead>
+                  <tr>
+                    <th class="" onclick="setSort(&#39;name&#39;)">Study <span class="sort-arrow">↕</span></th>
+                    <th class="sorted" onclick="setSort(&#39;date&#39;)">Date <span class="sort-arrow">↓</span></th>
+                    <th class="" onclick="setSort(&#39;pay&#39;)">Pay <span class="sort-arrow">↕</span></th>
+                    <th class="" onclick="setSort(&#39;mins&#39;)">Time <span class="sort-arrow">↕</span></th>
+                    <th class="" onclick="setSort(&#39;rate&#39;)">Rate <span class="sort-arrow">↕</span></th>
+                    <th>Status</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="td-name" title="Factors influencing alcohol drinking motivation">Factors influencing
+                      alcohol drinking motivation</td>
+                    <td class="td-date">25 Mar</td>
+                    <td class="td-pay">£3.00</td>
+                    <td class="td-time">18m</td>
+                    <td><span class="rate-badge rate-good">£10.00/hr</span></td>
+                    <td><span class="status-badge status-awaiting">Awaiting</span></td>
+                    <td><button class="del-btn" onclick="deleteEntry(1774456675179)">✕</button></td>
+                  </tr>
+                  <tr>
+                    <td class="td-name" title="3 min experiment on the perception of faces">3 min experiment on the
+                      perception of faces</td>
+                    <td class="td-date">25 Mar</td>
+                    <td class="td-pay">£0.78</td>
+                    <td class="td-time">2m</td>
+                    <td><span class="rate-badge rate-good">£23.40/hr</span></td>
+                    <td><span class="status-badge status-awaiting">Awaiting</span></td>
+                    <td><button class="del-btn" onclick="deleteEntry(1774456675180)">✕</button></td>
+                  </tr>
+                  <tr>
+                    <td class="td-name" title="Experiences at Work">Experiences at Work</td>
+                    <td class="td-date">25 Mar</td>
+                    <td class="td-pay">£1.50</td>
+                    <td class="td-time">5m</td>
+                    <td><span class="rate-badge rate-good">£18.00/hr</span></td>
+                    <td><span class="status-badge status-awaiting">Awaiting</span></td>
+                    <td><button class="del-btn" onclick="deleteEntry(1774456675181)">✕</button></td>
+                  </tr>
+                  <tr>
+                    <td class="td-name" title="Study about your beliefs">Study about your beliefs</td>
+                    <td class="td-date">25 Mar</td>
+                    <td class="td-pay">£0.66</td>
+                    <td class="td-time">4m</td>
+                    <td><span class="rate-badge rate-good">£9.88/hr</span></td>
+                    <td><span class="status-badge status-awaiting">Awaiting</span></td>
+                    <td><button class="del-btn" onclick="deleteEntry(1774456675183)">✕</button></td>
+                  </tr>
+                  <tr>
+                    <td class="td-name" title="Study on decision making (additional bonus up to 3.2 GBP)">Study on
+                      decision making (additional bonus up to 3.2 GBP)</td>
+                    <td class="td-date">25 Mar</td>
+                    <td class="td-pay">£2.50</td>
+                    <td class="td-time">19m</td>
+                    <td><span class="rate-badge rate-ok">£7.89/hr</span></td>
+                    <td><span class="status-badge status-approved">Approved</span></td>
+                    <td><button class="del-btn" onclick="deleteEntry(1774456675185)">✕</button></td>
+                  </tr>
+                  <tr>
+                    <td class="td-name" title="Feeding PAC-MAN (THIS STUDY INCLUDES A VIDEO CALL)">Feeding PAC-MAN (THIS
+                      STUDY INCLUDES A VIDEO CALL)</td>
+                    <td class="td-date">25 Mar</td>
+                    <td class="td-pay">£4.00</td>
+                    <td class="td-time">32m</td>
+                    <td><span class="rate-badge rate-ok">£7.50/hr</span></td>
+                    <td><span class="status-badge status-awaiting">Awaiting</span></td>
+                    <td><button class="del-btn" onclick="deleteEntry(1774456675186)">✕</button></td>
+                  </tr>
+                  <tr>
+                    <td class="td-name" title="Video Evaluatio">Video Evaluatio</td>
+                    <td class="td-date">25 Mar</td>
+                    <td class="td-pay">£0.35</td>
+                    <td class="td-time">17m</td>
+                    <td><span class="rate-badge rate-low">£1.24/hr</span></td>
+                    <td><span class="status-badge status-awaiting">Awaiting</span></td>
+                    <td><button class="del-btn" onclick="deleteEntry(1774456675187)">✕</button></td>
+                  </tr>
+                  <tr>
+                    <td class="td-name" title="UK Economic Trends">UK Economic Trends</td>
+                    <td class="td-date">24 Mar</td>
+                    <td class="td-pay">£2.13</td>
+                    <td class="td-time">8m</td>
+                    <td><span class="rate-badge rate-good">£15.99/hr</span></td>
+                    <td><span class="status-badge status-approved">Approved</span></td>
+                    <td><button class="del-btn" onclick="deleteEntry(1774456675188)">✕</button></td>
+                  </tr>
+                  <tr>
+                    <td class="td-name" title="Bystanders in public harassment">Bystanders in public harassment</td>
+                    <td class="td-date">24 Mar</td>
+                    <td class="td-pay">£4.50</td>
+                    <td class="td-time">14m</td>
+                    <td><span class="rate-badge rate-good">£19.29/hr</span></td>
+                    <td><span class="status-badge status-approved">Approved</span></td>
+                    <td><button class="del-btn" onclick="deleteEntry(1774456675190)">✕</button></td>
+                  </tr>
+                  <tr>
+                    <td class="td-name" title="Image Labeling">Image Labeling</td>
+                    <td class="td-date">24 Mar</td>
+                    <td class="td-pay">£3.88</td>
+                    <td class="td-time">11m</td>
+                    <td><span class="rate-badge rate-good">£21.14/hr</span></td>
+                    <td><span class="status-badge status-awaiting">Awaiting</span></td>
+                    <td><button class="del-btn" onclick="deleteEntry(1774456675192)">✕</button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="table-pagination">
+              <button class="page-btn" onclick="setTablePage(0)" disabled="">Prev</button>
+              <span class="page-label">Page 1 / 2</span>
+              <button class="page-btn" onclick="setTablePage(2)">Next</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="dashboard-right">
+        <!-- Goal Progress Card -->
+        <div class="goal-card">
+          <span class="goal-label">Weekly Goal</span>
+          <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
+            <div class="progress-track" style="flex:1; min-width: 0;">
+              <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
+            </div>
+            <span class="progress-text" id="progressText">£0.00 / £60.00</span>
+          </div>
+        </div>
+
+        <!-- Metrics Card -->
+        <div class="metrics">
+          <div class="metric" id="metricEarnedCard">
+            <div class="metric-label">Total earned</div>
+            <div class="metric-value green" id="metricEarned">£32.03</div>
+            <div class="metric-sub" id="metricEarnedSub">this week</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Total bonuses</div>
+            <div class="metric-value" style="color: var(--accent);" id="metricBonus">£0.00</div>
+            <div class="metric-sub" id="metricBonusSub">this week</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Time spent</div>
+            <div class="metric-value" id="metricTime">2h 55m</div>
+            <div class="metric-sub" id="metricTimeSub">this week</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Avg hourly rate</div>
+            <div class="metric-value" id="metricRate">£10.98</div>
+            <div class="metric-sub" id="metricRateSub"></div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Studies done</div>
+            <div class="metric-value" id="metricStudies">16</div>
+            <div class="metric-sub" id="metricStudiesSub">this week</div>
+          </div>
+        </div>
+
+        <!-- Add Study Manually Card -->
+        <div class="add-card">
+          <div class="add-card-header">Add study manually</div>
+          <div class="add-row">
+            <div>
+              <div class="field-label">Study name</div>
+              <input type="text" class="field-input" id="studyName" placeholder="e.g. Memory &amp; attention task">
+            </div>
+            <div>
+              <div class="field-label" id="payFieldLabel">Pay (£)</div>
+              <input type="number" class="field-input" id="studyPay" placeholder="0.00" min="0" step="0.01">
+            </div>
+            <div>
+              <div class="field-label">Bonus (£)</div>
+              <input type="number" class="field-input" id="studyBonus" placeholder="0.00" min="0" step="0.01">
+            </div>
+            <div>
+              <div class="field-label">Minutes</div>
+              <input type="number" class="field-input" id="studyMins" placeholder="0" min="1" step="1">
+            </div>
+            <div>
+              <div class="field-label">Date</div>
+              <input type="date" class="field-input" id="studyDate">
+            </div>
+            <div style="display:flex; align-items:flex-end;">
+              <button class="add-btn" onclick="addManual()">+ Add</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-    <div style="position: relative; width: 100%; height: 180px;">
-      <canvas id="earningsChart" style="display: block; box-sizing: border-box; height: 180px; width: 870px;" width="870" height="180"></canvas>
+
+  </div>
+
+  <button class="fab" id="fabImport" onclick="openImportModal()" title="Import CSV data">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+      stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+      <polyline points="7 10 12 15 17 10"></polyline>
+      <line x1="12" y1="15" x2="12" y2="3"></line>
+    </svg>
+  </button>
+
+  <div class="modal-overlay" id="importModal" onclick="closeImportModalOnBackdrop(event)">
+    <div class="modal-card">
+      <button class="modal-close-btn" onclick="closeImportModal()">✕</button>
+      <div class="import-zone" id="importZone" style="margin-bottom: 0; border: none; background: none; padding: 0;">
+        <div class="import-icon">📥</div>
+        <div class="import-title">Import from Prolific or CloudResearch CSV</div>
+        <div class="import-sub">Drag &amp; drop your CSV here, or click Browse file</div>
+        <div class="import-actions">
+          <label class="import-file-btn">
+            Browse file
+            <input type="file" accept=".csv" id="csvInput" onchange="handleFileInput(this)" style="display:none;"
+              multiple="">
+          </label>
+        </div>
+        <div class="import-toast" id="importToast"></div>
+      </div>
     </div>
   </div>
 
-</div>
+  <div class="modal-overlay" id="settingsModal" onclick="closeSettingsModalOnBackdrop(event)">
+    <div class="modal-card" style="max-width: 420px;">
+      <button class="modal-close-btn" onclick="closeSettingsModal()">✕</button>
+      <h2
+        style="margin-top: 0; margin-bottom: 1.5rem; font-size: 1.25rem; font-weight: 600; color: var(--text); font-family: var(--sans);">
+        Settings</h2>
 
-<div class="confirm-overlay" id="confirmOverlay">
-  <div class="confirm-box">
-    <h3>Clear all data?</h3>
-    <p>This will permanently delete all your logged studies. This cannot be undone.</p>
-    <div class="confirm-btns">
-      <button class="btn-cancel" onclick="closeConfirm()">Cancel</button>
-      <button class="btn-danger" onclick="clearAll()">Clear all</button>
+      <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+        <!-- Theme Selection -->
+        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+          <label style="font-weight: 500; font-size: 13px; color: var(--text); font-family: var(--sans);">App
+            Theme</label>
+          <div class="theme-toggle" aria-label="Theme" style="align-self: flex-start;">
+            <button class="theme-btn" id="themeSystem" type="button" onclick="setThemeMode('system')">System</button>
+            <button class="theme-btn" id="themeLight" type="button" onclick="setThemeMode('light')">Light</button>
+            <button class="theme-btn" id="themeDark" type="button" onclick="setThemeMode('dark')">Dark</button>
+          </div>
+        </div>
+
+        <!-- Accent Color Selection -->
+        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+          <label style="font-weight: 500; font-size: 13px; color: var(--text); font-family: var(--sans);">Accent
+            Color</label>
+          <div class="color-presets" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <button type="button" class="seed-pill" data-hue="171" data-sat="100" style="background-color: #006b5d;"
+              onclick="applyThemeSeed(171, 100)" title="Classic Teal"></button>
+            <button type="button" class="seed-pill" data-hue="220" data-sat="85" style="background-color: #1a56db;"
+              onclick="applyThemeSeed(220, 85)" title="Material Indigo"></button>
+            <button type="button" class="seed-pill" data-hue="280" data-sat="75" style="background-color: #7e3af2;"
+              onclick="applyThemeSeed(280, 75)" title="Orchid Purple"></button>
+            <button type="button" class="seed-pill" data-hue="25" data-sat="90" style="background-color: #e55300;"
+              onclick="applyThemeSeed(25, 90)" title="Sunset Orange"></button>
+            <button type="button" class="seed-pill" data-hue="120" data-sat="70" style="background-color: #057a55;"
+              onclick="applyThemeSeed(120, 70)" title="Cactus Green"></button>
+            <button type="button" class="seed-pill" data-hue="340" data-sat="80" style="background-color: #e02424;"
+              onclick="applyThemeSeed(340, 80)" title="Blossom Pink"></button>
+
+            <div class="color-picker-wrapper" title="Choose custom color">
+              <input type="color" id="customColorPicker" oninput="handleCustomColorPickerInput(this.value)"
+                onchange="handleCustomColorPickerInput(this.value)">
+            </div>
+          </div>
+        </div>
+
+        <!-- Currency Selection -->
+        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+          <label style="font-weight: 500; font-size: 13px; color: var(--text); font-family: var(--sans);">Display
+            Currency</label>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <select class="currency-select" id="currencySelect" onchange="setCurrency(this.value)"
+              style="margin: 0; align-self: flex-start; background-color: var(--md-surface-container);">
+              <option value="GBP">🇬🇧 GBP</option>
+              <option value="USD">🇺🇸 USD</option>
+              <option value="EUR">🇪🇺 EUR</option>
+              <option value="SAR">🇸🇦 SAR</option>
+            </select>
+            <span class="rate-status" id="rateStatus" style="font-size: 11px;">···</span>
+          </div>
+        </div>
+
+        <!-- Weekly Goal Input -->
+        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+          <label style="font-weight: 500; font-size: 13px; color: var(--text); font-family: var(--sans);"
+            for="goalInput">Weekly Goal</label>
+          <div class="goal-input-wrap" style="align-self: flex-start;">
+            <span id="goalSymbol">£</span>
+            <input type="number" class="goal-input" id="goalInput" value="60" min="1" step="1" oninput="updateGoal()">
+          </div>
+          <span style="font-size: 11px; color: var(--muted); font-family: var(--sans);">Your weekly earnings target
+            (entered in your local currency).</span>
+        </div>
+
+        <!-- Minimum Wage Input -->
+        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+          <label style="font-weight: 500; font-size: 13px; color: var(--text); font-family: var(--sans);"
+            for="minWageInput">Minimum Wage</label>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <div class="goal-input-wrap">
+              <span id="minWageSymbol">£</span>
+              <input type="number" class="goal-input" id="minWageInput" value="" placeholder="—" min="0" step="0.01"
+                oninput="updateMinWage()">
+            </div>
+            <span style="font-size: 12px; color: var(--text); opacity: 0.7; font-family: var(--mono);">/hr</span>
+          </div>
+          <span style="font-size: 11px; color: var(--muted); font-family: var(--sans);">Used to color-code study hourly
+            rate badges (leave blank for Prolific default of £6.00/hr).</span>
+        </div>
+      </div>
     </div>
   </div>
-</div>
 
-<script>
-// ─── State ───────────────────────────────────────────────────────────────────
-let entries = JSON.parse(localStorage.getItem('prolific_entries') || '[]');
+  <div class="modal-overlay" id="changelogModal" onclick="closeChangelogModalOnBackdrop(event)">
+    <div class="modal-card" style="max-width: 520px; padding: 2.25rem 2rem 2rem;">
+      <button class="modal-close-btn" onclick="closeChangelogModal()">✕</button>
+      <h2
+        style="margin-top: 0; margin-bottom: 1.5rem; font-size: 1.25rem; font-weight: 600; color: var(--text); font-family: var(--sans);">
+        Changelog</h2>
 
-// Migration: ensure all entries have a bonus field
-entries = entries.map(e => {
-  if (e.bonus === undefined) {
-    e.bonus = 0;
-  }
-  return e;
-});
+      <div class="changelog-entries"
+        style="display: flex; flex-direction: column; max-height: 380px; overflow-y: auto; padding-right: 6px;">
 
-// Fallback rates used until live rates load
-const SYMBOLS  = { GBP: '£', USD: '$', EUR: '€', SAR: '﷼' };
-let RATES = { GBP: 1, USD: 1.29, EUR: 1.21, SAR: 4.84 };
-let ratesLoaded = false;
+        <!-- v2.0 (Newest) -->
+        <details class="changelog-item" name="changelog" open>
+          <summary>
+            <div class="changelog-header">
+              <span class="changelog-ver">v2.0</span>
+              <div style="display: flex; align-items: center; gap: 8px; margin-left: auto;">
+                <span class="changelog-date">2026-05-24</span>
+                <span class="changelog-icon">▼</span>
+              </div>
+            </div>
+          </summary>
+          <div class="changelog-content">
+            <ul>
+              <li><strong>CloudResearch CSV Support</strong>: Import CloudResearch CSV files! No longer only supports
+                Prolific.</li>
+              <li><strong>Redesigned UI</strong>: Completely overhauled UI with the addition of Light/Dark Mode, Accent
+                Colors, better use of widescreen, and more.</li>
+              <li><strong>Stacked Earnings Chart</strong>: Earnings chart now displays Pending (Awaiting Review) surveys
+                stacked in a dynamic secondary color on top of Approved.</li>
+              <li><strong>Custom Minimum Wage Configuration</strong>: Directly configure your minimum wage in your local
+                currency. Study rate badges color coding now based on your minimum wage.</li>
+              <li><strong>Status Totals</strong>: Added total status counts (Approved, Awaiting Review, Screened Out,
+                Rejected, etc.) to the dashboard..</li>
+            </ul>
+          </div>
+        </details>
 
-let currency = localStorage.getItem('prolific_currency') || 'GBP';
+        <!-- v1.3 (2026-04-02) -->
+        <details class="changelog-item" name="changelog">
+          <summary>
+            <div class="changelog-header">
+              <span class="changelog-ver">v1.3</span>
+              <div style="display: flex; align-items: center; gap: 8px; margin-left: auto;">
+                <span class="changelog-date">2026-04-02</span>
+                <span class="changelog-icon">▼</span>
+              </div>
+            </div>
+          </summary>
+          <div class="changelog-content">
+            <ul>
+              <li>Now showing bonuses (clear all then redrop your .csv to see changes).</li>
+            </ul>
+          </div>
+        </details>
 
-// Fetch live rates from frankfurter.app (free, no API key, updates daily)
-// Rates are cached in localStorage for 6 hours so we don't hammer the API
-async function loadRates() {
-  const CACHE_KEY  = 'prolific_rates';
-  const CACHE_TIME = 'prolific_rates_ts';
-  const SIX_HOURS  = 6 * 60 * 60 * 1000;
-  const statusEl   = document.getElementById('rateStatus');
-  try {
-    const cached = localStorage.getItem(CACHE_KEY);
-    const ts     = parseInt(localStorage.getItem(CACHE_TIME) || '0');
-    if (cached && Date.now() - ts < SIX_HOURS) {
-      RATES = JSON.parse(cached);
-      ratesLoaded = true;
-      if (statusEl) { statusEl.textContent = 'live'; statusEl.className = 'rate-status live'; }
-      render(); return;
+        <!-- v1.3 (2026-03-31) -->
+        <details class="changelog-item" name="changelog">
+          <summary>
+            <div class="changelog-header">
+              <span class="changelog-ver">v1.3</span>
+              <div style="display: flex; align-items: center; gap: 8px; margin-left: auto;">
+                <span class="changelog-date">2026-03-31</span>
+                <span class="changelog-icon">▼</span>
+              </div>
+            </div>
+          </summary>
+          <div class="changelog-content">
+            <ul>
+              <li>Added SAR and EUR support.</li>
+              <li>Integrated live currency exchange rates.</li>
+            </ul>
+          </div>
+        </details>
+
+        <!-- v1.3 (2026-03-29) -->
+        <details class="changelog-item" name="changelog">
+          <summary>
+            <div class="changelog-header">
+              <span class="changelog-ver">v1.3</span>
+              <div style="display: flex; align-items: center; gap: 8px; margin-left: auto;">
+                <span class="changelog-date">2026-03-29</span>
+                <span class="changelog-icon">▼</span>
+              </div>
+            </div>
+          </summary>
+          <div class="changelog-content">
+            <ul>
+              <li>Added feedback button to share issues and suggestions.</li>
+            </ul>
+          </div>
+        </details>
+
+        <!-- v1.2 (2026-03-26) -->
+        <details class="changelog-item" name="changelog">
+          <summary>
+            <div class="changelog-header">
+              <span class="changelog-ver">v1.2</span>
+              <div style="display: flex; align-items: center; gap: 8px; margin-left: auto;">
+                <span class="changelog-date">2026-03-26</span>
+                <span class="changelog-icon">▼</span>
+              </div>
+            </div>
+          </summary>
+          <div class="changelog-content">
+            <ul>
+              <li>Fixed screened out study rewards not showing up in certain edge cases.</li>
+            </ul>
+          </div>
+        </details>
+
+        <!-- v1.1 (2026-03-25) -->
+        <details class="changelog-item" name="changelog">
+          <summary>
+            <div class="changelog-header">
+              <span class="changelog-ver">v1.1</span>
+              <div style="display: flex; align-items: center; gap: 8px; margin-left: auto;">
+                <span class="changelog-date">2026-03-25</span>
+                <span class="changelog-icon">▼</span>
+              </div>
+            </div>
+          </summary>
+          <div class="changelog-content">
+            <ul>
+              <li>Fixed CSV import interpreting USD values as GBP (e.g. <code>$5</code> no longer shows as
+                <code>£5</code>).
+              </li>
+              <li>Converted imported money into the internal GBP base before saving.</li>
+              <li>Improved CSV column matching for reward/bonus headers that mention USD.</li>
+              <li>Added a small localStorage migration so existing weekly goal values display correctly after switching
+                currencies.</li>
+              <li>When toggling GBP/USD, the weekly goal input updates to show the correct numeric value for the
+                selected currency.</li>
+              <li>Paginated the studies table (Prev/Next) so long histories don’t push the charts too far down.</li>
+              <li>Added chart range tabs: Daily (14 days), Monthly (12 months), and Yearly (last 5 years).</li>
+              <li>Replaced the GBP/USD toggle with a currency dropdown: GBP, USD, and SAR.</li>
+              <li>Added an editable FX rate stored in localStorage per currency.</li>
+              <li>Total earned now shows approved earnings, with a projected total including pending (Awaiting Review)
+                when present.</li>
+            </ul>
+          </div>
+        </details>
+
+      </div>
+    </div>
+  </div>
+
+
+  <div class="confirm-overlay" id="confirmOverlay">
+    <div class="confirm-box">
+      <h3>Clear all data?</h3>
+      <p>This will permanently delete all your logged studies. This cannot be undone.</p>
+      <div class="confirm-btns">
+        <button class="btn-cancel" onclick="closeConfirm()">Cancel</button>
+        <button class="btn-danger" onclick="clearAll()">Clear all</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ─── State ───────────────────────────────────────────────────────────────────
+    let entries = JSON.parse(localStorage.getItem('prolific_entries') || '[]');
+
+    // Migration: ensure all entries have a bonus field
+    entries = entries.map(e => {
+      if (e.bonus === undefined) {
+        e.bonus = 0;
+      }
+      return e;
+    });
+
+    // Fallback rates used until live rates load
+    const SYMBOLS = { GBP: '£', USD: '$', EUR: '€', SAR: '﷼' };
+    let RATES = { GBP: 1, USD: 1.29, EUR: 1.21, SAR: 4.84 };
+    let ratesLoaded = false;
+
+    let currency = localStorage.getItem('prolific_currency') || 'GBP';
+
+    // Fetch live rates from free, no-key APIs.
+    // Rates are cached in localStorage for 6 hours so we don't hammer the APIs.
+    async function loadRates() {
+      const CACHE_KEY = 'prolific_rates';
+      const CACHE_TIME = 'prolific_rates_ts';
+      const SIX_HOURS = 6 * 60 * 60 * 1000;
+      const statusEl = document.getElementById('rateStatus');
+
+      function applyRates(nextRates, statusText, statusClass) {
+        RATES = nextRates;
+        ratesLoaded = true;
+        if (statusEl) { statusEl.textContent = statusText; statusEl.className = 'rate-status ' + statusClass; }
+        render();
+      }
+
+      async function fetchJson(url) {
+        const res = await fetch(url, { cache: 'no-store' });
+        if (!res.ok) throw new Error('Rate request failed: ' + res.status);
+        return res.json();
+      }
+
+      async function fetchFrankfurterRates() {
+        const data = await fetchJson('https://api.frankfurter.dev/v2/rates?base=GBP&quotes=USD,EUR,SAR');
+        return { GBP: 1, USD: data.rates.USD, EUR: data.rates.EUR, SAR: data.rates.SAR };
+      }
+
+      async function fetchCurrencyApiRates() {
+        const data = await fetchJson('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/gbp.json');
+        return { GBP: 1, USD: data.gbp.usd, EUR: data.gbp.eur, SAR: data.gbp.sar };
+      }
+
+      try {
+        const cached = localStorage.getItem(CACHE_KEY);
+        const ts = parseInt(localStorage.getItem(CACHE_TIME) || '0');
+        if (cached && Date.now() - ts < SIX_HOURS) {
+          applyRates(JSON.parse(cached), 'cached', 'live');
+          return;
+        }
+
+        let liveRates;
+        try {
+          liveRates = await fetchFrankfurterRates();
+        } catch (primaryError) {
+          liveRates = await fetchCurrencyApiRates();
+        }
+        RATES = liveRates;
+        localStorage.setItem(CACHE_KEY, JSON.stringify(RATES));
+        localStorage.setItem(CACHE_TIME, Date.now().toString());
+        applyRates(RATES, 'live', 'live');
+      } catch (e) {
+        const cached = localStorage.getItem(CACHE_KEY);
+        if (cached) {
+          applyRates(JSON.parse(cached), 'cached', 'stale');
+        } else if (statusEl) {
+          statusEl.textContent = 'offline';
+          statusEl.className = 'rate-status stale';
+        }
+      }
     }
-    const res  = await fetch('https://api.frankfurter.app/latest?base=GBP&symbols=USD,EUR,SAR');
-    const data = await res.json();
-    RATES = { GBP: 1, USD: data.rates.USD, EUR: data.rates.EUR, SAR: data.rates.SAR };
-    localStorage.setItem(CACHE_KEY,  JSON.stringify(RATES));
-    localStorage.setItem(CACHE_TIME, Date.now().toString());
-    ratesLoaded = true;
-    if (statusEl) { statusEl.textContent = 'live'; statusEl.className = 'rate-status live'; }
+    let weeklyGoalRaw = localStorage.getItem('prolific_goal');
+    let weeklyGoal = parseFloat(weeklyGoalRaw || '60');
+    let minWage = parseFloat(localStorage.getItem('prolific_min_wage') || '0');
+    let currentWeekOffset = 0;
+    let activeTab = 'week';
+    let sortCol = 'date';
+    let sortDir = -1;
+    let chart = null;
+    const PAGE_SIZE = 10;
+    let tablePage = parseInt(localStorage.getItem('prolific_table_page') || '1', 10);
+    let lastSearch = null;
+    let lastTab = null;
+    let lastSortCol = null;
+    let chartRange = localStorage.getItem('prolific_chart_range') || '14d';
+    let lastChartKey = null;
+    let themeMode = localStorage.getItem('prolific_theme_mode') || 'system';
+    const systemThemeQuery = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+
+    let themeSeed = { h: 171, s: 100 };
+    try {
+      const storedSeed = localStorage.getItem('prolific_theme_seed');
+      if (storedSeed) themeSeed = JSON.parse(storedSeed);
+    } catch (e) { }
+
+    let themeCustomHex = localStorage.getItem('prolific_theme_custom_hex') || '#006b5d';
+
+    function resolvedTheme(mode = themeMode) {
+      if (mode === 'system') return systemThemeQuery && systemThemeQuery.matches ? 'dark' : 'light';
+      return mode;
+    }
+
+    function applyTheme() {
+      document.documentElement.dataset.themeMode = themeMode;
+      document.documentElement.dataset.theme = resolvedTheme();
+      ['system', 'light', 'dark'].forEach(mode => {
+        const btn = document.getElementById('theme' + mode.charAt(0).toUpperCase() + mode.slice(1));
+        if (btn) btn.classList.toggle('active', themeMode === mode);
+      });
+
+      // Sync seed variables to root
+      document.documentElement.style.setProperty('--hue', themeSeed.h);
+      document.documentElement.style.setProperty('--sat', themeSeed.s + '%');
+
+      // Highlight active preset pill
+      document.querySelectorAll('.seed-pill').forEach(pill => {
+        const ph = parseInt(pill.getAttribute('data-hue'));
+        const ps = parseInt(pill.getAttribute('data-sat'));
+        pill.classList.toggle('active', ph === themeSeed.h && ps === themeSeed.s);
+      });
+
+      // Sync custom picker color
+      const picker = document.getElementById('customColorPicker');
+      if (picker) {
+        picker.value = themeCustomHex;
+      }
+
+      lastChartKey = null;
+      if (chart) renderChart();
+    }
+
+    function setThemeMode(mode) {
+      themeMode = mode;
+      localStorage.setItem('prolific_theme_mode', themeMode);
+      applyTheme();
+    }
+
+    function applyThemeSeed(h, s) {
+      themeSeed = { h: parseInt(h), s: parseInt(s) };
+      localStorage.setItem('prolific_theme_seed', JSON.stringify(themeSeed));
+      applyTheme();
+    }
+
+    function hexToHsl(hex) {
+      if (!hex.startsWith('#')) hex = '#' + hex;
+      let r = parseInt(hex.slice(1, 3), 16) / 255;
+      let g = parseInt(hex.slice(3, 5), 16) / 255;
+      let b = parseInt(hex.slice(5, 7), 16) / 255;
+      let max = Math.max(r, g, b), min = Math.min(r, g, b);
+      let h, s, l = (max + min) / 2;
+      if (max === min) {
+        h = s = 0;
+      } else {
+        let d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+          case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+          case g: h = (b - r) / d + 2; break;
+          case b: h = (r - g) / d + 4; break;
+        }
+        h /= 6;
+      }
+      return {
+        h: Math.round(h * 360),
+        s: Math.round(s * 100),
+        l: Math.round(l * 100)
+      };
+    }
+
+    function handleCustomColorPickerInput(hex) {
+      themeCustomHex = hex;
+      localStorage.setItem('prolific_theme_custom_hex', hex);
+      const hsl = hexToHsl(hex);
+      applyThemeSeed(hsl.h, hsl.s);
+    }
+
+    if (systemThemeQuery) {
+      systemThemeQuery.addEventListener('change', () => {
+        if (themeMode === 'system') applyTheme();
+      });
+    }
+
+    function setTablePage(p) {
+      tablePage = p;
+      localStorage.setItem('prolific_table_page', String(tablePage));
+      render();
+    }
+
+    function setChartRange(range) {
+      chartRange = range;
+      localStorage.setItem('prolific_chart_range', chartRange);
+      updateChartRangeUI();
+      render();
+    }
+
+    function updateChartRangeUI() {
+      const map = { '14d': 'Daily earnings — last 14 days', '12m': 'Monthly earnings — last 12 months', '5y': 'Yearly earnings — last 5 years' };
+      const title = document.getElementById('chartTitle');
+      if (title) title.textContent = map[chartRange] || map['14d'];
+
+      const btn14d = document.getElementById('chartRange14d');
+      const btn12m = document.getElementById('chartRange12m');
+      const btn5y = document.getElementById('chartRange5y');
+      if (btn14d) btn14d.classList.toggle('active', chartRange === '14d');
+      if (btn12m) btn12m.classList.toggle('active', chartRange === '12m');
+      if (btn5y) btn5y.classList.toggle('active', chartRange === '5y');
+    }
+
+    // Migration: Migrate from GBP-base goal to selected-currency goal.
+    // Storing the goal in the selected currency prevents it from fluctuating due to live exchange rate changes.
+    const goalBaseFlag = localStorage.getItem('prolific_goal_base');
+    if (goalBaseFlag === 'GBP') {
+      weeklyGoal = weeklyGoal * (RATES[currency] || 1);
+      localStorage.removeItem('prolific_goal_base');
+      localStorage.setItem('prolific_goal', weeklyGoal);
+    }
+
+    // ─── Currency helpers ─────────────────────────────────────────────────────────
+    function fmt(val) {
+      return (SYMBOLS[currency] || '£') + (val * (RATES[currency] || 1)).toFixed(2);
+    }
+    function fmtRate(rate) {
+      return (SYMBOLS[currency] || '£') + (rate * (RATES[currency] || 1)).toFixed(2) + '/hr';
+    }
+    function currSymbol() { return SYMBOLS[currency] || '£'; }
+    // minWage is stored in the selected currency; convert back to GBP base for comparison with entry pay values
+    function minWageGBP() { return minWage > 0 ? minWage / (RATES[currency] || 1) : 6; }
+    function minRate() { return minWage > 0 ? minWage.toFixed(2) : (6 * (RATES[currency] || 1)).toFixed(2); }
+    function goodRate() { return minWageGBP() * 1.5; }
+    function okRate() { return minWageGBP(); }
+
+    function setCurrency(val) {
+      const oldCurrency = currency;
+      currency = val;
+      localStorage.setItem('prolific_currency', currency);
+
+      // Convert weeklyGoal and minWage from old currency to new currency using current rates
+      weeklyGoal = (weeklyGoal / (RATES[oldCurrency] || 1)) * (RATES[currency] || 1);
+      localStorage.setItem('prolific_goal', weeklyGoal);
+      if (minWage > 0) {
+        minWage = (minWage / (RATES[oldCurrency] || 1)) * (RATES[currency] || 1);
+        localStorage.setItem('prolific_min_wage', minWage);
+      }
+
+      // Keep numeric inputs aligned with the newly selected currency.
+      const goalInput = document.getElementById('goalInput');
+      if (goalInput) goalInput.value = weeklyGoal.toFixed(2);
+      const minWageInput = document.getElementById('minWageInput');
+      if (minWageInput) minWageInput.value = minWage > 0 ? minWage.toFixed(2) : '';
+      render();
+    }
+
+    // ─── Init ─────────────────────────────────────────────────────────────────────
+    document.getElementById('goalInput').value = weeklyGoal.toFixed(2);
+    if (minWage > 0) {
+      const minWageInput = document.getElementById('minWageInput');
+      if (minWageInput) minWageInput.value = minWage.toFixed(2);
+    }
+    document.getElementById('studyDate').value = todayStr();
+    document.getElementById('currencySelect').value = currency;
+    applyTheme();
+    loadRates();
+    updateChartRangeUI();
+    setupDragDrop();
     render();
-  } catch(e) {
-    if (statusEl) { statusEl.textContent = 'offline'; statusEl.className = 'rate-status stale'; }
-  }
-}
-let weeklyGoalRaw = localStorage.getItem('prolific_goal');
-let weeklyGoal = parseFloat(weeklyGoalRaw || '60');
-let currentWeekOffset = 0;
-let activeTab = 'week';
-let sortCol = 'date';
-let sortDir = -1;
-let chart = null;
-const PAGE_SIZE = 10;
-let tablePage = parseInt(localStorage.getItem('prolific_table_page') || '1', 10);
-let lastSearch = null;
-let lastTab = null;
-let lastSortCol = null;
-let chartRange = localStorage.getItem('prolific_chart_range') || '14d';
-let lastChartKey = null;
 
-function setTablePage(p) {
-  tablePage = p;
-  localStorage.setItem('prolific_table_page', String(tablePage));
-  render();
-}
-
-function setChartRange(range) {
-  chartRange = range;
-  localStorage.setItem('prolific_chart_range', chartRange);
-  updateChartRangeUI();
-  render();
-}
-
-function updateChartRangeUI() {
-  const map = { '14d': 'Daily earnings — last 14 days', '12m': 'Monthly earnings — last 12 months', '5y': 'Yearly earnings — last 5 years' };
-  const title = document.getElementById('chartTitle');
-  if (title) title.textContent = map[chartRange] || map['14d'];
-
-  const btn14d = document.getElementById('chartRange14d');
-  const btn12m = document.getElementById('chartRange12m');
-  const btn5y = document.getElementById('chartRange5y');
-  if (btn14d) btn14d.classList.toggle('active', chartRange === '14d');
-  if (btn12m) btn12m.classList.toggle('active', chartRange === '12m');
-  if (btn5y) btn5y.classList.toggle('active', chartRange === '5y');
-}
-
-// Migration: older versions stored `prolific_goal` in the selected currency
-// rather than always storing the internal base as GBP.
-const goalBaseFlag = localStorage.getItem('prolific_goal_base');
-if (!goalBaseFlag) {
-  if (currency !== 'GBP') weeklyGoal = weeklyGoal / (RATES[currency] || 1);
-  localStorage.setItem('prolific_goal_base', 'GBP');
-}
-
-// ─── Currency helpers ─────────────────────────────────────────────────────────
-function fmt(val) {
-  return (SYMBOLS[currency] || '£') + (val * (RATES[currency] || 1)).toFixed(2);
-}
-function fmtRate(rate) {
-  return (SYMBOLS[currency] || '£') + (rate * (RATES[currency] || 1)).toFixed(2) + '/hr';
-}
-function currSymbol() { return SYMBOLS[currency] || '£'; }
-function minRate()    { return (6 * (RATES[currency] || 1)).toFixed(2); }
-function goodRate()   { return 9 * (RATES[currency] || 1); }
-function okRate()     { return 6 * (RATES[currency] || 1); }
-
-function setCurrency(val) {
-  currency = val;
-  localStorage.setItem('prolific_currency', currency);
-  // Keep the numeric input aligned with the currently selected currency.
-  const goalInput = document.getElementById('goalInput');
-  if (goalInput) {
-    goalInput.value = (weeklyGoal * (RATES[currency] || 1)).toFixed(2);
-  }
-  render();
-}
-
-// ─── Init ─────────────────────────────────────────────────────────────────────
-// FIX: Initial Goal Display
-document.getElementById('goalInput').value = (weeklyGoal * (RATES[currency] || 1)).toFixed(2);
-document.getElementById('studyDate').value = todayStr();
-document.getElementById('currencySelect').value = currency;
-loadRates();
-updateChartRangeUI();
-setupDragDrop();
-render();
-
-function todayStr() {
-  return new Date().toISOString().slice(0, 10);
-}
-
-function save() {
-  localStorage.setItem('prolific_entries', JSON.stringify(entries));
-  localStorage.setItem('prolific_goal', weeklyGoal);
-  localStorage.setItem('prolific_goal_base', 'GBP');
-}
-
-// ─── Date helpers ─────────────────────────────────────────────────────────────
-function getWeekStart(offset) {
-  const now = new Date();
-  const day = now.getDay();
-  const diff = day === 0 ? -6 : 1 - day;
-  const monday = new Date(now);
-  monday.setDate(now.getDate() + diff + offset * 7);
-  monday.setHours(0, 0, 0, 0);
-  return monday;
-}
-function getWeekEnd(start) {
-  const end = new Date(start);
-  end.setDate(start.getDate() + 6);
-  end.setHours(23, 59, 59, 999);
-  return end;
-}
-function getMonthStart(offset) {
-  const now = new Date();
-  return new Date(now.getFullYear(), now.getMonth() + offset, 1, 0, 0, 0, 0);
-}
-function getMonthEnd(start) {
-  return new Date(start.getFullYear(), start.getMonth() + 1, 0, 23, 59, 59, 999);
-}
-function fmtDate(d) {
-  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
-}
-function fmtMonth(d) {
-  return d.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
-}
-
-function changeWeek(dir) { currentWeekOffset += dir; render(); }
-
-function switchTab(tab, btn) {
-  activeTab = tab;
-  currentWeekOffset = 0;
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  btn.classList.add('active');
-  render();
-}
-
-// FIX: updateGoal correctly handles conversion back to GBP base
-function updateGoal() {
-  let val = parseFloat(document.getElementById('goalInput').value) || 60;
-  if (currency !== 'GBP') {
-    weeklyGoal = val / (RATES[currency] || 1);
-  } else {
-    weeklyGoal = val;
-  }
-  save();
-  render();
-}
-
-// ─── Filtered entries ─────────────────────────────────────────────────────────
-function getPeriodEntries() {
-  if (activeTab === 'all') return entries;
-  let start, end;
-  if (activeTab === 'week') {
-    start = getWeekStart(currentWeekOffset);
-    end = getWeekEnd(start);
-  } else {
-    start = getMonthStart(currentWeekOffset);
-    end = getMonthEnd(start);
-  }
-  return entries.filter(e => {
-    const d = new Date(e.date);
-    return d >= start && d <= end;
-  });
-}
-
-function getDisplayEntries() {
-  const q = document.getElementById('searchInput')?.value.toLowerCase() || '';
-  let list = getPeriodEntries();
-  if (q) list = list.filter(e => e.name.toLowerCase().includes(q));
-  list = [...list].sort((a, b) => {
-    let av = a[sortCol], bv = b[sortCol];
-    if (sortCol === 'date') { av = new Date(av); bv = new Date(bv); }
-    if (sortCol === 'pay') { av = a.pay + (a.bonus || 0); bv = b.pay + (b.bonus || 0); }
-    if (sortCol === 'bonus') { av = a.bonus || 0; bv = b.bonus || 0; }
-    if (sortCol === 'rate') { 
-      const totalPayA = a.pay + (a.bonus || 0);
-      const totalPayB = b.pay + (b.bonus || 0);
-      av = a.mins > 0 ? totalPayA / (a.mins / 60) : 0; 
-      bv = b.mins > 0 ? totalPayB / (b.mins / 60) : 0; 
+    function todayStr() {
+      return new Date().toISOString().slice(0, 10);
     }
-    return av < bv ? -sortDir : av > bv ? sortDir : 0;
-  });
-  return list;
-}
 
-function setSort(col) {
-  if (sortCol === col) sortDir *= -1;
-  else { sortCol = col; sortDir = -1; }
-  render();
-}
+    function save() {
+      localStorage.setItem('prolific_entries', JSON.stringify(entries));
+      localStorage.setItem('prolific_goal', weeklyGoal);
+      localStorage.setItem('prolific_min_wage', minWage);
+    }
 
-// ─── Render ───────────────────────────────────────────────────────────────────
-function render() {
-  const disp = getPeriodEntries();
-  const totalEarned = disp.reduce((s, e) => s + e.pay + (e.bonus || 0), 0);
-  const totalBonus = disp.reduce((s, e) => s + (e.bonus || 0), 0);
-  const totalMins = disp.reduce((s, e) => s + e.mins, 0);
-  const hours = totalMins / 60;
-  const avgRate = hours > 0 ? totalEarned / hours : null;
+    // ─── Date helpers ─────────────────────────────────────────────────────────────
+    function getWeekStart(offset) {
+      const now = new Date();
+      const day = now.getDay();
+      const diff = day === 0 ? -6 : 1 - day;
+      const monday = new Date(now);
+      monday.setDate(now.getDate() + diff + offset * 7);
+      monday.setHours(0, 0, 0, 0);
+      return monday;
+    }
+    function getWeekEnd(start) {
+      const end = new Date(start);
+      end.setDate(start.getDate() + 6);
+      end.setHours(23, 59, 59, 999);
+      return end;
+    }
+    function getMonthStart(offset) {
+      const now = new Date();
+      return new Date(now.getFullYear(), now.getMonth() + offset, 1, 0, 0, 0, 0);
+    }
+    function getMonthEnd(start) {
+      return new Date(start.getFullYear(), start.getMonth() + 1, 0, 23, 59, 59, 999);
+    }
+    function fmtDate(d) {
+      return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+    }
+    function fmtMonth(d) {
+      return d.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+    }
 
-  // Period label
-  let periodLabel;
-  if (activeTab === 'all') {
-    periodLabel = 'All time';
-  } else if (activeTab === 'week') {
-    const ws = getWeekStart(currentWeekOffset);
-    const we = getWeekEnd(ws);
-    periodLabel = fmtDate(ws) + ' – ' + fmtDate(we);
-  } else {
-    periodLabel = fmtMonth(getMonthStart(currentWeekOffset));
-  }
-  document.getElementById('weekLabel').textContent = periodLabel;
+    function changeWeek(dir) { currentWeekOffset += dir; render(); }
 
-  const periodName = activeTab === 'all' ? 'all time' : activeTab === 'month' ? 'this month' : 'this week';
-  document.getElementById('metricEarned').textContent = fmt(totalEarned);
-  document.getElementById('metricEarnedSub').textContent = periodName;
-  document.getElementById('metricBonus').textContent = fmt(totalBonus);
-  document.getElementById('metricBonusSub').textContent = periodName;
-  document.getElementById('metricTime').textContent =
-    Math.floor(totalMins / 60) + 'h ' + (totalMins % 60) + 'm';
-  document.getElementById('metricTimeSub').textContent = periodName;
-  document.getElementById('metricRate').textContent = avgRate !== null ? fmt(avgRate) : '—';
-  document.getElementById('metricStudies').textContent = disp.length;
-  document.getElementById('metricStudiesSub').textContent = periodName;
+    function switchTab(tab, btn) {
+      activeTab = tab;
+      currentWeekOffset = 0;
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      render();
+    }
 
-  // Goal (always current week)
-  const wsNow = getWeekStart(0);
-  const weNow = getWeekEnd(wsNow);
-  const weekEarned = entries.filter(e => {
-    const d = new Date(e.date); return d >= wsNow && d <= weNow;
-  }).reduce((s, e) => s + e.pay + (e.bonus || 0), 0);
-  const pct = Math.min(100, (weekEarned / weeklyGoal) * 100);
-  document.getElementById('progressFill').style.width = pct.toFixed(1) + '%';
-  document.getElementById('progressFill').className = 'progress-fill' + (pct >= 100 ? ' over' : '');
-  document.getElementById('progressText').textContent = fmt(weekEarned) + ' / ' + fmt(weeklyGoal);
+    // FIX: updateGoal stores the goal directly in the selected currency
+    function updateGoal() {
+      let val = parseFloat(document.getElementById('goalInput').value) || 60;
+      weeklyGoal = val;
+      save();
+      render();
+    }
 
-  // Update goal symbol and manual add label
-  document.getElementById('goalSymbol').textContent = currSymbol();
-  const payLabel = document.getElementById('payFieldLabel');
-  if (payLabel) payLabel.textContent = 'Pay (' + currSymbol() + ')';
+    function updateMinWage() {
+      const val = parseFloat(document.getElementById('minWageInput').value);
+      minWage = isNaN(val) || val <= 0 ? 0 : val;
+      save();
+      render();
+    }
 
-  // Min rate sub label
-  document.querySelector('.metric:nth-child(3) .metric-sub').textContent =
-    'Prolific min: ' + currSymbol() + minRate() + '/hr';
+    // ─── Filtered entries ─────────────────────────────────────────────────────────
+    function getPeriodEntries() {
+      if (activeTab === 'all') return entries;
+      let start, end;
+      if (activeTab === 'week') {
+        start = getWeekStart(currentWeekOffset);
+        end = getWeekEnd(start);
+      } else {
+        start = getMonthStart(currentWeekOffset);
+        end = getMonthEnd(start);
+      }
+      return entries.filter(e => {
+        const d = new Date(e.date);
+        return d >= start && d <= end;
+      });
+    }
 
-  // Last updated
-  let latestKey = 'none';
-  if (entries.length > 0) {
-    const latest = entries.reduce((a, b) => new Date(a.date) > new Date(b.date) ? a : b);
-    latestKey = latest.date;
-    document.getElementById('lastUpdated').textContent = 'last updated ' + fmtDate(new Date(latest.date));
-  }
+    function getDisplayEntries() {
+      const q = document.getElementById('searchInput')?.value.toLowerCase() || '';
+      let list = getPeriodEntries();
+      if (q) list = list.filter(e => e.name.toLowerCase().includes(q));
+      list = [...list].sort((a, b) => {
+        let av = a[sortCol], bv = b[sortCol];
+        if (sortCol === 'date') { av = new Date(av); bv = new Date(bv); }
+        if (sortCol === 'pay') { av = a.pay + (a.bonus || 0); bv = b.pay + (b.bonus || 0); }
+        if (sortCol === 'bonus') { av = a.bonus || 0; bv = b.bonus || 0; }
+        if (sortCol === 'rate') {
+          const totalPayA = a.pay + (a.bonus || 0);
+          const totalPayB = b.pay + (b.bonus || 0);
+          av = a.mins > 0 ? totalPayA / (a.mins / 60) : 0;
+          bv = b.mins > 0 ? totalPayB / (b.mins / 60) : 0;
+        }
+        return av < bv ? -sortDir : av > bv ? sortDir : 0;
+      });
+      return list;
+    }
 
-  // Table
-  const qNow = document.getElementById('searchInput')?.value.toLowerCase() || '';
-  const shouldResetPage = qNow !== lastSearch || activeTab !== lastTab || sortCol !== lastSortCol;
-  if (shouldResetPage) {
-    tablePage = 1;
-    lastSearch = qNow;
-    lastTab = activeTab;
-    lastSortCol = sortCol;
-  }
+    function setSort(col) {
+      if (sortCol === col) sortDir *= -1;
+      else { sortCol = col; sortDir = -1; }
+      render();
+    }
 
-  const allTableEntries = getDisplayEntries();
-  document.getElementById('entryCount').textContent = allTableEntries.length + ' stud' + (allTableEntries.length === 1 ? 'y' : 'ies');
-  const totalPages = Math.max(1, Math.ceil(allTableEntries.length / PAGE_SIZE));
-  if (tablePage > totalPages) tablePage = totalPages;
-  if (tablePage < 1) tablePage = 1;
+    function getStatusMeta(status) {
+      const raw = (status || 'APPROVED').toUpperCase();
+      if (raw === 'APPROVED') return { key: 'APPROVED', label: 'Approved', cls: 'status-approved' };
+      if (raw === 'PARTIALLY APPROVED') return { key: 'PARTIALLY APPROVED', label: 'Partially approved', cls: 'status-approved' };
+      if (raw === 'SCREENED OUT') return { key: 'SCREENED OUT', label: 'Screened out', cls: 'status-screened' };
+      if (raw === 'RETURNED') return { key: 'RETURNED', label: 'Returned', cls: 'status-rejected' };
+      if (raw === 'AWAITING REVIEW') return { key: 'AWAITING REVIEW', label: 'Awaiting review', cls: 'status-awaiting' };
+      if (raw === 'REJECTED') return { key: 'REJECTED', label: 'Rejected', cls: 'status-rejected' };
+      if (raw === 'TIMED-OUT' || raw === 'TIMED OUT') return { key: 'TIMED-OUT', label: 'Timed-out', cls: 'status-rejected' };
+      return { key: raw, label: raw.charAt(0) + raw.slice(1).toLowerCase(), cls: 'status-rejected' };
+    }
 
-  const tableEntries = allTableEntries.slice((tablePage - 1) * PAGE_SIZE, tablePage * PAGE_SIZE);
+    function renderStatusSummary() {
+      const grid = document.getElementById('statusSummaryGrid');
+      if (!grid) return;
 
-  function sortArrow(col) {
-    if (sortCol !== col) return '<span class="sort-arrow">↕</span>';
-    return '<span class="sort-arrow">' + (sortDir === 1 ? '↑' : '↓') + '</span>';
-  }
+      const statuses = [
+        getStatusMeta('APPROVED'),
+        getStatusMeta('PARTIALLY APPROVED'),
+        getStatusMeta('SCREENED OUT'),
+        getStatusMeta('RETURNED'),
+        getStatusMeta('AWAITING REVIEW'),
+        getStatusMeta('REJECTED'),
+        getStatusMeta('TIMED-OUT'),
+      ];
 
-  const container = document.getElementById('tableContainer');
-  if (tableEntries.length === 0) {
-    container.innerHTML = '<div class="empty-state">No studies for this period</div>';
-  } else {
-    const prevDisabled = tablePage <= 1;
-    const nextDisabled = tablePage >= totalPages;
+      const totals = {};
+      statuses.forEach(s => { totals[s.key] = { count: 0, amount: 0 }; });
+      entries.forEach(e => {
+        const meta = getStatusMeta(e.status);
+        if (!totals[meta.key]) totals[meta.key] = { count: 0, amount: 0 };
+        totals[meta.key].count++;
+        totals[meta.key].amount += e.pay + (e.bonus || 0);
+      });
 
-    container.innerHTML = `<div style="overflow-x:auto;"><table>
+      grid.innerHTML = statuses.map(s => {
+        const total = totals[s.key] || { count: 0, amount: 0 };
+        return `<div class="status-summary-item">
+      <div class="status-summary-label">
+        <span>${s.label}</span>
+        <span class="status-badge ${s.cls}">${total.count}</span>
+      </div>
+      <div class="status-summary-count">${fmt(total.amount)}</div>
+    </div>`;
+      }).join('');
+    }
+
+    // ─── Render ───────────────────────────────────────────────────────────────────
+    function render() {
+      const disp = getPeriodEntries();
+      const totalEarned = disp.reduce((s, e) => s + e.pay + (e.bonus || 0), 0);
+      const totalBonus = disp.reduce((s, e) => s + (e.bonus || 0), 0);
+      const totalMins = disp.reduce((s, e) => s + e.mins, 0);
+      const hours = totalMins / 60;
+      const avgRate = hours > 0 ? totalEarned / hours : null;
+
+      // Period label
+      let periodLabel;
+      if (activeTab === 'all') {
+        periodLabel = 'All time';
+      } else if (activeTab === 'week') {
+        const ws = getWeekStart(currentWeekOffset);
+        const we = getWeekEnd(ws);
+        periodLabel = fmtDate(ws) + ' – ' + fmtDate(we);
+      } else {
+        periodLabel = fmtMonth(getMonthStart(currentWeekOffset));
+      }
+      document.getElementById('weekLabel').textContent = periodLabel;
+
+      const periodName = activeTab === 'all' ? 'all time' : activeTab === 'month' ? 'this month' : 'this week';
+      document.getElementById('metricEarned').textContent = fmt(totalEarned);
+      document.getElementById('metricEarnedSub').textContent = periodName;
+      document.getElementById('metricBonus').textContent = fmt(totalBonus);
+      document.getElementById('metricBonusSub').textContent = periodName;
+      document.getElementById('metricTime').textContent =
+        Math.floor(totalMins / 60) + 'h ' + (totalMins % 60) + 'm';
+      document.getElementById('metricTimeSub').textContent = periodName;
+      document.getElementById('metricRate').textContent = avgRate !== null ? fmt(avgRate) : '—';
+      document.getElementById('metricStudies').textContent = disp.length;
+      document.getElementById('metricStudiesSub').textContent = periodName;
+      renderStatusSummary();
+
+      // Goal (always current week)
+      const wsNow = getWeekStart(0);
+      const weNow = getWeekEnd(wsNow);
+      const weekEarned = entries.filter(e => {
+        const d = new Date(e.date); return d >= wsNow && d <= weNow;
+      }).reduce((s, e) => s + e.pay + (e.bonus || 0), 0);
+      const metricRateSubEl = document.getElementById('metricRateSub');
+      if (metricRateSubEl) {
+        if (minWage > 0) {
+          metricRateSubEl.textContent = 'Min wage: ' + currSymbol() + minWage.toFixed(2) + '/hr';
+        } else {
+          metricRateSubEl.textContent = '';
+        }
+      }
+      document.getElementById('goalSymbol').textContent = currSymbol();
+      const minWageSymbolEl = document.getElementById('minWageSymbol');
+      if (minWageSymbolEl) minWageSymbolEl.textContent = currSymbol();
+      const weekEarnedConverted = weekEarned * (RATES[currency] || 1);
+      const pct = Math.min(100, (weekEarnedConverted / weeklyGoal) * 100);
+      document.getElementById('progressFill').style.width = pct.toFixed(1) + '%';
+      document.getElementById('progressFill').className = 'progress-fill' + (pct >= 100 ? ' over' : '');
+      document.getElementById('progressText').textContent = fmt(weekEarned) + ' / ' + currSymbol() + weeklyGoal.toFixed(2);
+
+      // Update goal symbol and manual add label
+      document.getElementById('goalSymbol').textContent = currSymbol();
+      const payLabel = document.getElementById('payFieldLabel');
+      if (payLabel) payLabel.textContent = 'Pay (' + currSymbol() + ')';
+
+      // Last updated
+      let latestKey = 'none';
+      if (entries.length > 0) {
+        const latest = entries.reduce((a, b) => new Date(a.date) > new Date(b.date) ? a : b);
+        latestKey = latest.date;
+        const lastUpdatedEl = document.getElementById('lastUpdated');
+        if (lastUpdatedEl) {
+          lastUpdatedEl.textContent = 'last updated ' + fmtDate(new Date(latest.date));
+        }
+      }
+
+      // Table
+      const qNow = document.getElementById('searchInput')?.value.toLowerCase() || '';
+      const shouldResetPage = qNow !== lastSearch || activeTab !== lastTab || sortCol !== lastSortCol;
+      if (shouldResetPage) {
+        tablePage = 1;
+        lastSearch = qNow;
+        lastTab = activeTab;
+        lastSortCol = sortCol;
+      }
+
+      const allTableEntries = getDisplayEntries();
+      document.getElementById('entryCount').textContent = allTableEntries.length + ' stud' + (allTableEntries.length === 1 ? 'y' : 'ies');
+      const totalPages = Math.max(1, Math.ceil(allTableEntries.length / PAGE_SIZE));
+      if (tablePage > totalPages) tablePage = totalPages;
+      if (tablePage < 1) tablePage = 1;
+
+      const tableEntries = allTableEntries.slice((tablePage - 1) * PAGE_SIZE, tablePage * PAGE_SIZE);
+
+      function sortArrow(col) {
+        if (sortCol !== col) return '<span class="sort-arrow">↕</span>';
+        return '<span class="sort-arrow">' + (sortDir === 1 ? '↑' : '↓') + '</span>';
+      }
+
+      const container = document.getElementById('tableContainer');
+      if (tableEntries.length === 0) {
+        container.innerHTML = '<div class="empty-state">No studies for this period</div>';
+      } else {
+        const prevDisabled = tablePage <= 1;
+        const nextDisabled = tablePage >= totalPages;
+
+        container.innerHTML = `<div style="overflow-x:auto;"><table>
       <thead><tr>
-        <th class="${sortCol==='name'?'sorted':''}" onclick="setSort('name')">Study ${sortArrow('name')}</th>
-        <th class="${sortCol==='date'?'sorted':''}" onclick="setSort('date')">Date ${sortArrow('date')}</th>
-        <th class="${sortCol==='pay'?'sorted':''}" onclick="setSort('pay')">Pay ${sortArrow('pay')}</th>
-        <th class="${sortCol==='bonus'?'sorted':''}" onclick="setSort('bonus')">Bonus ${sortArrow('bonus')}</th>
-        <th class="${sortCol==='mins'?'sorted':''}" onclick="setSort('mins')">Time ${sortArrow('mins')}</th>
-        <th class="${sortCol==='rate'?'sorted':''}" onclick="setSort('rate')">Rate ${sortArrow('rate')}</th>
+        <th class="${sortCol === 'name' ? 'sorted' : ''}" onclick="setSort('name')">Study ${sortArrow('name')}</th>
+        <th class="${sortCol === 'date' ? 'sorted' : ''}" onclick="setSort('date')">Date ${sortArrow('date')}</th>
+        <th class="${sortCol === 'pay' ? 'sorted' : ''}" onclick="setSort('pay')">Pay ${sortArrow('pay')}</th>
+        <th class="${sortCol === 'bonus' ? 'sorted' : ''}" onclick="setSort('bonus')">Bonus ${sortArrow('bonus')}</th>
+        <th class="${sortCol === 'mins' ? 'sorted' : ''}" onclick="setSort('mins')">Time ${sortArrow('mins')}</th>
+        <th class="${sortCol === 'rate' ? 'sorted' : ''}" onclick="setSort('rate')">Rate ${sortArrow('rate')}</th>
         <th>Status</th>
         <th></th>
       </tr></thead>
       <tbody>
       ${tableEntries.map(e => {
-        const totalPay = e.pay + (e.bonus || 0);
-        const rate = e.mins > 0 ? totalPay / (e.mins / 60) : 0;
-        const rateCls = rate >= goodRate() ? 'rate-good' : rate >= okRate() ? 'rate-ok' : 'rate-low';
-        const dateStr = fmtDate(new Date(e.date));
-        const status = e.status || 'APPROVED';
-        const statusCls = status === 'APPROVED' ? 'status-approved' : 
-                  status === 'AWAITING REVIEW' ? 'status-awaiting' : 
-                  status === 'SCREENED OUT' ? 'status-screened' : 'status-rejected';
-        const statusLabel = status === 'AWAITING REVIEW' ? 'Awaiting' : status.charAt(0) + status.slice(1).toLowerCase();
-        const bonus = e.bonus || 0;
-        const bonusDisplay = bonus > 0 ? fmt(bonus) : '—';
-        return `<tr>
+          const totalPay = e.pay + (e.bonus || 0);
+          const rate = e.mins > 0 ? totalPay / (e.mins / 60) : 0;
+          const rateCls = rate >= goodRate() ? 'rate-good' : rate >= okRate() ? 'rate-ok' : 'rate-low';
+          const dateStr = fmtDate(new Date(e.date));
+          const status = e.status || 'APPROVED';
+          const statusCls = status === 'APPROVED' ? 'status-approved' :
+            status === 'AWAITING REVIEW' ? 'status-awaiting' :
+              status === 'PARTIALLY APPROVED' ? 'status-approved' :
+                status === 'SCREENED OUT' ? 'status-screened' : 'status-rejected';
+          const statusLabel = status === 'AWAITING REVIEW' ? 'Awaiting' : status.charAt(0) + status.slice(1).toLowerCase();
+          const bonus = e.bonus || 0;
+          const bonusDisplay = bonus > 0 ? fmt(bonus) : '—';
+          return `<tr>
           <td class="td-name" title="${e.name}">${e.name}</td>
           <td class="td-date">${dateStr}</td>
           <td class="td-pay">${fmt(e.pay)}</td>
@@ -1316,425 +2759,679 @@ function render() {
           <td><span class="status-badge ${statusCls}">${statusLabel}</span></td>
           <td><button class="del-btn" onclick="deleteEntry(${e.id})">✕</button></td>
         </tr>`;
-      }).join('')}
+        }).join('')}
       </tbody>
     </table></div>`;
 
-    if (totalPages > 1) {
-      container.innerHTML += `
+        if (totalPages > 1) {
+          container.innerHTML += `
         <div class="table-pagination">
           <button class="page-btn" onclick="setTablePage(${tablePage - 1})" ${prevDisabled ? 'disabled' : ''}>Prev</button>
           <span class="page-label">Page ${tablePage} / ${totalPages}</span>
           <button class="page-btn" onclick="setTablePage(${tablePage + 1})" ${nextDisabled ? 'disabled' : ''}>Next</button>
         </div>
       `;
+        }
+      }
+
+      const chartKey = currency + '|' + chartRange + '|' + latestKey + '|' + document.documentElement.dataset.theme + '|' + (RATES[currency] || 1) + '|' + themeSeed.h + '|' + themeSeed.s;
+      if (chartKey !== lastChartKey) {
+        renderChart();
+        lastChartKey = chartKey;
+      }
     }
-  }
 
-  const chartKey = currency + '|' + chartRange + '|' + latestKey;
-  if (chartKey !== lastChartKey) {
-    renderChart();
-    lastChartKey = chartKey;
-  }
-}
+    // ─── Chart ────────────────────────────────────────────────────────────────────
+    function renderChart() {
+      const container = document.getElementById('earningsChart')?.parentElement;
 
-// ─── Chart ────────────────────────────────────────────────────────────────────
-function renderChart() {
-  const convert = raw => raw * (RATES[currency] || 1);
+      if (typeof Chart === 'undefined') {
+        console.warn('Chart.js library is not loaded.');
+        if (container) {
+          container.innerHTML = `
+        <div style="height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; color:var(--muted); font-family:var(--mono); font-size:12px; padding:20px; text-align:center;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.6;"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+          <span>Earnings chart is currently offline (Chart.js could not be loaded)</span>
+        </div>
+      `;
+        }
+        return;
+      }
 
-  let labels = [];
-  let data = [];
+      try {
+        const convert = raw => raw * (RATES[currency] || 1);
+        const styles = getComputedStyle(document.documentElement);
+        const cssVar = name => (styles.getPropertyValue(name) || '').trim();
+        const chartBar = cssVar('--chart-bar') || cssVar('--accent');
+        const chartBarPending = cssVar('--chart-bar-pending') || cssVar('--md-secondary') || 'rgba(127,127,127,0.5)';
+        const chartEmpty = cssVar('--chart-empty') || 'rgba(127,127,127,0.15)';
+        const chartText = cssVar('--muted') || '#7a7d87';
+        const tooltipBg = cssVar('--md-surface-container-highest') || '#1e2026';
+        const tooltipText = cssVar('--text') || '#f0f0ee';
+        const gridColor = cssVar('--border') || 'rgba(127,127,127,0.2)';
 
-  if (chartRange === '12m') {
-    const now = new Date();
-    const base = new Date(now.getFullYear(), now.getMonth(), 1);
-    for (let i = 11; i >= 0; i--) {
-      const start = new Date(base.getFullYear(), base.getMonth() - i, 1, 0, 0, 0, 0);
-      const end = new Date(start.getFullYear(), start.getMonth() + 1, 1, 0, 0, 0, 0);
-      labels.push(start.toLocaleDateString('en-GB', { month: 'short' }));
-      const raw = entries
-        .filter(e => {
-          const ed = new Date(e.date);
-          return ed >= start && ed < end;
-        })
-        .reduce((s, e) => s + e.pay + (e.bonus || 0), 0);
-      data.push(convert(raw));
-    }
-  } else if (chartRange === '5y') {
-    const currentYear = new Date().getFullYear();
-    for (let i = 4; i >= 0; i--) {
-      const y = currentYear - i;
-      const start = new Date(y, 0, 1, 0, 0, 0, 0);
-      const end = new Date(y + 1, 0, 1, 0, 0, 0, 0);
-      labels.push(String(y));
-      const raw = entries
-        .filter(e => {
-          const ed = new Date(e.date);
-          return ed >= start && ed < end;
-        })
-        .reduce((s, e) => s + e.pay + (e.bonus || 0), 0);
-      data.push(convert(raw));
-    }
-  } else {
-    // default: last 14 days
-    const days = [];
-    for (let i = 13; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      d.setHours(0, 0, 0, 0);
-      days.push(d);
-    }
-    labels = days.map(d => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }));
-    data = days.map(d => {
-      const next = new Date(d); next.setDate(d.getDate() + 1);
-      const raw = entries
-        .filter(e => {
-          const ed = new Date(e.date);
-          return ed >= d && ed < next;
-        })
-        .reduce((s, e) => s + e.pay + (e.bonus || 0), 0);
-      return convert(raw);
-    });
-  }
+        let labels = [];
+        let approvedData = [];
+        let pendingData = [];
 
-  const ctx = document.getElementById('earningsChart').getContext('2d');
-  if (chart) chart.destroy();
-  chart = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels,
-      datasets: [{
-        data,
-        backgroundColor: data.map(v => v > 0 ? 'rgba(0,212,160,0.7)' : 'rgba(255,255,255,0.06)'),
-        borderRadius: 4,
-        borderSkipped: false,
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: ctx => currSymbol() + ctx.parsed.y.toFixed(2),
-            title: ctx => ctx[0].label
+        if (chartRange === '12m') {
+          const now = new Date();
+          const base = new Date(now.getFullYear(), now.getMonth(), 1);
+          for (let i = 11; i >= 0; i--) {
+            const start = new Date(base.getFullYear(), base.getMonth() - i, 1, 0, 0, 0, 0);
+            const end = new Date(start.getFullYear(), start.getMonth() + 1, 1, 0, 0, 0, 0);
+            labels.push(start.toLocaleDateString('en-GB', { month: 'short' }));
+            const periodEntries = entries.filter(e => {
+              const ed = new Date(e.date);
+              return ed >= start && ed < end;
+            });
+            const rawApproved = periodEntries
+              .filter(e => e.status !== 'AWAITING REVIEW')
+              .reduce((s, e) => s + e.pay + (e.bonus || 0), 0);
+            const rawPending = periodEntries
+              .filter(e => e.status === 'AWAITING REVIEW')
+              .reduce((s, e) => s + e.pay + (e.bonus || 0), 0);
+            approvedData.push(convert(rawApproved));
+            pendingData.push(convert(rawPending));
+          }
+        } else if (chartRange === '5y') {
+          const currentYear = new Date().getFullYear();
+          for (let i = 4; i >= 0; i--) {
+            const y = currentYear - i;
+            const start = new Date(y, 0, 1, 0, 0, 0, 0);
+            const end = new Date(y + 1, 0, 1, 0, 0, 0, 0);
+            labels.push(String(y));
+            const periodEntries = entries.filter(e => {
+              const ed = new Date(e.date);
+              return ed >= start && ed < end;
+            });
+            const rawApproved = periodEntries
+              .filter(e => e.status !== 'AWAITING REVIEW')
+              .reduce((s, e) => s + e.pay + (e.bonus || 0), 0);
+            const rawPending = periodEntries
+              .filter(e => e.status === 'AWAITING REVIEW')
+              .reduce((s, e) => s + e.pay + (e.bonus || 0), 0);
+            approvedData.push(convert(rawApproved));
+            pendingData.push(convert(rawPending));
+          }
+        } else {
+          // default: last 14 days
+          const days = [];
+          for (let i = 13; i >= 0; i--) {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            d.setHours(0, 0, 0, 0);
+            days.push(d);
+          }
+          labels = days.map(d => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }));
+          approvedData = days.map(d => {
+            const next = new Date(d); next.setDate(d.getDate() + 1);
+            const rawApproved = entries
+              .filter(e => {
+                const ed = new Date(e.date);
+                return ed >= d && ed < next && e.status !== 'AWAITING REVIEW';
+              })
+              .reduce((s, e) => s + e.pay + (e.bonus || 0), 0);
+            return convert(rawApproved);
+          });
+          pendingData = days.map(d => {
+            const next = new Date(d); next.setDate(d.getDate() + 1);
+            const rawPending = entries
+              .filter(e => {
+                const ed = new Date(e.date);
+                return ed >= d && ed < next && e.status === 'AWAITING REVIEW';
+              })
+              .reduce((s, e) => s + e.pay + (e.bonus || 0), 0);
+            return convert(rawPending);
+          });
+        }
+
+        // Ensure container has canvas element (recreate if it was replaced by fallback HTML)
+        let canvas = document.getElementById('earningsChart');
+        if (!canvas && container) {
+          container.innerHTML = '<canvas id="earningsChart" style="display: block; box-sizing: border-box; height: 180px; width: 100%;" height="180"></canvas>';
+          canvas = document.getElementById('earningsChart');
+        }
+        if (!canvas) return;
+
+        const ctx = canvas.getContext('2d');
+        if (chart) chart.destroy();
+        chart = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels,
+            datasets: [
+              {
+                label: 'Approved',
+                data: approvedData,
+                backgroundColor: approvedData.map((v, idx) => (v > 0 || pendingData[idx] > 0) ? chartBar : chartEmpty),
+                borderRadius: 8,
+                borderSkipped: 'middle',
+              },
+              {
+                label: 'Pending',
+                data: pendingData,
+                backgroundColor: pendingData.map((v, idx) => (v > 0 || approvedData[idx] > 0) ? chartBarPending : chartEmpty),
+                borderRadius: 8,
+                borderSkipped: 'middle',
+              }
+            ]
           },
-          backgroundColor: '#1e2026',
-          borderColor: 'rgba(255,255,255,0.1)',
-          borderWidth: 0.5,
-          titleColor: '#f0f0ee',
-          bodyColor: '#00d4a0',
-          padding: 10,
-        }
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          ticks: { callback: v => currSymbol() + v.toFixed(0), color: '#7a7d87', font: { family: 'DM Mono', size: 11 } },
-          grid: { color: 'rgba(255,255,255,0.05)' },
-          border: { display: false }
-        },
-        x: {
-          ticks: { color: '#7a7d87', font: { family: 'DM Mono', size: 10 }, maxRotation: 30, autoSkip: false },
-          grid: { display: false },
-          border: { display: false }
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                mode: 'index',
+                intersect: false,
+                callbacks: {
+                  label: tooltipCtx => {
+                    const label = tooltipCtx.dataset.label || '';
+                    const val = tooltipCtx.parsed.y;
+                    return label + ': ' + currSymbol() + val.toFixed(2);
+                  },
+                  footer: tooltipItems => {
+                    let sum = 0;
+                    tooltipItems.forEach(item => {
+                      sum += item.parsed.y;
+                    });
+                    return 'Total: ' + currSymbol() + sum.toFixed(2);
+                  },
+                  title: tooltipCtx => tooltipCtx[0].label
+                },
+                backgroundColor: tooltipBg,
+                borderColor: gridColor,
+                borderWidth: 1,
+                titleColor: tooltipText,
+                titleFont: { family: 'Google Sans Code', weight: 'bold' },
+                bodyColor: tooltipText,
+                bodyFont: { family: 'Google Sans Code' },
+                footerColor: tooltipText,
+                footerFont: { family: 'Google Sans Code', weight: 'bold' },
+                padding: 10,
+              }
+            },
+            scales: {
+              y: {
+                stacked: true,
+                beginAtZero: true,
+                ticks: { callback: v => currSymbol() + v.toFixed(0), color: chartText, font: { family: 'Google Sans Code', size: 11 } },
+                grid: { color: gridColor },
+                border: { display: false }
+              },
+              x: {
+                stacked: true,
+                ticks: { color: chartText, font: { family: 'Google Sans Code', size: 10 }, maxRotation: 30, autoSkip: false },
+                grid: { display: false },
+                border: { display: false }
+              }
+            }
+          }
+        });
+      } catch (err) {
+        console.error('Error rendering chart:', err);
+        if (container) {
+          container.innerHTML = `
+        <div style="height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; color:var(--muted); font-family:var(--mono); font-size:12px; padding:20px; text-align:center;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.6;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+          <span>Error rendering earnings chart</span>
+        </div>
+      `;
         }
       }
     }
-  });
-}
 
-// ─── Manual add ───────────────────────────────────────────────────────────────
-// FIX: addManual correctly converts USD pay back to GBP base before saving
-function addManual() {
-  const name = document.getElementById('studyName').value.trim() || 'Unnamed study';
-  let pay = parseFloat(document.getElementById('studyPay').value);
-  let bonus = parseFloat(document.getElementById('studyBonus').value) || 0;
-  const mins = parseInt(document.getElementById('studyMins').value);
-  const date = document.getElementById('studyDate').value;
-  if (isNaN(pay) || isNaN(mins) || mins < 1 || pay < 0 || !date) {
-    alert('Please fill in pay, duration, and date.');
-    return;
-  }
-  
-  if (currency !== 'GBP') {
-    pay = pay / (RATES[currency] || 1);
-    bonus = bonus / (RATES[currency] || 1);
-  }
-
-  entries.push({ id: Date.now(), name, pay, bonus, mins, date: new Date(date + 'T12:00:00').toISOString(), status: 'APPROVED', source: 'manual' });
-  save();
-  document.getElementById('studyName').value = '';
-  document.getElementById('studyPay').value = '';
-  document.getElementById('studyBonus').value = '';
-  document.getElementById('studyMins').value = '';
-  render();
-}
-
-// ─── Delete ───────────────────────────────────────────────────────────────────
-function deleteEntry(id) {
-  entries = entries.filter(e => e.id !== id);
-  save();
-  render();
-}
-
-// ─── CSV Import ───────────────────────────────────────────────────────────────
-function parseCSV(text) {
-  const lines = text.split(/\r?\n/).filter(l => l.trim());
-  if (lines.length < 2) return { added: 0, skipped: 0, error: 'CSV appears empty' };
-
-  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, '').toLowerCase());
-
-  const col = name => {
-    const variants = {
-      'study_name': ['study', 'study_name', 'study name', 'studyname', 'name', 'title'],
-      'status': ['status'],
-      'started_at': ['started at', 'started_at', 'start_time', 'time_started'],
-      'completed_at': ['completed at', 'completed_at', 'end_time', 'time_completed', 'datetime_started'],
-      'reward': ['reward', 'pay', 'payment', 'reward (£)', 'reward(£)', 'reward (gbp)', 'reward ($)', 'reward($)', 'reward (usd)'],
-      'bonus': ['bonus', 'bonus (£)', 'bonus(£)', 'bonus ($)', 'bonus($)', 'bonus (usd)'],
-      'submission_id': ['submission_id', 'id', 'submission id'],
-    };
-    const alts = variants[name] || [name];
-    for (const a of alts) {
-      const idx = headers.indexOf(a);
-      if (idx !== -1) return idx;
-    }
-    return -1;
-  };
-
-  const idxName = col('study_name');
-  const idxStatus = col('status');
-  const idxStart = col('started_at');
-  const idxEnd = col('completed_at');
-  const idxReward = col('reward');
-  const idxBonus = col('bonus');
-  const idxId = col('submission_id');
-
-  if (idxReward === -1) return { added: 0, skipped: 0, error: 'Could not find reward column. Is this a Prolific CSV?' };
-
-  const existingIds = new Set(entries.filter(e => e.prolificId).map(e => e.prolificId));
-  const existingFingerprints = new Set(entries.filter(e => e.fingerprint).map(e => e.fingerprint));
-  let added = 0, skipped = 0;
-
-  // Convert CSV money into the internal base (GBP).
-  function parseMoneyToGBP(raw) {
-    const s = (raw ?? '0').toString().trim();
-    const hasUSD = s.includes('$');
-    const numberStr = s.replace(/[^0-9.\-]/g, '');
-    const amount = parseFloat(numberStr);
-    const safe = isNaN(amount) ? 0 : amount;
-    if (hasUSD) return safe / (RATES['USD'] || 1.29);
-    return safe; // assume GBP when no explicit USD marker is present
-  }
-
-  for (let i = 1; i < lines.length; i++) {
-    const cols = parseCSVLine(lines[i]);
-    if (!cols || cols.length < 2) continue;
-
-    const prolificId = idxId !== -1 ? cols[idxId]?.trim() : null;
-    if (prolificId && existingIds.has(prolificId)) { skipped++; continue; }
-
-    const name = idxName !== -1 ? (cols[idxName] || '').trim() || 'Unnamed study' : 'Study ' + i;
-    let status = idxStatus !== -1 ? (cols[idxStatus] || 'APPROVED').trim().toUpperCase() : 'APPROVED';
-    
-    // Normalize status values
-    if (status === 'AWAITING REVIEW') status = 'AWAITING REVIEW';
-    if (status === 'SCREENED OUT') status = 'SCREENED OUT';
-    if (status === 'PARTIALLY APPROVED') status = 'PARTIALLY APPROVED';
-    if (status === 'REJECTED') status = 'REJECTED';
-    if (status === 'RETURNED') status = 'RETURNED';
-    if (status === 'TIMED-OUT') status = 'TIMED-OUT';
-    
-    const startRaw = idxStart !== -1 ? cols[idxStart]?.trim() : '';
-    const fingerprint = name + '|' + (startRaw || '');
-    if (!prolificId && existingFingerprints.has(fingerprint)) { skipped++; continue; }
-    
-    const rewardPayGBP = parseMoneyToGBP(cols[idxReward] || '0');
-    const bonusPayGBP = idxBonus !== -1 ? parseMoneyToGBP(cols[idxBonus] || '0') : 0;
-    
-    let pay = 0;
-    let mins = 0;
-    let dateStr = new Date().toISOString();
-    const endRaw = idxEnd !== -1 ? cols[idxEnd]?.trim() : '';
-    const start = startRaw ? new Date(startRaw) : null;
-    const end = endRaw ? new Date(endRaw) : null;
-    
-    // Check if this is a completed study (has end time)
-    const hasCompletion = end && !isNaN(end);
-    
-    // Determine payment based on status and completion
-    if (status === 'RETURNED' || status === 'TIMED-OUT') {
-      // Never count these
-      skipped++;
-      continue;
-    } 
-    else if (status === 'REJECTED') {
-      // Rejected studies typically pay nothing
-      skipped++;
-      continue;
-    }
-    else if (status === 'SCREENED OUT') {
-      // For screened out: only count the bonus if it exists
-      // The reward column is often the full study amount which they don't pay
-      if (bonusPayGBP > 0) {
-        pay = 0; // No base reward for screened out
-      } else {
-        // No payment for this screened out study
-        skipped++;
-        continue;
+    // ─── Manual add ───────────────────────────────────────────────────────────────
+    // FIX: addManual correctly converts USD pay back to GBP base before saving
+    function addManual() {
+      const name = document.getElementById('studyName').value.trim() || 'Unnamed study';
+      let pay = parseFloat(document.getElementById('studyPay').value);
+      let bonus = parseFloat(document.getElementById('studyBonus').value) || 0;
+      const mins = parseInt(document.getElementById('studyMins').value);
+      const date = document.getElementById('studyDate').value;
+      if (isNaN(pay) || isNaN(mins) || mins < 1 || pay < 0 || !date) {
+        alert('Please fill in pay, duration, and date.');
+        return;
       }
-    }
-    else if (status === 'PARTIALLY APPROVED') {
-      // Partially approved: usually pay the full reward plus any bonus
-      pay = rewardPayGBP;
-    }
-    else if (status === 'APPROVED' || status === 'AWAITING REVIEW') {
-      // Fully approved or awaiting: pay full reward plus any bonus
-      pay = rewardPayGBP;
-    }
-    else {
-      // Unknown status - skip to be safe
-      skipped++;
-      continue;
-    }
-    
-    // Skip if no payment (neither reward nor bonus)
-    if (pay === 0 && bonusPayGBP === 0) {
-      skipped++;
-      continue;
-    }
-    
-    // For date, prefer completed_at if available, otherwise started_at
-    if (hasCompletion) {
-      dateStr = end.toISOString();
-    } else if (start && !isNaN(start)) {
-      dateStr = start.toISOString();
-    }
-    
-    // Calculate minutes - only if both start and end exist and end > start
-    if (start && end && !isNaN(start) && !isNaN(end) && end > start) {
-      mins = Math.round((end - start) / 60000);
-    } else {
-      // For studies without duration, default to 1 minute so they show in stats
-      mins = 1;
-    }
 
-    const entry = { 
-      id: Date.now() + i, 
-      name, 
-      pay, 
-      bonus: bonusPayGBP,
-      mins, 
-      date: dateStr, 
-      status, 
-      source: 'csv', 
-      fingerprint 
-    };
-    if (prolificId) entry.prolificId = prolificId;
-    entries.push(entry);
-    if (prolificId) existingIds.add(prolificId);
-    if (!prolificId) existingFingerprints.add(fingerprint);
-    added++;
-  }
+      if (currency !== 'GBP') {
+        pay = pay / (RATES[currency] || 1);
+        bonus = bonus / (RATES[currency] || 1);
+      }
 
-  save();
-  return { added, skipped, error: null };
-}
-
-function parseCSVLine(line) {
-  const result = [];
-  let cur = '', inQuote = false;
-  for (let i = 0; i < line.length; i++) {
-    const ch = line[i];
-    if (ch === '"') { inQuote = !inQuote; continue; }
-    if (ch === ',' && !inQuote) { result.push(cur); cur = ''; continue; }
-    cur += ch;
-  }
-  result.push(cur);
-  return result;
-}
-
-function showToast(msg, isError) {
-  const t = document.getElementById('importToast');
-  t.textContent = msg;
-  t.className = 'import-toast' + (isError ? ' error' : '');
-  t.style.display = 'block';
-  setTimeout(() => { t.style.display = 'none'; }, 4000);
-}
-
-function handleFileInput(input) {
-  if (!input.files[0]) return;
-  const file = input.files[0];
-  const reader = new FileReader();
-  reader.onload = e => {
-    const result = parseCSV(e.target.result);
-    if (result.error) {
-      showToast('Error: ' + result.error, true);
-    } else {
-      showToast(result.added + ' studies imported' + (result.skipped ? ', ' + result.skipped + ' duplicates skipped' : ''), false);
+      entries.push({ id: Date.now(), name, pay, bonus, mins, date: new Date(date + 'T12:00:00').toISOString(), status: 'APPROVED', source: 'manual' });
+      save();
+      document.getElementById('studyName').value = '';
+      document.getElementById('studyPay').value = '';
+      document.getElementById('studyBonus').value = '';
+      document.getElementById('studyMins').value = '';
       render();
     }
-    input.value = '';
-  };
-  reader.readAsText(file);
-}
 
-function setupDragDrop() {
-  const zone = document.getElementById('importZone');
-  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
-  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
-  zone.addEventListener('drop', e => {
-    e.preventDefault();
-    zone.classList.remove('drag-over');
-    const file = e.dataTransfer.files[0];
-    if (!file || !file.name.endsWith('.csv')) { showToast('Please drop a .csv file', true); return; }
-    const reader = new FileReader();
-    reader.onload = ev => {
-      const result = parseCSV(ev.target.result);
-      if (result.error) {
-        showToast('Error: ' + result.error, true);
-      } else {
-        showToast(result.added + ' studies imported' + (result.skipped ? ', ' + result.skipped + ' duplicates skipped' : ''), false);
-        render();
+    // ─── Delete ───────────────────────────────────────────────────────────────────
+    function deleteEntry(id) {
+      entries = entries.filter(e => e.id !== id);
+      save();
+      render();
+    }
+
+    // ─── CSV Import ───────────────────────────────────────────────────────────────
+    function parseCSV(text) {
+      const lines = text.split(/\r?\n/).filter(l => l.trim());
+      if (lines.length < 2) return { added: 0, skipped: 0, error: 'CSV appears empty' };
+
+      const headers = parseCSVLine(lines[0]).map(h => h.trim().replace(/^"|"$/g, '').toLowerCase());
+
+      const col = name => {
+        const variants = {
+          'study_name': ['study', 'study_name', 'study name', 'studyname', 'name', 'title', 'project name'],
+          'status': ['status'],
+          'started_at': ['started at', 'started_at', 'start_time', 'time_started'],
+          'completed_at': ['completed at', 'completed_at', 'end_time', 'time_completed', 'datetime_started', 'completiontime (america/chicago)', 'completion time', 'completiontime'],
+          'reward': ['reward', 'pay', 'payment', 'reward (£)', 'reward(£)', 'reward (gbp)', 'reward ($)', 'reward($)', 'reward (usd)'],
+          'bonus': ['bonus', 'bonus (£)', 'bonus(£)', 'bonus ($)', 'bonus($)', 'bonus (usd)'],
+          'submission_id': ['submission_id', 'id', 'submission id'],
+          'project_id': ['projectid', 'project id', 'project_id'],
+          'completion_code': ['completioncode', 'completion code', 'completion_code'],
+          'payment_received': ['payment received', 'payment_received'],
+          'payment_pending': ['payment pending', 'payment_pending'],
+          'amount_bonused': ['amount bonused', 'amount_bonused'],
+        };
+        const alts = variants[name] || [name];
+        for (const a of alts) {
+          const idx = headers.indexOf(a);
+          if (idx !== -1) return idx;
+        }
+        return -1;
+      };
+
+      const idxName = col('study_name');
+      const idxStatus = col('status');
+      const idxStart = col('started_at');
+      const idxEnd = col('completed_at');
+      const idxReward = col('reward');
+      const idxBonus = col('bonus');
+      const idxId = col('submission_id');
+      const idxProjectId = col('project_id');
+      const idxCompletionCode = col('completion_code');
+      const idxPaymentReceived = col('payment_received');
+      const idxPaymentPending = col('payment_pending');
+      const idxAmountBonused = col('amount_bonused');
+      const isCloudResearch = idxProjectId !== -1 && (idxPaymentReceived !== -1 || idxPaymentPending !== -1);
+
+      if (!isCloudResearch && idxReward === -1) return { added: 0, skipped: 0, error: 'Could not find a payment column. Is this a Prolific or CloudResearch CSV?' };
+
+      const existingIds = new Set(entries.filter(e => e.prolificId).map(e => e.prolificId));
+      const existingCloudResearchIds = new Set(entries.filter(e => e.cloudResearchId).map(e => e.cloudResearchId));
+      const existingFingerprints = new Set(entries.filter(e => e.fingerprint).map(e => e.fingerprint));
+      let added = 0, skipped = 0;
+
+      // Convert CSV money into the internal base (GBP).
+      function parseMoneyToGBP(raw, defaultCurrency = 'GBP') {
+        const s = (raw ?? '0').toString().trim();
+        const hasUSD = s.includes('$');
+        const numberStr = s.replace(/[^0-9.\-]/g, '');
+        const amount = parseFloat(numberStr);
+        const safe = isNaN(amount) ? 0 : amount;
+        if (hasUSD || defaultCurrency === 'USD') return safe / (RATES['USD'] || 1.29);
+        return safe; // assume GBP when no explicit USD marker is present
       }
-    };
-    reader.readAsText(file);
-  });
-}
 
-// ─── Export CSV ───────────────────────────────────────────────────────────────
-function exportCSV() {
-  const sym = currSymbol();
-  const rows = [['Study name', 'Date', 'Pay (' + sym + ')', 'Bonus (' + sym + ')', 'Duration (mins)', 'Hourly rate (' + sym + '/hr)', 'Status']];
-  const list = getDisplayEntries();
-  const multiplier = RATES[currency] || 1;
-  list.forEach(e => {
-    const bonus = (e.bonus || 0) * multiplier;
-    const baseReward = e.pay * multiplier;
-    const totalPay = (e.pay + (e.bonus || 0)) * multiplier;
-    const rate = e.mins > 0 ? (totalPay / (e.mins / 60)).toFixed(2) : '';
-    rows.push(['"' + e.name.replace(/"/g, '""') + '"', new Date(e.date).toLocaleDateString('en-GB'), baseReward.toFixed(2), bonus.toFixed(2), e.mins, rate, e.status || 'APPROVED']);
-  });
-  const csv = rows.map(r => r.join(',')).join('\n');
-  const blob = new Blob([csv], { type: 'text/csv' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'prolific-earnings-' + todayStr() + '.csv';
-  a.click();
-}
+      function normalizeImportStatus(rawStatus) {
+        const raw = (rawStatus || 'APPROVED').trim();
+        const compact = raw.replace(/[\s_-]/g, '').toUpperCase();
+        if (compact === 'APPROVED') return 'APPROVED';
+        if (compact === 'PENDING' || compact === 'AWAITINGREVIEW') return 'AWAITING REVIEW';
+        if (compact === 'SCREENEDOUT') return 'SCREENED OUT';
+        if (compact === 'PARTIALLYAPPROVED' || compact === 'PARTIALCOMPLETE') return 'PARTIALLY APPROVED';
+        if (compact === 'REJECTED') return 'REJECTED';
+        if (compact === 'RETURNED') return 'RETURNED';
+        if (compact === 'TIMEDOUT') return 'TIMED-OUT';
+        return raw.toUpperCase();
+      }
 
-// ─── Clear all ────────────────────────────────────────────────────────────────
-function confirmClearAll() { document.getElementById('confirmOverlay').classList.add('open'); }
-function closeConfirm() { document.getElementById('confirmOverlay').classList.remove('open'); }
-function clearAll() {
-  entries = [];
-  save();
-  closeConfirm();
-  render();
-}
-</script>
+      function parseImportDate(raw) {
+        const d = raw ? new Date(raw) : null;
+        return d && !isNaN(d) ? d : null;
+      }
+
+      function getExplicitRowDate(rowIndex) {
+        const rowCols = parseCSVLine(lines[rowIndex]);
+        const rowEnd = idxEnd !== -1 ? rowCols[idxEnd]?.trim() : '';
+        const rowStart = idxStart !== -1 ? rowCols[idxStart]?.trim() : '';
+        return parseImportDate(rowEnd) || parseImportDate(rowStart);
+      }
+
+      function inferDateFromNeighborRows(rowIndex) {
+        let previousDate = null;
+        let nextDate = null;
+
+        for (let p = rowIndex - 1; p >= 1; p--) {
+          previousDate = getExplicitRowDate(p);
+          if (previousDate) break;
+        }
+        for (let n = rowIndex + 1; n < lines.length; n++) {
+          nextDate = getExplicitRowDate(n);
+          if (nextDate) break;
+        }
+
+        if (previousDate && nextDate) {
+          return new Date((previousDate.getTime() + nextDate.getTime()) / 2);
+        }
+        if (previousDate) {
+          return new Date(previousDate.getTime() - 60000);
+        }
+        if (nextDate) {
+          return new Date(nextDate.getTime() + 60000);
+        }
+        return null;
+      }
+
+      for (let i = 1; i < lines.length; i++) {
+        const cols = parseCSVLine(lines[i]);
+        if (!cols || cols.length < 2) continue;
+
+        const prolificId = !isCloudResearch && idxId !== -1 ? cols[idxId]?.trim() : null;
+        if (prolificId && existingIds.has(prolificId)) { skipped++; continue; }
+        const projectId = isCloudResearch && idxProjectId !== -1 ? cols[idxProjectId]?.trim() : '';
+        const completionCode = isCloudResearch && idxCompletionCode !== -1 ? cols[idxCompletionCode]?.trim() : '';
+        const endRaw = idxEnd !== -1 ? cols[idxEnd]?.trim() : '';
+        const cloudResearchId = isCloudResearch && projectId ? projectId + '|' + (completionCode || endRaw) : null;
+        if (cloudResearchId && existingCloudResearchIds.has(cloudResearchId)) { skipped++; continue; }
+
+        const name = idxName !== -1 ? (cols[idxName] || '').trim() || 'Unnamed study' : 'Study ' + i;
+        const status = normalizeImportStatus(idxStatus !== -1 ? cols[idxStatus] : 'APPROVED');
+        const startRaw = idxStart !== -1 ? cols[idxStart]?.trim() : '';
+        const fingerprint = name + '|' + (startRaw || endRaw || '');
+        if (!prolificId && existingFingerprints.has(fingerprint)) { skipped++; continue; }
+
+        const defaultCurrency = isCloudResearch ? 'USD' : 'GBP';
+        const rewardPayGBP = isCloudResearch
+          ? parseMoneyToGBP(cols[idxPaymentReceived] || '0', defaultCurrency) + parseMoneyToGBP(cols[idxPaymentPending] || '0', defaultCurrency)
+          : parseMoneyToGBP(cols[idxReward] || '0', defaultCurrency);
+        const bonusPayGBP = isCloudResearch
+          ? parseMoneyToGBP(cols[idxAmountBonused] || '0', defaultCurrency)
+          : (idxBonus !== -1 ? parseMoneyToGBP(cols[idxBonus] || '0', defaultCurrency) : 0);
+
+        let pay = 0;
+        let mins = 0;
+        let dateStr = '';
+        const start = parseImportDate(startRaw);
+        const end = parseImportDate(endRaw);
+
+        // Check if this is a completed study (has end time)
+        const hasCompletion = end && !isNaN(end);
+
+        // Determine payment based on status while preserving unpaid records for stats.
+        if (status === 'RETURNED' || status === 'TIMED-OUT' || status === 'REJECTED') {
+          pay = 0;
+        }
+        else if (status === 'SCREENED OUT') {
+          // The reward column is often the full study amount which they don't pay.
+          // Keep any actual bonus, but do not count the base reward.
+          pay = 0;
+        }
+        else if (status === 'PARTIALLY APPROVED') {
+          // Partially approved: usually pay the full reward plus any bonus
+          pay = rewardPayGBP;
+        }
+        else if (status === 'APPROVED' || status === 'AWAITING REVIEW') {
+          // Fully approved or awaiting: pay full reward plus any bonus
+          pay = rewardPayGBP;
+        }
+        else {
+          // Unknown status - skip to be safe
+          skipped++;
+          continue;
+        }
+
+        const shouldKeepUnpaidStatus = ['RETURNED', 'TIMED-OUT', 'REJECTED', 'SCREENED OUT'].includes(status);
+
+        // Skip unpaid approved/awaiting rows, but keep unpaid non-paying statuses for stats.
+        if (!shouldKeepUnpaidStatus && pay === 0 && bonusPayGBP === 0) {
+          skipped++;
+          continue;
+        }
+
+        // For date, prefer completed_at if available, otherwise started_at
+        if (hasCompletion) {
+          dateStr = end.toISOString();
+        } else if (start && !isNaN(start)) {
+          dateStr = start.toISOString();
+        } else {
+          const inferredDate = inferDateFromNeighborRows(i);
+          dateStr = (inferredDate || new Date()).toISOString();
+        }
+
+        // Calculate minutes - only if both start and end exist and end > start
+        if (start && end && !isNaN(start) && !isNaN(end) && end > start) {
+          mins = Math.round((end - start) / 60000);
+        } else {
+          // For studies without duration, default to 1 minute so they show in stats
+          mins = 1;
+        }
+
+        const entry = {
+          id: Date.now() + i,
+          name,
+          pay,
+          bonus: bonusPayGBP,
+          mins,
+          date: dateStr,
+          status,
+          source: isCloudResearch ? 'cloudresearch-csv' : 'csv',
+          fingerprint
+        };
+        if (prolificId) entry.prolificId = prolificId;
+        if (cloudResearchId) entry.cloudResearchId = cloudResearchId;
+        entries.push(entry);
+        if (prolificId) existingIds.add(prolificId);
+        if (cloudResearchId) existingCloudResearchIds.add(cloudResearchId);
+        if (!prolificId) existingFingerprints.add(fingerprint);
+        added++;
+      }
+
+      save();
+      return { added, skipped, error: null };
+    }
+
+    function parseCSVLine(line) {
+      const result = [];
+      let cur = '', inQuote = false;
+      for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (ch === '"') { inQuote = !inQuote; continue; }
+        if (ch === ',' && !inQuote) { result.push(cur); cur = ''; continue; }
+        cur += ch;
+      }
+      result.push(cur);
+      return result;
+    }
+
+    function showToast(msg, isError) {
+      const t = document.getElementById('importToast');
+      t.textContent = msg;
+      t.className = 'import-toast' + (isError ? ' error' : '');
+      t.style.display = 'block';
+      setTimeout(() => { t.style.display = 'none'; }, 4000);
+    }
+
+    function openImportModal() {
+      const modal = document.getElementById('importModal');
+      if (modal) modal.classList.add('open');
+    }
+
+    function closeImportModal() {
+      const modal = document.getElementById('importModal');
+      if (modal) modal.classList.remove('open');
+    }
+
+    function closeImportModalOnBackdrop(event) {
+      if (event.target.id === 'importModal') {
+        closeImportModal();
+      }
+    }
+
+    function openSettingsModal() {
+      const modal = document.getElementById('settingsModal');
+      if (modal) modal.classList.add('open');
+    }
+
+    function closeSettingsModal() {
+      const modal = document.getElementById('settingsModal');
+      if (modal) modal.classList.remove('open');
+    }
+
+    function closeSettingsModalOnBackdrop(event) {
+      if (event.target.id === 'settingsModal') {
+        closeSettingsModal();
+      }
+    }
+
+    function openChangelogModal() {
+      const modal = document.getElementById('changelogModal');
+      if (modal) modal.classList.add('open');
+
+      // Exclusive accordion behavior fallback for older browser engines
+      document.querySelectorAll('.changelog-item').forEach(details => {
+        if (!details.dataset.toggleLinked) {
+          details.dataset.toggleLinked = 'true';
+          details.addEventListener('toggle', () => {
+            if (details.open) {
+              document.querySelectorAll('.changelog-item').forEach(other => {
+                if (other !== details) {
+                  other.open = false;
+                }
+              });
+            }
+          });
+        }
+      });
+    }
+
+    function closeChangelogModal() {
+      const modal = document.getElementById('changelogModal');
+      if (modal) modal.classList.remove('open');
+    }
+
+    function closeChangelogModalOnBackdrop(event) {
+      if (event.target.id === 'changelogModal') {
+        closeChangelogModal();
+      }
+    }
 
 
-</body></html>
+
+    function handleImportFiles(files) {
+      if (!files || files.length === 0) return;
+      const filesArray = Array.from(files).filter(f => f.name.endsWith('.csv'));
+      if (filesArray.length === 0) {
+        showToast('Please select or drop .csv files only', true);
+        return;
+      }
+
+      let totalAdded = 0;
+      let totalSkipped = 0;
+      let hasError = false;
+      let errorMsg = '';
+      let processed = 0;
+
+      filesArray.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = ev => {
+          const result = parseCSV(ev.target.result);
+          if (result.error) {
+            hasError = true;
+            errorMsg = result.error;
+          } else {
+            totalAdded += result.added;
+            totalSkipped += result.skipped;
+          }
+          processed++;
+
+          if (processed === filesArray.length) {
+            if (hasError && totalAdded === 0) {
+              showToast('Error: ' + errorMsg, true);
+            } else {
+              let msg = `${totalAdded} studies imported`;
+              if (totalSkipped > 0) msg += `, ${totalSkipped} skipped`;
+              if (hasError) msg += ` (some files failed: ${errorMsg})`;
+              showToast(msg, false);
+              render();
+              setTimeout(closeImportModal, 1500);
+            }
+          }
+        };
+        reader.onerror = () => {
+          hasError = true;
+          errorMsg = `Failed to read ${file.name}`;
+          processed++;
+          if (processed === filesArray.length) {
+            let msg = `${totalAdded} studies imported`;
+            if (totalSkipped > 0) msg += `, ${totalSkipped} skipped`;
+            msg += ` (some files failed)`;
+            showToast(msg, hasError && totalAdded === 0);
+            render();
+            setTimeout(closeImportModal, 1500);
+          }
+        };
+        reader.readAsText(file);
+      });
+    }
+
+    function handleFileInput(input) {
+      if (!input.files || input.files.length === 0) return;
+      handleImportFiles(input.files);
+      input.value = '';
+    }
+
+    function setupDragDrop() {
+      const zone = document.getElementById('importZone');
+      if (!zone) return;
+      zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+      zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+      zone.addEventListener('drop', e => {
+        e.preventDefault();
+        zone.classList.remove('drag-over');
+        if (!e.dataTransfer.files || e.dataTransfer.files.length === 0) return;
+        handleImportFiles(e.dataTransfer.files);
+      });
+    }
+
+    // ─── Export CSV ───────────────────────────────────────────────────────────────
+    function exportCSV() {
+      const sym = currSymbol();
+      const rows = [['Study name', 'Date', 'Pay (' + sym + ')', 'Bonus (' + sym + ')', 'Duration (mins)', 'Hourly rate (' + sym + '/hr)', 'Status']];
+      const list = getDisplayEntries();
+      const multiplier = RATES[currency] || 1;
+      list.forEach(e => {
+        const bonus = (e.bonus || 0) * multiplier;
+        const baseReward = e.pay * multiplier;
+        const totalPay = (e.pay + (e.bonus || 0)) * multiplier;
+        const rate = e.mins > 0 ? (totalPay / (e.mins / 60)).toFixed(2) : '';
+        rows.push(['"' + e.name.replace(/"/g, '""') + '"', new Date(e.date).toLocaleDateString('en-GB'), baseReward.toFixed(2), bonus.toFixed(2), e.mins, rate, e.status || 'APPROVED']);
+      });
+      const csv = rows.map(r => r.join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'prolific-earnings-' + todayStr() + '.csv';
+      a.click();
+    }
+
+    // ─── Clear all ────────────────────────────────────────────────────────────────
+    function confirmClearAll() { document.getElementById('confirmOverlay').classList.add('open'); }
+    function closeConfirm() { document.getElementById('confirmOverlay').classList.remove('open'); }
+    function clearAll() {
+      entries = [];
+      save();
+      closeConfirm();
+      render();
+    }
+  </script>
+
+
+</body>
+
+</html>
