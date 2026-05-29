@@ -3373,7 +3373,7 @@
     }
 
     // ─── CSV Import ───────────────────────────────────────────────────────────────
-    function parseCSV(text) {
+    function parseCSV(text, filename = '') {
       const lines = text.split(/\r?\n/).filter(l => l.trim());
       if (lines.length < 2) return { added: 0, skipped: 0, error: 'CSV appears empty' };
 
@@ -3419,7 +3419,16 @@
       const idxPaymentReceived = col('payment_received');
       const idxPaymentPending = col('payment_pending');
       const idxAmountBonused = col('amount_bonused');
-      const isCloudResearch = idxProjectId !== -1 && (idxPaymentReceived !== -1 || idxPaymentPending !== -1);
+
+      let isCloudResearch = idxProjectId !== -1 && (idxPaymentReceived !== -1 || idxPaymentPending !== -1);
+      if (filename) {
+        const fnLower = filename.toLowerCase();
+        if (fnLower.includes('prolific')) {
+          isCloudResearch = false;
+        } else if (fnLower.includes('assignments') || fnLower.includes('cloudresearch') || fnLower.includes('cloud research')) {
+          isCloudResearch = true;
+        }
+      }
 
       if (!isCloudResearch && idxReward === -1) return { added: 0, skipped: 0, error: 'Could not find a payment column. Is this a Prolific or CloudResearch CSV?' };
 
@@ -3828,7 +3837,7 @@
       filesArray.forEach(file => {
         const reader = new FileReader();
         reader.onload = ev => {
-          const result = parseCSV(ev.target.result);
+          const result = parseCSV(ev.target.result, file.name);
           if (result.error) {
             hasError = true;
             errorMsg = result.error;
