@@ -600,10 +600,13 @@
     }
 
     .goal-label {
-      font-size: 12px;
+      font-size: 11px;
       color: var(--md-on-secondary-container);
       font-family: var(--mono);
       white-space: nowrap;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      opacity: 0.8;
     }
 
     .goal-input-wrap {
@@ -898,6 +901,8 @@
     input[type="text"].field-input,
     input[type="number"].field-input,
     input[type="date"].field-input,
+    input[type="datetime-local"].field-input,
+    input[type="time"].field-input,
     select.field-input {
       width: 100%;
       background: var(--md-surface-container);
@@ -915,11 +920,15 @@
     input[type="text"].field-input:focus,
     input[type="number"].field-input:focus,
     input[type="date"].field-input:focus,
+    input[type="datetime-local"].field-input:focus,
+    input[type="time"].field-input:focus,
     select.field-input:focus {
       border-color: var(--accent);
     }
 
-    input[type="date"].field-input::-webkit-calendar-picker-indicator {
+    input[type="date"].field-input::-webkit-calendar-picker-indicator,
+    input[type="datetime-local"].field-input::-webkit-calendar-picker-indicator,
+    input[type="time"].field-input::-webkit-calendar-picker-indicator {
       filter: invert(0.5);
     }
 
@@ -1596,33 +1605,178 @@
     }
 
     .color-picker-wrapper {
-      position: relative;
+      display: inline-block;
       width: 28px;
       height: 28px;
       border-radius: 50%;
-      border: 2px solid transparent;
+      border: none;
       cursor: pointer;
-      overflow: hidden;
       background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
       box-shadow: 0 2px 6px var(--md-shadow);
       transition: transform 0.2s var(--motion), border-color 0.2s var(--motion);
+      box-sizing: border-box;
+      padding: 0;
     }
 
     .color-picker-wrapper:hover {
       transform: scale(1.15);
     }
 
-    .color-picker-wrapper input[type="color"] {
+    .color-picker-wrapper.active {
+      border-color: var(--text);
+      transform: scale(1.15);
+      box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--text);
+    }
+    .m3-calendar {
       position: absolute;
-      top: -5px;
-      left: -5px;
-      width: 38px;
-      height: 38px;
-      opacity: 0;
+      bottom: calc(100% + 8px); /* Open upwards to prevent going off the page */
+      right: 0;                 /* Align to right side of input to prevent right-screen overflow */
+      left: auto;
+      background: var(--md-surface-container-high);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      box-shadow: 0 8px 32px var(--md-shadow);
+      padding: 16px;
+      z-index: 1000;
+      width: 280px;
+      font-family: var(--sans);
+      display: none;
+      animation: m3FadeIn 0.2s var(--motion);
+    }
+    @keyframes m3FadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .m3-calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .m3-calendar-title {
+      font-weight: 600;
+      color: var(--text);
+      font-size: 14px;
+    }
+    .m3-calendar-btn {
+      background: transparent;
+      border: none;
+      color: var(--muted);
       cursor: pointer;
+      font-size: 16px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s var(--motion), color 0.2s var(--motion);
+    }
+    .m3-calendar-btn:hover {
+      background: var(--md-surface-container-highest);
+      color: var(--text);
+    }
+    .m3-calendar-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      text-align: center;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 8px;
+      opacity: 0.8;
+    }
+    .m3-calendar-days {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+    .m3-calendar-day {
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: var(--text);
+      cursor: pointer;
+      border-radius: 50%;
+      transition: background 0.2s var(--motion), color 0.2s var(--motion), transform 0.1s var(--motion);
+    }
+    .m3-calendar-day:hover:not(.empty):not(.selected) {
+      background: var(--md-surface-container-highest);
+    }
+    .m3-calendar-day.selected {
+      background: var(--md-primary);
+      color: var(--md-on-primary);
+      font-weight: bold;
+    }
+    .m3-calendar-day.empty {
+      cursor: default;
+    }
+    .m3-calendar-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 12px 0;
+    }
+    .m3-calendar-time-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .m3-calendar-time-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .m3-calendar-time-inputs {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .m3-calendar-time-select {
+      background: var(--md-surface-container);
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 13px;
+      padding: 4px 6px;
+      outline: none;
+      cursor: pointer;
+      text-align: center;
+    }
+    .m3-calendar-time-colon {
+      font-family: var(--mono);
+      font-weight: bold;
+      color: var(--muted);
+    }
+    .m3-calendar-footer {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 12px;
+      gap: 8px;
+    }
+    .m3-calendar-footer-btn {
+      padding: 6px 12px;
+      border-radius: 99px;
+      font-size: 12px;
+      font-family: var(--sans);
+      cursor: pointer;
+      border: none;
+      transition: background 0.2s var(--motion);
+    }
+    .m3-calendar-footer-btn.cancel {
+      background: transparent;
+      color: var(--muted);
+    }
+    .m3-calendar-footer-btn.cancel:hover {
+      background: var(--md-surface-container-highest);
+    }
+    .m3-calendar-footer-btn.confirm {
+      background: var(--md-primary);
+      color: var(--md-on-primary);
+      font-weight: 600;
     }
   </style>
 </head>
@@ -1901,16 +2055,20 @@
               <input type="number" class="field-input" id="studyPay" placeholder="0.00" min="0" step="0.01">
             </div>
             <div>
-              <div class="field-label">Bonus (£)</div>
+              <div class="field-label" id="bonusFieldLabel">Bonus (£)</div>
               <input type="number" class="field-input" id="studyBonus" placeholder="0.00" min="0" step="0.01">
             </div>
             <div>
               <div class="field-label">Minutes</div>
               <input type="number" class="field-input" id="studyMins" placeholder="0" min="1" step="1">
             </div>
-            <div>
-              <div class="field-label">Date</div>
-              <input type="date" class="field-input" id="studyDate">
+            <div style="position: relative;">
+              <div class="field-label">Date & Time</div>
+              <div style="position: relative; display: flex; align-items: center;">
+                <input type="text" class="field-input" id="studyDate" readonly style="cursor: pointer; padding-right: 32px;" onclick="toggleM3Calendar(event)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; right: 10px; width: 16px; height: 16px; color: var(--muted); pointer-events: none;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+              </div>
+              <div id="m3Calendar" class="m3-calendar"></div>
             </div>
             <div style="display:flex; align-items:flex-end;">
               <button class="add-btn" onclick="addManual()">+ Add</button>
@@ -1987,10 +2145,10 @@
             <button type="button" class="seed-pill" data-hue="340" data-sat="80" style="background-color: #e02424;"
               onclick="applyThemeSeed(340, 80)" title="Blossom Pink"></button>
 
-            <div class="color-picker-wrapper" title="Choose custom color">
+            <label class="color-picker-wrapper" title="Choose custom color" for="customColorPicker">
               <input type="color" id="customColorPicker" oninput="handleCustomColorPickerInput(this.value)"
-                onchange="handleCustomColorPickerInput(this.value)">
-            </div>
+                onchange="handleCustomColorPickerInput(this.value)" style="display: none;">
+            </label>
           </div>
         </div>
 
@@ -2005,8 +2163,19 @@
               <option value="USD">🇺🇸 USD</option>
               <option value="EUR">🇪🇺 EUR</option>
               <option value="SAR">🇸🇦 SAR</option>
+              <option value="BTC">₿  BTC</option>
             </select>
             <span class="rate-status" id="rateStatus" style="font-size: 11px;">···</span>
+          </div>
+        </div>
+
+        <!-- Time Format Selection -->
+        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+          <label style="font-weight: 500; font-size: 13px; color: var(--text); font-family: var(--sans);">Time
+            Format</label>
+          <div class="theme-toggle" aria-label="Time Format" style="align-self: flex-start;">
+            <button class="theme-btn" id="timeFormat12H" type="button" onclick="setTimeFormat('12h')">12-Hour</button>
+            <button class="theme-btn" id="timeFormat24H" type="button" onclick="setTimeFormat('24h')">24-Hour</button>
           </div>
         </div>
 
@@ -2051,8 +2220,32 @@
       <div class="changelog-entries"
         style="display: flex; flex-direction: column; max-height: 380px; overflow-y: auto; padding-right: 6px;">
 
-        <!-- v2.0 (Newest) -->
+        <!-- v2.1 (Newest) -->
         <details class="changelog-item" name="changelog" open>
+          <summary>
+            <div class="changelog-header">
+              <span class="changelog-ver">v2.1</span>
+              <div style="display: flex; align-items: center; gap: 8px; margin-left: auto;">
+                <span class="changelog-date">2026-05-29</span>
+                <span class="changelog-icon">▼</span>
+              </div>
+            </div>
+          </summary>
+          <div class="changelog-content">
+            <ul>
+              <li><strong>Bitcoin Currency Support</strong>: Added Bitcoin (BTC) as a display currency option, complete with live exchange rates and high-precision decimal formatting.</li>
+              <li><strong>Thousands Separator</strong>: Large monetary and numeric values now display commas for much easier readability.</li>
+              <li><strong>Improved Time Metrics</strong>: The "Time Spent" metric card now displays elapsed days when applicable.</li>
+              <li><strong>12/24 Hour Format & Hover Tooltips</strong>: Added configurable 12-hour and 24-hour time formats, and hovering over a study's date now reveals the exact full timestamp.</li>
+              <li><strong>Redesigned Manual Entry</strong>: Upgraded the manual entry form with a custom Material 3-inspired date/time picker, and fixed the bonus currency label to correctly match the selected currency.</li>
+              <li><strong>Refined Chart Visuals</strong>: Corrected chart bar rounding so that bars are flat on the bottom and rounded on top.</li>
+              <li><strong>Accent Color Picker Fix</strong>: Fixed a layout issue where the rainbow icon for custom accent color selection was getting clipped.</li>
+            </ul>
+          </div>
+        </details>
+
+        <!-- v2.0 -->
+        <details class="changelog-item" name="changelog">
           <summary>
             <div class="changelog-header">
               <span class="changelog-ver">v2.0</span>
@@ -2212,8 +2405,8 @@
     });
 
     // Fallback rates used until live rates load
-    const SYMBOLS = { GBP: '£', USD: '$', EUR: '€', SAR: '﷼' };
-    let RATES = { GBP: 1, USD: 1.29, EUR: 1.21, SAR: 4.84 };
+    const SYMBOLS = { GBP: '£', USD: '$', EUR: '€', SAR: '﷼', BTC: '₿' };
+    let RATES = { GBP: 1, USD: 1.29, EUR: 1.21, SAR: 4.84, BTC: 0.000018 };
     let ratesLoaded = false;
 
     let currency = localStorage.getItem('prolific_currency') || 'GBP';
@@ -2241,20 +2434,38 @@
 
       async function fetchFrankfurterRates() {
         const data = await fetchJson('https://api.frankfurter.dev/v2/rates?base=GBP&quotes=USD,EUR,SAR');
-        return { GBP: 1, USD: data.rates.USD, EUR: data.rates.EUR, SAR: data.rates.SAR };
+        let btcRate = 0.000018;
+        try {
+          const cbData = await fetchJson('https://api.coinbase.com/v2/prices/BTC-GBP/spot');
+          const btcPriceInGbp = parseFloat(cbData.data.amount);
+          if (btcPriceInGbp > 0) {
+            btcRate = 1 / btcPriceInGbp;
+          }
+        } catch (e) {
+          try {
+            const apiData = await fetchJson('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/gbp.json');
+            if (apiData.gbp && apiData.gbp.btc) {
+              btcRate = apiData.gbp.btc;
+            }
+          } catch (err) {}
+        }
+        return { GBP: 1, USD: data.rates.USD, EUR: data.rates.EUR, SAR: data.rates.SAR, BTC: btcRate };
       }
 
       async function fetchCurrencyApiRates() {
         const data = await fetchJson('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/gbp.json');
-        return { GBP: 1, USD: data.gbp.usd, EUR: data.gbp.eur, SAR: data.gbp.sar };
+        return { GBP: 1, USD: data.gbp.usd, EUR: data.gbp.eur, SAR: data.gbp.sar, BTC: data.gbp.btc || 0.000018 };
       }
 
       try {
         const cached = localStorage.getItem(CACHE_KEY);
         const ts = parseInt(localStorage.getItem(CACHE_TIME) || '0');
         if (cached && Date.now() - ts < SIX_HOURS) {
-          applyRates(JSON.parse(cached), 'cached', 'live');
-          return;
+          const parsed = JSON.parse(cached);
+          if (parsed && parsed.BTC !== undefined) {
+            applyRates(parsed, 'cached', 'live');
+            return;
+          }
         }
 
         let liveRates;
@@ -2270,7 +2481,9 @@
       } catch (e) {
         const cached = localStorage.getItem(CACHE_KEY);
         if (cached) {
-          applyRates(JSON.parse(cached), 'cached', 'stale');
+          const parsed = JSON.parse(cached);
+          if (parsed && parsed.BTC === undefined) parsed.BTC = 0.000018;
+          applyRates(parsed, 'cached', 'stale');
         } else if (statusEl) {
           statusEl.textContent = 'offline';
           statusEl.className = 'rate-status stale';
@@ -2293,6 +2506,7 @@
     let chartRange = localStorage.getItem('prolific_chart_range') || '14d';
     let lastChartKey = null;
     let themeMode = localStorage.getItem('prolific_theme_mode') || 'system';
+    let timeFormat = localStorage.getItem('prolific_time_format') || '24h';
     const systemThemeQuery = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
 
     let themeSeed = { h: 171, s: 100 };
@@ -2321,11 +2535,20 @@
       document.documentElement.style.setProperty('--sat', themeSeed.s + '%');
 
       // Highlight active preset pill
+      let anyPresetActive = false;
       document.querySelectorAll('.seed-pill').forEach(pill => {
         const ph = parseInt(pill.getAttribute('data-hue'));
         const ps = parseInt(pill.getAttribute('data-sat'));
-        pill.classList.toggle('active', ph === themeSeed.h && ps === themeSeed.s);
+        const isActive = ph === themeSeed.h && ps === themeSeed.s;
+        pill.classList.toggle('active', isActive);
+        if (isActive) anyPresetActive = true;
       });
+
+      // Highlight custom color picker wrapper if active
+      const pickerWrapper = document.querySelector('.color-picker-wrapper');
+      if (pickerWrapper) {
+        pickerWrapper.classList.toggle('active', !anyPresetActive);
+      }
 
       // Sync custom picker color
       const picker = document.getElementById('customColorPicker');
@@ -2414,6 +2637,23 @@
       if (btn5y) btn5y.classList.toggle('active', chartRange === '5y');
     }
 
+    function setTimeFormat(fmt) {
+      const oldVal = document.getElementById('studyDate').value;
+      timeFormat = fmt;
+      localStorage.setItem('prolific_time_format', fmt);
+      const parsed = parseInputDateTime(oldVal);
+      document.getElementById('studyDate').value = formatDateTimeForInput(parsed);
+      updateTimeFormatUI();
+      render();
+    }
+
+    function updateTimeFormatUI() {
+      ['12h', '24h'].forEach(fmt => {
+        const btn = document.getElementById('timeFormat' + fmt.toUpperCase());
+        if (btn) btn.classList.toggle('active', timeFormat === fmt);
+      });
+    }
+
     // Migration: Migrate from GBP-base goal to selected-currency goal.
     // Storing the goal in the selected currency prevents it from fluctuating due to live exchange rate changes.
     const goalBaseFlag = localStorage.getItem('prolific_goal_base');
@@ -2424,16 +2664,23 @@
     }
 
     // ─── Currency helpers ─────────────────────────────────────────────────────────
+    function fmtNum(val) {
+      const decimals = currency === 'BTC' ? 8 : 2;
+      return val.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+    }
+    function fmtInt(val) {
+      return val.toLocaleString('en-US');
+    }
     function fmt(val) {
-      return (SYMBOLS[currency] || '£') + (val * (RATES[currency] || 1)).toFixed(2);
+      return (SYMBOLS[currency] || '£') + fmtNum(val * (RATES[currency] || 1));
     }
     function fmtRate(rate) {
-      return (SYMBOLS[currency] || '£') + (rate * (RATES[currency] || 1)).toFixed(2) + '/hr';
+      return (SYMBOLS[currency] || '£') + fmtNum(rate * (RATES[currency] || 1)) + '/hr';
     }
     function currSymbol() { return SYMBOLS[currency] || '£'; }
     // minWage is stored in the selected currency; convert back to GBP base for comparison with entry pay values
     function minWageGBP() { return minWage > 0 ? minWage / (RATES[currency] || 1) : 6; }
-    function minRate() { return minWage > 0 ? minWage.toFixed(2) : (6 * (RATES[currency] || 1)).toFixed(2); }
+    function minRate() { return minWage > 0 ? fmtNum(minWage) : fmtNum(6 * (RATES[currency] || 1)); }
     function goodRate() { return minWageGBP() * 1.5; }
     function okRate() { return minWageGBP(); }
 
@@ -2452,28 +2699,71 @@
 
       // Keep numeric inputs aligned with the newly selected currency.
       const goalInput = document.getElementById('goalInput');
-      if (goalInput) goalInput.value = weeklyGoal.toFixed(2);
+      if (goalInput) goalInput.value = weeklyGoal.toFixed(currency === 'BTC' ? 8 : 2);
       const minWageInput = document.getElementById('minWageInput');
-      if (minWageInput) minWageInput.value = minWage > 0 ? minWage.toFixed(2) : '';
+      if (minWageInput) minWageInput.value = minWage > 0 ? minWage.toFixed(currency === 'BTC' ? 8 : 2) : '';
       render();
     }
 
     // ─── Init ─────────────────────────────────────────────────────────────────────
-    document.getElementById('goalInput').value = weeklyGoal.toFixed(2);
+    document.getElementById('goalInput').value = weeklyGoal.toFixed(currency === 'BTC' ? 8 : 2);
     if (minWage > 0) {
       const minWageInput = document.getElementById('minWageInput');
-      if (minWageInput) minWageInput.value = minWage.toFixed(2);
+      if (minWageInput) minWageInput.value = minWage.toFixed(currency === 'BTC' ? 8 : 2);
     }
-    document.getElementById('studyDate').value = todayStr();
+    document.getElementById('studyDate').value = todayDateTimeStr();
     document.getElementById('currencySelect').value = currency;
     applyTheme();
     loadRates();
     updateChartRangeUI();
+    updateTimeFormatUI();
     setupDragDrop();
     render();
 
-    function todayStr() {
-      return new Date().toISOString().slice(0, 10);
+    function formatDateTimeForInput(dateObj) {
+      const year = dateObj.getFullYear();
+      const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const day = String(dateObj.getDate()).padStart(2, '0');
+      let hours = dateObj.getHours();
+      const minutes = String(dateObj.getMinutes()).padStart(2, '0');
+      
+      if (timeFormat === '12h') {
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        let displayHour = hours % 12;
+        if (displayHour === 0) displayHour = 12;
+        const hrStr = String(displayHour).padStart(2, '0');
+        return `${year}-${month}-${day} ${hrStr}:${minutes} ${ampm}`;
+      } else {
+        const hrStr = String(hours).padStart(2, '0');
+        return `${year}-${month}-${day} ${hrStr}:${minutes}`;
+      }
+    }
+
+    function parseInputDateTime(val) {
+      if (!val) return new Date();
+      const parts = val.trim().split(/\s+/);
+      if (parts.length < 2) return new Date();
+      const dateParts = parts[0].split('-');
+      const timeParts = parts[1].split(':');
+      
+      const year = parseInt(dateParts[0]);
+      const month = parseInt(dateParts[1]) - 1;
+      const day = parseInt(dateParts[2]);
+      
+      let hour = parseInt(timeParts[0]);
+      const minute = parseInt(timeParts[1]);
+      
+      if (parts.length === 3) {
+        const ampm = parts[2].toUpperCase();
+        if (ampm === 'PM' && hour < 12) hour += 12;
+        if (ampm === 'AM' && hour === 12) hour = 0;
+      }
+      
+      return new Date(year, month, day, hour, minute);
+    }
+
+    function todayDateTimeStr() {
+      return formatDateTimeForInput(new Date());
     }
 
     function save() {
@@ -2620,7 +2910,7 @@
         return `<div class="status-summary-item">
       <div class="status-summary-label">
         <span>${s.label}</span>
-        <span class="status-badge ${s.cls}">${total.count}</span>
+        <span class="status-badge ${s.cls}">${fmtInt(total.count)}</span>
       </div>
       <div class="status-summary-count">${fmt(total.amount)}</div>
     </div>`;
@@ -2654,11 +2944,20 @@
       document.getElementById('metricEarnedSub').textContent = periodName;
       document.getElementById('metricBonus').textContent = fmt(totalBonus);
       document.getElementById('metricBonusSub').textContent = periodName;
-      document.getElementById('metricTime').textContent =
-        Math.floor(totalMins / 60) + 'h ' + (totalMins % 60) + 'm';
+      const totalHours = Math.floor(totalMins / 60);
+      if (totalHours >= 24) {
+        const days = Math.floor(totalHours / 24);
+        const remainingHours = totalHours % 24;
+        const remainingMins = totalMins % 60;
+        document.getElementById('metricTime').textContent =
+          days + 'd ' + remainingHours + 'h ' + remainingMins + 'm';
+      } else {
+        document.getElementById('metricTime').textContent =
+          totalHours + 'h ' + (totalMins % 60) + 'm';
+      }
       document.getElementById('metricTimeSub').textContent = periodName;
       document.getElementById('metricRate').textContent = avgRate !== null ? fmt(avgRate) : '—';
-      document.getElementById('metricStudies').textContent = disp.length;
+      document.getElementById('metricStudies').textContent = fmtInt(disp.length);
       document.getElementById('metricStudiesSub').textContent = periodName;
       renderStatusSummary();
 
@@ -2671,7 +2970,7 @@
       const metricRateSubEl = document.getElementById('metricRateSub');
       if (metricRateSubEl) {
         if (minWage > 0) {
-          metricRateSubEl.textContent = 'Min wage: ' + currSymbol() + minWage.toFixed(2) + '/hr';
+          metricRateSubEl.textContent = 'Min wage: ' + currSymbol() + fmtNum(minWage) + '/hr';
         } else {
           metricRateSubEl.textContent = '';
         }
@@ -2683,12 +2982,32 @@
       const pct = Math.min(100, (weekEarnedConverted / weeklyGoal) * 100);
       document.getElementById('progressFill').style.width = pct.toFixed(1) + '%';
       document.getElementById('progressFill').className = 'progress-fill' + (pct >= 100 ? ' over' : '');
-      document.getElementById('progressText').textContent = fmt(weekEarned) + ' / ' + currSymbol() + weeklyGoal.toFixed(2);
+      document.getElementById('progressText').textContent = fmt(weekEarned) + ' / ' + currSymbol() + fmtNum(weeklyGoal);
 
       // Update goal symbol and manual add label
       document.getElementById('goalSymbol').textContent = currSymbol();
       const payLabel = document.getElementById('payFieldLabel');
       if (payLabel) payLabel.textContent = 'Pay (' + currSymbol() + ')';
+      const bonusLabel = document.getElementById('bonusFieldLabel');
+      if (bonusLabel) bonusLabel.textContent = 'Bonus (' + currSymbol() + ')';
+
+      // Update step attributes and placeholders based on selected currency
+      const stepVal = currency === 'BTC' ? '0.00000001' : '0.01';
+      const goalStepVal = currency === 'BTC' ? '0.00000001' : '1';
+      const payInput = document.getElementById('studyPay');
+      if (payInput) {
+        payInput.step = stepVal;
+        payInput.placeholder = currency === 'BTC' ? '0.00000000' : '0.00';
+      }
+      const bonusInput = document.getElementById('studyBonus');
+      if (bonusInput) {
+        bonusInput.step = stepVal;
+        bonusInput.placeholder = currency === 'BTC' ? '0.00000000' : '0.00';
+      }
+      const goalInput = document.getElementById('goalInput');
+      if (goalInput) goalInput.step = goalStepVal;
+      const minWageInput = document.getElementById('minWageInput');
+      if (minWageInput) minWageInput.step = stepVal;
 
       // Last updated
       let latestKey = 'none';
@@ -2712,7 +3031,7 @@
       }
 
       const allTableEntries = getDisplayEntries();
-      document.getElementById('entryCount').textContent = allTableEntries.length + ' stud' + (allTableEntries.length === 1 ? 'y' : 'ies');
+      document.getElementById('entryCount').textContent = fmtInt(allTableEntries.length) + ' stud' + (allTableEntries.length === 1 ? 'y' : 'ies');
       const totalPages = Math.max(1, Math.ceil(allTableEntries.length / PAGE_SIZE));
       if (tablePage > totalPages) tablePage = totalPages;
       if (tablePage < 1) tablePage = 1;
@@ -2747,7 +3066,16 @@
           const totalPay = e.pay + (e.bonus || 0);
           const rate = e.mins > 0 ? totalPay / (e.mins / 60) : 0;
           const rateCls = rate >= goodRate() ? 'rate-good' : rate >= okRate() ? 'rate-ok' : 'rate-low';
-          const dateStr = fmtDate(new Date(e.date));
+          const dateObj = new Date(e.date);
+          const dateStr = fmtDate(dateObj);
+          const fullDateStr = dateObj.toLocaleString('en-GB', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: timeFormat === '12h'
+          });
           const status = e.status || 'APPROVED';
           const statusCls = status === 'APPROVED' ? 'status-approved' :
             status === 'AWAITING REVIEW' ? 'status-awaiting' :
@@ -2758,7 +3086,7 @@
           const bonusDisplay = bonus > 0 ? fmt(bonus) : '—';
           return `<tr>
           <td class="td-name" title="${e.name}">${e.name}</td>
-          <td class="td-date">${dateStr}</td>
+          <td class="td-date" title="${fullDateStr}">${dateStr}</td>
           <td class="td-pay">${fmt(e.pay)}</td>
           <td class="td-pay" style="color: var(--accent);">${bonusDisplay}</td>
           <td class="td-time">${e.mins}m</td>
@@ -2912,15 +3240,28 @@
                 label: 'Approved',
                 data: approvedData,
                 backgroundColor: approvedData.map((v, idx) => (v > 0 || pendingData[idx] > 0) ? chartBar : chartEmpty),
-                borderRadius: 8,
-                borderSkipped: 'middle',
+                borderRadius: approvedData.map((v, idx) => {
+                  const hasPending = pendingData[idx] > 0;
+                  return {
+                    topLeft: hasPending ? 0 : 8,
+                    topRight: hasPending ? 0 : 8,
+                    bottomLeft: 0,
+                    bottomRight: 0
+                  };
+                }),
+                borderSkipped: false,
               },
               {
                 label: 'Pending',
                 data: pendingData,
                 backgroundColor: pendingData.map((v, idx) => (v > 0 || approvedData[idx] > 0) ? chartBarPending : chartEmpty),
-                borderRadius: 8,
-                borderSkipped: 'middle',
+                borderRadius: {
+                  topLeft: 8,
+                  topRight: 8,
+                  bottomLeft: 0,
+                  bottomRight: 0
+                },
+                borderSkipped: false,
               }
             ]
           },
@@ -2936,14 +3277,14 @@
                   label: tooltipCtx => {
                     const label = tooltipCtx.dataset.label || '';
                     const val = tooltipCtx.parsed.y;
-                    return label + ': ' + currSymbol() + val.toFixed(2);
+                    return label + ': ' + currSymbol() + fmtNum(val);
                   },
                   footer: tooltipItems => {
                     let sum = 0;
                     tooltipItems.forEach(item => {
                       sum += item.parsed.y;
                     });
-                    return 'Total: ' + currSymbol() + sum.toFixed(2);
+                    return 'Total: ' + currSymbol() + fmtNum(sum);
                   },
                   title: tooltipCtx => tooltipCtx[0].label
                 },
@@ -2963,7 +3304,7 @@
               y: {
                 stacked: true,
                 beginAtZero: true,
-                ticks: { callback: v => currSymbol() + v.toFixed(0), color: chartText, font: { family: 'Google Sans Code', size: 11 } },
+                ticks: { callback: v => currSymbol() + (currency === 'BTC' ? v.toFixed(8) : v.toFixed(0)), color: chartText, font: { family: 'Google Sans Code', size: 11 } },
                 grid: { color: gridColor },
                 border: { display: false }
               },
@@ -2998,7 +3339,7 @@
       const mins = parseInt(document.getElementById('studyMins').value);
       const date = document.getElementById('studyDate').value;
       if (isNaN(pay) || isNaN(mins) || mins < 1 || pay < 0 || !date) {
-        alert('Please fill in pay, duration, and date.');
+        alert('Please fill in pay, duration, date, and time.');
         return;
       }
 
@@ -3007,12 +3348,13 @@
         bonus = bonus / (RATES[currency] || 1);
       }
 
-      entries.push({ id: Date.now(), name, pay, bonus, mins, date: new Date(date + 'T12:00:00').toISOString(), status: 'APPROVED', source: 'manual' });
+      entries.push({ id: Date.now(), name, pay, bonus, mins, date: parseInputDateTime(date).toISOString(), status: 'APPROVED', source: 'manual' });
       save();
       document.getElementById('studyName').value = '';
       document.getElementById('studyPay').value = '';
       document.getElementById('studyBonus').value = '';
       document.getElementById('studyMins').value = '';
+      document.getElementById('studyDate').value = todayDateTimeStr();
       render();
     }
 
@@ -3099,7 +3441,27 @@
       }
 
       function parseImportDate(raw) {
-        const d = raw ? new Date(raw) : null;
+        if (!raw) return null;
+        let str = raw.trim();
+        const hasTimezone = /[Zz]|\b[Gg][Mm][Tt]\b|\b[Uu][Tt][Cc]\b|[+-]\d{2}:?\d{2}/.test(str);
+        if (!hasTimezone) {
+          if (str.includes(':')) {
+            if (!str.includes('T') && /^\d{4}-\d{2}-\d{2}/.test(str)) {
+              str = str.replace(' ', 'T') + 'Z';
+            } else if (str.includes('T')) {
+              str += 'Z';
+            } else {
+              str += ' UTC';
+            }
+          } else {
+            if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+              str += 'T00:00:00Z';
+            } else {
+              str += ' UTC';
+            }
+          }
+        }
+        const d = new Date(str);
         return d && !isNaN(d) ? d : null;
       }
 
@@ -3416,8 +3778,8 @@
         const bonus = (e.bonus || 0) * multiplier;
         const baseReward = e.pay * multiplier;
         const totalPay = (e.pay + (e.bonus || 0)) * multiplier;
-        const rate = e.mins > 0 ? (totalPay / (e.mins / 60)).toFixed(2) : '';
-        rows.push(['"' + e.name.replace(/"/g, '""') + '"', new Date(e.date).toLocaleDateString('en-GB'), baseReward.toFixed(2), bonus.toFixed(2), e.mins, rate, e.status || 'APPROVED']);
+        const rate = e.mins > 0 ? (totalPay / (e.mins / 60)).toFixed(currency === 'BTC' ? 8 : 2) : '';
+        rows.push(['"' + e.name.replace(/"/g, '""') + '"', new Date(e.date).toLocaleDateString('en-GB'), baseReward.toFixed(currency === 'BTC' ? 8 : 2), bonus.toFixed(currency === 'BTC' ? 8 : 2), e.mins, rate, e.status || 'APPROVED']);
       });
       const csv = rows.map(r => r.join(',')).join('\n');
       const blob = new Blob([csv], { type: 'text/csv' });
@@ -3436,6 +3798,193 @@
       closeConfirm();
       render();
     }
+    // ─── Custom M3 Calendar Picker ──────────────────────────────────────────────────
+    let calendarDate = new Date();
+    let selectedCalendarDate = null;
+    let calendarHour = 12;
+    let calendarMinute = 0;
+
+    function toggleM3Calendar(e) {
+      if (e) e.stopPropagation();
+      const cal = document.getElementById('m3Calendar');
+      if (!cal) return;
+      if (cal.style.display === 'block') {
+        cal.style.display = 'none';
+      } else {
+        const currentVal = document.getElementById('studyDate').value;
+        const d = parseInputDateTime(currentVal);
+        if (!isNaN(d)) {
+          selectedCalendarDate = new Date(d);
+          calendarDate = new Date(d);
+          calendarHour = d.getHours();
+          calendarMinute = d.getMinutes();
+        } else {
+          selectedCalendarDate = new Date();
+          calendarDate = new Date();
+          calendarHour = selectedCalendarDate.getHours();
+          calendarMinute = selectedCalendarDate.getMinutes();
+        }
+        renderM3Calendar();
+        cal.style.display = 'block';
+      }
+    }
+
+    function renderM3Calendar() {
+      const cal = document.getElementById('m3Calendar');
+      if (!cal) return;
+
+      const year = calendarDate.getFullYear();
+      const month = calendarDate.getMonth();
+
+      const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+      const titleText = `${monthNames[month]} ${year}`;
+
+      const firstDay = new Date(year, month, 1).getDay();
+      const totalDays = new Date(year, month + 1, 0).getDate();
+
+      const isSameMonth = selectedCalendarDate && selectedCalendarDate.getFullYear() === year && selectedCalendarDate.getMonth() === month;
+
+      let html = `
+        <div class="m3-calendar-header" onclick="event.stopPropagation()">
+          <button type="button" class="m3-calendar-btn" onclick="changeM3Month(-1, event)">‹</button>
+          <span class="m3-calendar-title">${titleText}</span>
+          <button type="button" class="m3-calendar-btn" onclick="changeM3Month(1, event)">›</button>
+        </div>
+        <div class="m3-calendar-weekdays" onclick="event.stopPropagation()">
+          <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+        </div>
+        <div class="m3-calendar-days" onclick="event.stopPropagation()">
+      `;
+
+      for (let i = 0; i < firstDay; i++) {
+        html += `<span class="m3-calendar-day empty"></span>`;
+      }
+
+      for (let day = 1; day <= totalDays; day++) {
+        const isSelected = isSameMonth && selectedCalendarDate.getDate() === day;
+        const cls = isSelected ? 'm3-calendar-day selected' : 'm3-calendar-day';
+        html += `<span class="${cls}" onclick="selectM3Day(${day}, event)">${day}</span>`;
+      }
+
+      html += `</div>`;
+
+      // Time Selector Row
+      html += `
+        <div class="m3-calendar-divider" onclick="event.stopPropagation()"></div>
+        <div class="m3-calendar-time-row" onclick="event.stopPropagation()">
+          <span class="m3-calendar-time-label">Time</span>
+          <div class="m3-calendar-time-inputs">
+            <select class="m3-calendar-time-select" id="m3CalHour" onchange="updateM3Hour(this.value)">
+      `;
+      if (timeFormat === '12h') {
+        let displayHour = calendarHour % 12;
+        if (displayHour === 0) displayHour = 12;
+        for (let h = 1; h <= 12; h++) {
+          const val = String(h).padStart(2, '0');
+          const selected = h === displayHour ? 'selected' : '';
+          html += `<option value="${h}" ${selected}>${val}</option>`;
+        }
+      } else {
+        for (let h = 0; h < 24; h++) {
+          const val = String(h).padStart(2, '0');
+          const selected = h === calendarHour ? 'selected' : '';
+          html += `<option value="${h}" ${selected}>${val}</option>`;
+        }
+      }
+      html += `
+            </select>
+            <span class="m3-calendar-time-colon">:</span>
+            <select class="m3-calendar-time-select" id="m3CalMinute" onchange="calendarMinute = parseInt(this.value)">
+      `;
+      for (let m = 0; m < 60; m++) {
+        const val = String(m).padStart(2, '0');
+        const selected = m === calendarMinute ? 'selected' : '';
+        html += `<option value="${m}" ${selected}>${val}</option>`;
+      }
+      html += `
+            </select>
+      `;
+
+      if (timeFormat === '12h') {
+        const isPm = calendarHour >= 12;
+        html += `
+            <select class="m3-calendar-time-select" id="m3CalAmPm" onchange="updateM3AmPm(this.value)" style="margin-left: 4px;">
+              <option value="AM" ${!isPm ? 'selected' : ''}>AM</option>
+              <option value="PM" ${isPm ? 'selected' : ''}>PM</option>
+            </select>
+        `;
+      }
+
+      html += `
+          </div>
+        </div>
+      `;
+
+      // Confirm & Cancel Buttons Footer
+      html += `
+        <div class="m3-calendar-footer" onclick="event.stopPropagation()">
+          <button type="button" class="m3-calendar-footer-btn cancel" onclick="closeM3Calendar(event)">Cancel</button>
+          <button type="button" class="m3-calendar-footer-btn confirm" onclick="confirmM3Calendar(event)">Confirm</button>
+        </div>
+      `;
+
+      cal.innerHTML = html;
+    }
+
+    function updateM3Hour(val) {
+      let h = parseInt(val);
+      if (timeFormat === '12h') {
+        const isPm = calendarHour >= 12;
+        if (isPm) {
+          calendarHour = h === 12 ? 12 : h + 12;
+        } else {
+          calendarHour = h === 12 ? 0 : h;
+        }
+      } else {
+        calendarHour = h;
+      }
+    }
+
+    function updateM3AmPm(val) {
+      let displayHour = calendarHour % 12;
+      if (displayHour === 0) displayHour = 12;
+      if (val === 'PM') {
+        calendarHour = displayHour === 12 ? 12 : displayHour + 12;
+      } else {
+        calendarHour = displayHour === 12 ? 0 : displayHour;
+      }
+    }
+
+    // ─── Month and Day Navigation helpers ──────────────────────────────────────────
+    function changeM3Month(dir, e) {
+      if (e) e.stopPropagation();
+      calendarDate.setMonth(calendarDate.getMonth() + dir);
+      renderM3Calendar();
+    }
+
+    function selectM3Day(day, e) {
+      if (e) e.stopPropagation();
+      selectedCalendarDate = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), day);
+      renderM3Calendar();
+    }
+
+    function confirmM3Calendar(e) {
+      if (e) e.stopPropagation();
+      if (!selectedCalendarDate) return;
+      const finalDate = new Date(selectedCalendarDate.getFullYear(), selectedCalendarDate.getMonth(), selectedCalendarDate.getDate(), calendarHour, calendarMinute);
+      document.getElementById('studyDate').value = formatDateTimeForInput(finalDate);
+      closeM3Calendar();
+    }
+
+    function closeM3Calendar(e) {
+      if (e) e.stopPropagation();
+      const cal = document.getElementById('m3Calendar');
+      if (cal) cal.style.display = 'none';
+    }
+
+    document.addEventListener('click', () => {
+      closeM3Calendar();
+    });
   </script>
 
 

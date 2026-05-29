@@ -60,6 +60,7 @@ The following HTML element IDs **must exist in the DOM** or `render()` will thro
 | `changelogModal` | Changelog modal overlay containing release history |
 | `confirmOverlay` | Clear-all confirmation overlay |
 | `importModal` | Import modal overlay (FAB-triggered) |
+| `bonusFieldLabel` | Bonus input label in Manual Add |
 
 
 ## UI Components
