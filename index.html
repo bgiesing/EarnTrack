@@ -2246,6 +2246,7 @@
               <li><strong>Accent Color Picker Fix</strong>: Fixed a layout issue where the rainbow icon for custom accent color selection was getting clipped.</li>
               <li><strong>Status Totals Alignment</strong>: Fixed status count and amount alignment in the status totals grid to ensure columns align perfectly even when a status label wraps to multiple lines.</li>
               <li><strong>Consistent Metric Card Layout</strong>: Improved responsive styling to ensure core metric card sizes (e.g. Total Earned, Time Spent) remain consistent and proportional across mobile and desktop devices.</li>
+              <li><strong>CloudResearch Import Date Fix</strong>: Resolved an issue where CloudResearch imports failed to capture the correct date and time due to the export file containing dynamic timezone-specific column names.</li>
             </ul>
           </div>
         </details>
@@ -3376,14 +3377,15 @@
       const lines = text.split(/\r?\n/).filter(l => l.trim());
       if (lines.length < 2) return { added: 0, skipped: 0, error: 'CSV appears empty' };
 
-      const headers = parseCSVLine(lines[0]).map(h => h.trim().replace(/^"|"$/g, '').toLowerCase());
+      const rawHeaders = parseCSVLine(lines[0]).map(h => h.trim().replace(/^"|"$/g, ''));
+      const headers = rawHeaders.map(h => h.toLowerCase());
 
       const col = name => {
         const variants = {
           'study_name': ['study', 'study_name', 'study name', 'studyname', 'name', 'title', 'project name'],
           'status': ['status'],
           'started_at': ['started at', 'started_at', 'start_time', 'time_started'],
-          'completed_at': ['completed at', 'completed_at', 'end_time', 'time_completed', 'datetime_started', 'completiontime (america/chicago)', 'completion time', 'completiontime'],
+          'completed_at': ['completed at', 'completed_at', 'end_time', 'time_completed', 'datetime_started', 'completion time', 'completiontime'],
           'reward': ['reward', 'pay', 'payment', 'reward (£)', 'reward(£)', 'reward (gbp)', 'reward ($)', 'reward($)', 'reward (usd)'],
           'bonus': ['bonus', 'bonus (£)', 'bonus(£)', 'bonus ($)', 'bonus($)', 'bonus (usd)'],
           'submission_id': ['submission_id', 'id', 'submission id'],
@@ -3396,6 +3398,10 @@
         const alts = variants[name] || [name];
         for (const a of alts) {
           const idx = headers.indexOf(a);
+          if (idx !== -1) return idx;
+        }
+        if (name === 'completed_at') {
+          const idx = headers.findIndex(h => h.startsWith('completiontime'));
           if (idx !== -1) return idx;
         }
         return -1;
@@ -3416,6 +3422,23 @@
       const isCloudResearch = idxProjectId !== -1 && (idxPaymentReceived !== -1 || idxPaymentPending !== -1);
 
       if (!isCloudResearch && idxReward === -1) return { added: 0, skipped: 0, error: 'Could not find a payment column. Is this a Prolific or CloudResearch CSV?' };
+
+      let completedAtTz = null;
+      if (idxEnd !== -1) {
+        const rawHeader = rawHeaders[idxEnd] || '';
+        const tzMatch = rawHeader.match(/\(([^)]+)\)/);
+        if (tzMatch) {
+          completedAtTz = tzMatch[1].trim();
+        }
+      }
+      let startedAtTz = null;
+      if (idxStart !== -1) {
+        const rawHeader = rawHeaders[idxStart] || '';
+        const tzMatch = rawHeader.match(/\(([^)]+)\)/);
+        if (tzMatch) {
+          startedAtTz = tzMatch[1].trim();
+        }
+      }
 
       const existingIds = new Set(entries.filter(e => e.prolificId).map(e => e.prolificId));
       const existingCloudResearchIds = new Set(entries.filter(e => e.cloudResearchId).map(e => e.cloudResearchId));
@@ -3446,9 +3469,99 @@
         return raw.toUpperCase();
       }
 
-      function parseImportDate(raw) {
+      function parseDateParts(str) {
+        const m1 = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})\s+(\d{1,2}):(\d{2}):(\d{2})\s*(AM|PM)?$/i);
+        if (m1) {
+          const month = parseInt(m1[1], 10);
+          const day = parseInt(m1[2], 10);
+          const year = parseInt(m1[3], 10);
+          let hour = parseInt(m1[4], 10);
+          const min = parseInt(m1[5], 10);
+          const sec = parseInt(m1[6], 10);
+          const ampm = m1[7] ? m1[7].toUpperCase() : null;
+
+          if (ampm === 'PM' && hour < 12) hour += 12;
+          if (ampm === 'AM' && hour === 12) hour = 0;
+
+          return { year, month: month - 1, day, hour, min, sec };
+        }
+
+        const m2 = str.match(/^(\d{4})-(\d{2})-(\d{2})[T\s](\d{2}):(\d{2}):(\d{2})/);
+        if (m2) {
+          return {
+            year: parseInt(m2[1], 10),
+            month: parseInt(m2[2], 10) - 1,
+            day: parseInt(m2[3], 10),
+            hour: parseInt(m2[4], 10),
+            min: parseInt(m2[5], 10),
+            sec: parseInt(m2[6], 10)
+          };
+        }
+
+        const d = new Date(str);
+        if (d && !isNaN(d)) {
+          return {
+            year: d.getFullYear(),
+            month: d.getMonth(),
+            day: d.getDate(),
+            hour: d.getHours(),
+            min: d.getMinutes(),
+            sec: d.getSeconds()
+          };
+        }
+        return null;
+      }
+
+      function getUTCDateInTimezone(parts, timezoneName) {
+        if (!parts) return null;
+        const utcMock = new Date(Date.UTC(parts.year, parts.month, parts.day, parts.hour, parts.min, parts.sec));
+        if (!timezoneName) return utcMock;
+
+        try {
+          const formatter = new Intl.DateTimeFormat('sv', {
+            timeZone: timezoneName,
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+          });
+
+          const formatted = formatter.format(utcMock);
+          const m = formatted.match(/^(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2}):(\d{2})$/);
+          if (!m) return utcMock;
+
+          const fYear = parseInt(m[1], 10);
+          const fMonth = parseInt(m[2], 10) - 1;
+          const fDay = parseInt(m[3], 10);
+          const fHour = parseInt(m[4], 10);
+          const fMin = parseInt(m[5], 10);
+          const fSec = parseInt(m[6], 10);
+
+          const formattedUtc = Date.UTC(fYear, fMonth, fDay, fHour, fMin, fSec);
+          const offsetMs = utcMock.getTime() - formattedUtc;
+
+          return new Date(utcMock.getTime() + offsetMs);
+        } catch (e) {
+          console.error(`Error formatting for timezone ${timezoneName}:`, e);
+          return utcMock;
+        }
+      }
+
+      function parseImportDate(raw, tzName) {
         if (!raw) return null;
         let str = raw.trim();
+
+        if (tzName) {
+          const parts = parseDateParts(str);
+          if (parts) {
+            const d = getUTCDateInTimezone(parts, tzName);
+            if (d && !isNaN(d)) return d;
+          }
+        }
+
         const hasTimezone = /[Zz]|\b[Gg][Mm][Tt]\b|\b[Uu][Tt][Cc]\b|[+-]\d{2}:?\d{2}/.test(str);
         if (!hasTimezone) {
           if (str.includes(':')) {
@@ -3475,7 +3588,7 @@
         const rowCols = parseCSVLine(lines[rowIndex]);
         const rowEnd = idxEnd !== -1 ? rowCols[idxEnd]?.trim() : '';
         const rowStart = idxStart !== -1 ? rowCols[idxStart]?.trim() : '';
-        return parseImportDate(rowEnd) || parseImportDate(rowStart);
+        return parseImportDate(rowEnd, completedAtTz) || parseImportDate(rowStart, startedAtTz);
       }
 
       function inferDateFromNeighborRows(rowIndex) {
@@ -3532,8 +3645,8 @@
         let pay = 0;
         let mins = 0;
         let dateStr = '';
-        const start = parseImportDate(startRaw);
-        const end = parseImportDate(endRaw);
+        const start = parseImportDate(startRaw, startedAtTz);
+        const end = parseImportDate(endRaw, completedAtTz);
 
         // Check if this is a completed study (has end time)
         const hasCompletion = end && !isNaN(end);
