@@ -1830,6 +1830,7 @@
       <div class="tabs">
         <button class="tab active" onclick="switchTab(&#39;week&#39;, this)">Week</button>
         <button class="tab" onclick="switchTab(&#39;month&#39;, this)">Month</button>
+        <button class="tab" onclick="switchTab(&#39;year&#39;, this)">Year</button>
         <button class="tab" onclick="switchTab(&#39;all&#39;, this)">All time</button>
       </div>
     </div>
@@ -1843,10 +1844,13 @@
             <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap; justify-content:flex-end;">
               <div class="chart-legend">
                 <div class="legend-item">
-                  <div class="legend-dot" style="background: var(--accent);"></div>Earnings
+                  <div class="legend-dot" style="background: var(--chart-bar);"></div>Approved
+                </div>
+                <div class="legend-item">
+                  <div class="legend-dot" style="background: var(--chart-bar-pending);"></div>Pending
                 </div>
               </div>
-              <div class="chart-range-tabs" aria-label="Chart range">
+              <div class="chart-range-tabs" aria-label="Chart range" style="display: none;">
                 <button id="chartRange14d" class="chart-range-btn" onclick="setChartRange(&#39;14d&#39;)">Daily</button>
                 <button id="chartRange12m" class="chart-range-btn active"
                   onclick="setChartRange(&#39;12m&#39;)">Monthly</button>
@@ -2237,6 +2241,7 @@
           </summary>
           <div class="changelog-content">
             <ul>
+              <li><strong>Unified Dashboard & Chart Range Selector</strong>: Replaced the separate chart range tabs with automatic synchronization: switching dashboard periods (Week, Month, Year, All time) now automatically adjusts the earnings chart view to matching granularities (7-day Daily, 12-month selected Year, All-Time Yearly), simplifying navigation and decluttering the layout.</li>
               <li><strong>Bitcoin Currency Support</strong>: Added Bitcoin (BTC) as a display currency option, complete with live exchange rates and high-precision decimal formatting.</li>
               <li><strong>Thousands Separator</strong>: Large monetary and numeric values now display commas for much easier readability.</li>
               <li><strong>Improved Time Metrics</strong>: The "Time Spent" metric card now displays elapsed days when applicable.</li>
@@ -2510,7 +2515,7 @@
     let lastSearch = null;
     let lastTab = null;
     let lastSortCol = null;
-    let chartRange = localStorage.getItem('prolific_chart_range') || '14d';
+    let chartRange = '7d'; // Synced to activeTab 'week'
     let lastChartKey = null;
     let themeMode = localStorage.getItem('prolific_theme_mode') || 'system';
     let timeFormat = localStorage.getItem('prolific_time_format') || '24h';
@@ -2632,16 +2637,21 @@
     }
 
     function updateChartRangeUI() {
-      const map = { '14d': 'Daily earnings — last 14 days', '12m': 'Monthly earnings — last 12 months', '5y': 'Yearly earnings — last 5 years' };
+      const map = {
+        '7d': 'Daily earnings',
+        'weekly_month': 'Weekly earnings',
+        '12m': 'Monthly earnings',
+        'all_years': 'Yearly earnings'
+      };
       const title = document.getElementById('chartTitle');
-      if (title) title.textContent = map[chartRange] || map['14d'];
+      if (title) title.textContent = map[chartRange] || map['7d'];
 
       const btn14d = document.getElementById('chartRange14d');
       const btn12m = document.getElementById('chartRange12m');
       const btn5y = document.getElementById('chartRange5y');
-      if (btn14d) btn14d.classList.toggle('active', chartRange === '14d');
-      if (btn12m) btn12m.classList.toggle('active', chartRange === '12m');
-      if (btn5y) btn5y.classList.toggle('active', chartRange === '5y');
+      if (btn14d) btn14d.classList.toggle('active', chartRange === '7d');
+      if (btn12m) btn12m.classList.toggle('active', chartRange === 'weekly_month' || chartRange === '12m');
+      if (btn5y) btn5y.classList.toggle('active', chartRange === 'all_years');
     }
 
     function setTimeFormat(fmt) {
@@ -2802,11 +2812,21 @@
     function getMonthEnd(start) {
       return new Date(start.getFullYear(), start.getMonth() + 1, 0, 23, 59, 59, 999);
     }
+    function getYearStart(offset) {
+      const now = new Date();
+      return new Date(now.getFullYear() + offset, 0, 1, 0, 0, 0, 0);
+    }
+    function getYearEnd(start) {
+      return new Date(start.getFullYear(), 11, 31, 23, 59, 59, 999);
+    }
     function fmtDate(d) {
       return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
     }
     function fmtMonth(d) {
       return d.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+    }
+    function fmtYear(d) {
+      return d.toLocaleDateString('en-GB', { year: 'numeric' });
     }
 
     function changeWeek(dir) { currentWeekOffset += dir; render(); }
@@ -2816,6 +2836,20 @@
       currentWeekOffset = 0;
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       btn.classList.add('active');
+
+      // Sync chartRange to selected period tab
+      if (tab === 'week') {
+        chartRange = '7d';
+      } else if (tab === 'month') {
+        chartRange = 'weekly_month';
+      } else if (tab === 'year') {
+        chartRange = '12m';
+      } else if (tab === 'all') {
+        chartRange = 'all_years';
+      }
+      localStorage.setItem('prolific_chart_range', chartRange);
+      updateChartRangeUI();
+
       render();
     }
 
@@ -2841,9 +2875,12 @@
       if (activeTab === 'week') {
         start = getWeekStart(currentWeekOffset);
         end = getWeekEnd(start);
-      } else {
+      } else if (activeTab === 'month') {
         start = getMonthStart(currentWeekOffset);
         end = getMonthEnd(start);
+      } else if (activeTab === 'year') {
+        start = getYearStart(currentWeekOffset);
+        end = getYearEnd(start);
       }
       return entries.filter(e => {
         const d = new Date(e.date);
@@ -2941,12 +2978,24 @@
         const ws = getWeekStart(currentWeekOffset);
         const we = getWeekEnd(ws);
         periodLabel = fmtDate(ws) + ' – ' + fmtDate(we);
-      } else {
+      } else if (activeTab === 'month') {
         periodLabel = fmtMonth(getMonthStart(currentWeekOffset));
+      } else if (activeTab === 'year') {
+        periodLabel = fmtYear(getYearStart(currentWeekOffset));
       }
       document.getElementById('weekLabel').textContent = periodLabel;
 
-      const periodName = activeTab === 'all' ? 'all time' : activeTab === 'month' ? 'this month' : 'this week';
+      // Hide or show navigation arrow buttons based on period select
+      const navBtns = document.querySelectorAll('.week-nav .nav-btn');
+      navBtns.forEach(btn => {
+        if (activeTab === 'all') {
+          btn.style.visibility = 'hidden';
+        } else {
+          btn.style.visibility = 'visible';
+        }
+      });
+
+      const periodName = activeTab === 'all' ? 'all time' : activeTab === 'year' ? 'this year' : activeTab === 'month' ? 'this month' : 'this week';
       document.getElementById('metricEarned').textContent = fmt(totalEarned);
       document.getElementById('metricEarnedSub').textContent = periodName;
       document.getElementById('metricBonus').textContent = fmt(totalBonus);
@@ -3116,7 +3165,7 @@
         }
       }
 
-      const chartKey = currency + '|' + chartRange + '|' + latestKey + '|' + document.documentElement.dataset.theme + '|' + (RATES[currency] || 1) + '|' + themeSeed.h + '|' + themeSeed.s;
+      const chartKey = currency + '|' + chartRange + '|' + currentWeekOffset + '|' + latestKey + '|' + document.documentElement.dataset.theme + '|' + (RATES[currency] || 1) + '|' + themeSeed.h + '|' + themeSeed.s;
       if (chartKey !== lastChartKey) {
         renderChart();
         lastChartKey = chartKey;
@@ -3156,53 +3205,120 @@
         let approvedData = [];
         let pendingData = [];
 
-        if (chartRange === '12m') {
+        if (chartRange === 'weekly_month') {
+          const startOfMonth = getMonthStart(currentWeekOffset);
+          const endOfMonth = getMonthEnd(startOfMonth);
+          const totalDays = endOfMonth.getDate();
+          const weeks = [
+            { start: 1, end: 7 },
+            { start: 8, end: 14 },
+            { start: 15, end: 21 },
+            { start: 22, end: totalDays }
+          ];
+          labels = ["W1 (1-7)", "W2 (8-14)", "W3 (15-21)", `W4 (22-${totalDays})`];
+          approvedData = weeks.map(w => {
+            const start = new Date(startOfMonth.getFullYear(), startOfMonth.getMonth(), w.start, 0, 0, 0, 0);
+            const end = new Date(startOfMonth.getFullYear(), startOfMonth.getMonth(), w.end, 23, 59, 59, 999);
+            const rawApproved = entries
+              .filter(e => {
+                const ed = new Date(e.date);
+                return ed >= start && ed <= end && e.status !== 'AWAITING REVIEW';
+              })
+              .reduce((s, e) => s + e.pay + (e.bonus || 0), 0);
+            return convert(rawApproved);
+          });
+          pendingData = weeks.map(w => {
+            const start = new Date(startOfMonth.getFullYear(), startOfMonth.getMonth(), w.start, 0, 0, 0, 0);
+            const end = new Date(startOfMonth.getFullYear(), startOfMonth.getMonth(), w.end, 23, 59, 59, 999);
+            const rawPending = entries
+              .filter(e => {
+                const ed = new Date(e.date);
+                return ed >= start && ed <= end && e.status === 'AWAITING REVIEW';
+              })
+              .reduce((s, e) => s + e.pay + (e.bonus || 0), 0);
+            return convert(rawPending);
+          });
+        } else if (chartRange === '12m') {
+          const startOfYear = getYearStart(currentWeekOffset);
+          const selectedYear = startOfYear.getFullYear();
           const now = new Date();
-          const base = new Date(now.getFullYear(), now.getMonth(), 1);
-          for (let i = 11; i >= 0; i--) {
-            const start = new Date(base.getFullYear(), base.getMonth() - i, 1, 0, 0, 0, 0);
-            const end = new Date(start.getFullYear(), start.getMonth() + 1, 1, 0, 0, 0, 0);
-            labels.push(start.toLocaleDateString('en-GB', { month: 'short' }));
+          const currentYear = now.getFullYear();
+          const currentMonth = now.getMonth();
+
+          const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+          labels = monthNames;
+
+          for (let m = 0; m < 12; m++) {
+            const hasHappened = (selectedYear < currentYear) || 
+                                (selectedYear === currentYear && m <= currentMonth);
+
+            if (!hasHappened) {
+              approvedData.push(0);
+              pendingData.push(0);
+              continue;
+            }
+
+            const start = new Date(selectedYear, m, 1, 0, 0, 0, 0);
+            const end = new Date(selectedYear, m + 1, 1, 0, 0, 0, 0);
+
             const periodEntries = entries.filter(e => {
               const ed = new Date(e.date);
               return ed >= start && ed < end;
             });
+
             const rawApproved = periodEntries
               .filter(e => e.status !== 'AWAITING REVIEW')
               .reduce((s, e) => s + e.pay + (e.bonus || 0), 0);
             const rawPending = periodEntries
               .filter(e => e.status === 'AWAITING REVIEW')
               .reduce((s, e) => s + e.pay + (e.bonus || 0), 0);
+
             approvedData.push(convert(rawApproved));
             pendingData.push(convert(rawPending));
           }
-        } else if (chartRange === '5y') {
+        } else if (chartRange === 'all_years') {
           const currentYear = new Date().getFullYear();
-          for (let i = 4; i >= 0; i--) {
-            const y = currentYear - i;
+          let minYear = currentYear;
+          if (entries.length > 0) {
+            entries.forEach(e => {
+              const y = new Date(e.date).getFullYear();
+              if (y < minYear) minYear = y;
+            });
+          }
+          const years = [];
+          for (let y = minYear; y <= currentYear; y++) {
+            years.push(y);
+          }
+          labels = years.map(String);
+          approvedData = years.map(y => {
             const start = new Date(y, 0, 1, 0, 0, 0, 0);
             const end = new Date(y + 1, 0, 1, 0, 0, 0, 0);
-            labels.push(String(y));
-            const periodEntries = entries.filter(e => {
-              const ed = new Date(e.date);
-              return ed >= start && ed < end;
-            });
-            const rawApproved = periodEntries
-              .filter(e => e.status !== 'AWAITING REVIEW')
+            const rawApproved = entries
+              .filter(e => {
+                const ed = new Date(e.date);
+                return ed >= start && ed < end && e.status !== 'AWAITING REVIEW';
+              })
               .reduce((s, e) => s + e.pay + (e.bonus || 0), 0);
-            const rawPending = periodEntries
-              .filter(e => e.status === 'AWAITING REVIEW')
+            return convert(rawApproved);
+          });
+          pendingData = years.map(y => {
+            const start = new Date(y, 0, 1, 0, 0, 0, 0);
+            const end = new Date(y + 1, 0, 1, 0, 0, 0, 0);
+            const rawPending = entries
+              .filter(e => {
+                const ed = new Date(e.date);
+                return ed >= start && ed < end && e.status === 'AWAITING REVIEW';
+              })
               .reduce((s, e) => s + e.pay + (e.bonus || 0), 0);
-            approvedData.push(convert(rawApproved));
-            pendingData.push(convert(rawPending));
-          }
+            return convert(rawPending);
+          });
         } else {
-          // default: last 14 days
+          // default: days of selected week
+          const ws = getWeekStart(currentWeekOffset);
           const days = [];
-          for (let i = 13; i >= 0; i--) {
-            const d = new Date();
-            d.setDate(d.getDate() - i);
-            d.setHours(0, 0, 0, 0);
+          for (let i = 0; i < 7; i++) {
+            const d = new Date(ws);
+            d.setDate(ws.getDate() + i);
             days.push(d);
           }
           labels = days.map(d => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }));
