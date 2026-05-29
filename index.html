@@ -1314,6 +1314,7 @@
       letter-spacing: 0.04em;
       margin-bottom: 5px;
       line-height: 1.2;
+      min-height: 24px;
     }
 
     .status-summary-count {
@@ -1375,6 +1376,9 @@
     @media (max-width: 700px) {
       .metrics {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .metrics>*:first-child {
+        grid-column: span 2;
       }
 
       .status-summary-grid {
@@ -2240,6 +2244,8 @@
               <li><strong>Redesigned Manual Entry</strong>: Upgraded the manual entry form with a custom Material 3-inspired date/time picker, and fixed the bonus currency label to correctly match the selected currency.</li>
               <li><strong>Refined Chart Visuals</strong>: Corrected chart bar rounding so that bars are flat on the bottom and rounded on top.</li>
               <li><strong>Accent Color Picker Fix</strong>: Fixed a layout issue where the rainbow icon for custom accent color selection was getting clipped.</li>
+              <li><strong>Status Totals Alignment</strong>: Fixed status count and amount alignment in the status totals grid to ensure columns align perfectly even when a status label wraps to multiple lines.</li>
+              <li><strong>Consistent Metric Card Layout</strong>: Improved responsive styling to ensure core metric card sizes (e.g. Total Earned, Time Spent) remain consistent and proportional across mobile and desktop devices.</li>
             </ul>
           </div>
         </details>
