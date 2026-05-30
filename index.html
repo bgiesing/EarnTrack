@@ -3745,6 +3745,16 @@
       return e;
     });
 
+    function enrichEntries(list) {
+      list.forEach(e => {
+        if (!e._ts) {
+          const parsed = new Date(e.date).getTime();
+          e._ts = isNaN(parsed) ? Date.now() : parsed;
+        }
+      });
+    }
+    enrichEntries(entries);
+
     // Fallback rates used until live rates load
     const SYMBOLS = { GBP: '£', USD: '$', EUR: '€', SAR: '﷼', BTC: '₿' };
     let RATES = { GBP: 1, USD: 1.29, EUR: 1.21, SAR: 4.84, BTC: 0.000018 };
@@ -4290,11 +4300,25 @@
       input.value = '';
     }
 
-    function handleOobeImportFiles(files) {
-      if (!files || files.length === 0) return;
+    function displayToast(msg, isError, type) {
+      const id = type === 'oobe' ? 'oobeImportToast' : (type === 'mobile' ? 'mobileImportToast' : 'importToast');
+      const t = document.getElementById(id);
+      if (t) {
+        t.textContent = msg;
+        t.className = 'import-toast' + (isError ? ' error' : '');
+        t.style.display = 'block';
+        setTimeout(() => { t.style.display = 'none'; }, 4000);
+      }
+    }
+
+    function showToast(msg, isError) { displayToast(msg, isError, 'desktop'); }
+    function showOobeToast(msg, isError) { displayToast(msg, isError, 'oobe'); }
+    function showMobileToast(msg, isError) { displayToast(msg, isError, 'mobile'); }
+
+    function importCsvFiles(files, type, onComplete) {
       const filesArray = Array.from(files).filter(f => f.name.endsWith('.csv'));
       if (filesArray.length === 0) {
-        showOobeToast('Please select or drop .csv files only', true);
+        displayToast('Please select or drop .csv files only', true, type);
         return;
       }
 
@@ -4318,16 +4342,7 @@
           processed++;
 
           if (processed === filesArray.length) {
-            if (hasError && totalAdded === 0) {
-              showOobeToast('Error: ' + errorMsg, true);
-            } else {
-              let msg = `${totalAdded} studies imported`;
-              if (totalSkipped > 0) msg += `, ${totalSkipped} skipped`;
-              if (hasError) msg += ` (some files failed: ${errorMsg})`;
-              showOobeToast(msg, false);
-              render();
-              setTimeout(completeOobe, 1500);
-            }
+            handleFinished();
           }
         };
         reader.onerror = () => {
@@ -4335,26 +4350,30 @@
           errorMsg = `Failed to read ${file.name}`;
           processed++;
           if (processed === filesArray.length) {
-            let msg = `${totalAdded} studies imported`;
-            if (totalSkipped > 0) msg += `, ${totalSkipped} skipped`;
-            msg += ` (some files failed)`;
-            showOobeToast(msg, hasError && totalAdded === 0);
-            render();
-            setTimeout(completeOobe, 1500);
+            handleFinished();
           }
         };
         reader.readAsText(file);
       });
+
+      function handleFinished() {
+        if (hasError && totalAdded === 0) {
+          displayToast('Error: ' + errorMsg, true, type);
+        } else {
+          let msg = `${totalAdded} studies imported`;
+          if (totalSkipped > 0) msg += `, ${totalSkipped} skipped`;
+          if (hasError) msg += ` (some files failed: ${errorMsg})`;
+          displayToast(msg, false, type);
+          render();
+          if (onComplete) onComplete(totalAdded, totalSkipped);
+        }
+      }
     }
 
-    function showOobeToast(msg, isError) {
-      const t = document.getElementById('oobeImportToast');
-      if (t) {
-        t.textContent = msg;
-        t.className = 'import-toast' + (isError ? ' error' : '');
-        t.style.display = 'block';
-        setTimeout(() => { t.style.display = 'none'; }, 4000);
-      }
+    function handleOobeImportFiles(files) {
+      importCsvFiles(files, 'oobe', () => {
+        setTimeout(completeOobe, 1500);
+      });
     }
 
     function setupOobeDragDrop() {
@@ -4510,31 +4529,37 @@
       if (activeTab === 'all') return entries;
       let start, end;
       if (activeTab === 'week') {
-        start = getWeekStart(currentWeekOffset);
-        end = getWeekEnd(start);
+        const ws = getWeekStart(currentWeekOffset);
+        start = ws.getTime();
+        end = getWeekEnd(ws).getTime();
       } else if (activeTab === 'month') {
-        start = getMonthStart(currentWeekOffset);
-        end = getMonthEnd(start);
+        const ms = getMonthStart(currentWeekOffset);
+        start = ms.getTime();
+        end = getMonthEnd(ms).getTime();
       } else if (activeTab === 'year') {
-        start = getYearStart(currentWeekOffset);
-        end = getYearEnd(start);
+        const ys = getYearStart(currentWeekOffset);
+        start = ys.getTime();
+        end = getYearEnd(ys).getTime();
       }
       return entries.filter(e => {
-        const d = new Date(e.date);
-        return d >= start && d <= end;
+        const t = e._ts || (e._ts = new Date(e.date).getTime());
+        return t >= start && t <= end;
       });
     }
 
-    function getDisplayEntries() {
+    function getDisplayEntries(periodEntries = getPeriodEntries()) {
       const q = document.getElementById('searchInput')?.value.toLowerCase() || '';
-      let list = getPeriodEntries();
+      let list = periodEntries;
       if (q) list = list.filter(e => e.name.toLowerCase().includes(q));
       list = [...list].sort((a, b) => {
         let av = a[sortCol], bv = b[sortCol];
-        if (sortCol === 'date') { av = new Date(av); bv = new Date(bv); }
-        if (sortCol === 'pay') { av = a.pay + (a.bonus || 0); bv = b.pay + (b.bonus || 0); }
-        if (sortCol === 'bonus') { av = a.bonus || 0; bv = b.bonus || 0; }
-        if (sortCol === 'rate') {
+        if (sortCol === 'date') {
+          av = a._ts || (a._ts = new Date(a.date).getTime());
+          bv = b._ts || (b._ts = new Date(b.date).getTime());
+        }
+        else if (sortCol === 'pay') { av = a.pay + (a.bonus || 0); bv = b.pay + (b.bonus || 0); }
+        else if (sortCol === 'bonus') { av = a.bonus || 0; bv = b.bonus || 0; }
+        else if (sortCol === 'rate') {
           const totalPayA = a.pay + (a.bonus || 0);
           const totalPayB = b.pay + (b.bonus || 0);
           av = a.mins > 0 ? totalPayA / (a.mins / 60) : 0;
@@ -4619,6 +4644,22 @@
         }
       }
 
+      // Unified DOM update helpers
+      const setElText = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val;
+      };
+      const updateMetric = (id, val, subVal) => {
+        setElText(id, val);
+        setElText(id + 'Sub', subVal);
+        setElText(id + 'Mobile', val);
+        setElText(id + 'SubMobile', subVal);
+      };
+      const updateLabel = (id, val) => {
+        setElText(id, val);
+        setElText(id + 'Mobile', val);
+      };
+
       const disp = getPeriodEntries();
       const totalEarned = disp.reduce((s, e) => s + e.pay + (e.bonus || 0), 0);
       const totalBonus = disp.reduce((s, e) => s + (e.bonus || 0), 0);
@@ -4652,32 +4693,32 @@
       });
 
       const periodName = activeTab === 'all' ? 'all time' : activeTab === 'year' ? 'this year' : activeTab === 'month' ? 'this month' : 'this week';
-      document.getElementById('metricEarned').textContent = fmt(totalEarned);
-      document.getElementById('metricEarnedSub').textContent = periodName;
-      document.getElementById('metricBonus').textContent = fmt(totalBonus);
-      document.getElementById('metricBonusSub').textContent = periodName;
+      updateMetric('metricEarned', fmt(totalEarned), periodName);
+      updateMetric('metricBonus', fmt(totalBonus), periodName);
+
+      let timeText = '';
       const totalHours = Math.floor(totalMins / 60);
       if (totalHours >= 24) {
         const days = Math.floor(totalHours / 24);
         const remainingHours = totalHours % 24;
         const remainingMins = totalMins % 60;
-        document.getElementById('metricTime').textContent =
-          days + 'd ' + remainingHours + 'h ' + remainingMins + 'm';
+        timeText = days + 'd ' + remainingHours + 'h ' + remainingMins + 'm';
       } else {
-        document.getElementById('metricTime').textContent =
-          totalHours + 'h ' + (totalMins % 60) + 'm';
+        timeText = totalHours + 'h ' + (totalMins % 60) + 'm';
       }
-      document.getElementById('metricTimeSub').textContent = periodName;
-      document.getElementById('metricRate').textContent = avgRate !== null ? fmt(avgRate) : '—';
-      document.getElementById('metricStudies').textContent = fmtInt(disp.length);
-      document.getElementById('metricStudiesSub').textContent = periodName;
+      updateMetric('metricTime', timeText, periodName);
+
+      setElText('metricRate', avgRate !== null ? fmt(avgRate) : '—');
+      setElText('metricRateMobile', avgRate !== null ? fmt(avgRate) : '—');
+      updateMetric('metricStudies', fmtInt(disp.length), periodName);
       renderStatusSummary();
 
       // Goal (always current week)
-      const wsNow = getWeekStart(0);
-      const weNow = getWeekEnd(wsNow);
+      const wsNow = getWeekStart(0).getTime();
+      const weNow = getWeekEnd(getWeekStart(0)).getTime();
       const weekEarned = entries.filter(e => {
-        const d = new Date(e.date); return d >= wsNow && d <= weNow;
+        const t = e._ts || (e._ts = new Date(e.date).getTime());
+        return t >= wsNow && t <= weNow;
       }).reduce((s, e) => s + e.pay + (e.bonus || 0), 0);
       const metricRateSubEl = document.getElementById('metricRateSub');
       if (metricRateSubEl) {
@@ -4687,7 +4728,7 @@
           metricRateSubEl.textContent = '';
         }
       }
-      document.getElementById('goalSymbol').textContent = currSymbol();
+      updateLabel('goalSymbol', currSymbol());
       const minWageSymbolEl = document.getElementById('minWageSymbol');
       if (minWageSymbolEl) minWageSymbolEl.textContent = currSymbol();
 
@@ -4698,16 +4739,24 @@
       }
       const weekEarnedConverted = weekEarned * (RATES[currency] || 1);
       const pct = Math.min(100, (weekEarnedConverted / weeklyGoal) * 100);
-      document.getElementById('progressFill').style.width = pct.toFixed(1) + '%';
-      document.getElementById('progressFill').className = 'progress-fill' + (pct >= 100 ? ' over' : '');
-      document.getElementById('progressText').textContent = fmt(weekEarned) + ' / ' + currSymbol() + fmtNum(weeklyGoal);
+
+      const updateGoalProgress = (fillId, textId) => {
+        const fillEl = document.getElementById(fillId);
+        if (fillEl) {
+          fillEl.style.width = pct.toFixed(1) + '%';
+          fillEl.className = 'progress-fill' + (pct >= 100 ? ' over' : '');
+        }
+        const textEl = document.getElementById(textId);
+        if (textEl) {
+          textEl.textContent = fmt(weekEarned) + ' / ' + currSymbol() + fmtNum(weeklyGoal);
+        }
+      };
+      updateGoalProgress('progressFill', 'progressText');
+      updateGoalProgress('progressFillMobile', 'progressTextMobile');
 
       // Update goal symbol and manual add label
-      document.getElementById('goalSymbol').textContent = currSymbol();
-      const payLabel = document.getElementById('payFieldLabel');
-      if (payLabel) payLabel.textContent = 'Pay (' + currSymbol() + ')';
-      const bonusLabel = document.getElementById('bonusFieldLabel');
-      if (bonusLabel) bonusLabel.textContent = 'Bonus (' + currSymbol() + ')';
+      updateLabel('payFieldLabel', 'Pay (' + currSymbol() + ')');
+      updateLabel('bonusFieldLabel', 'Bonus (' + currSymbol() + ')');
 
       // Update step attributes and placeholders based on selected currency
       const stepVal = currency === 'BTC' ? '0.00000001' : '0.01';
@@ -4750,7 +4799,7 @@
         lastWeekOffset = currentWeekOffset;
       }
 
-      const allTableEntries = getDisplayEntries();
+      const allTableEntries = getDisplayEntries(disp);
       document.getElementById('entryCount').textContent = fmtInt(allTableEntries.length) + ' stud' + (allTableEntries.length === 1 ? 'y' : 'ies');
       const totalPages = Math.max(1, Math.ceil(allTableEntries.length / PAGE_SIZE));
       if (tablePage > totalPages) tablePage = totalPages;
@@ -4882,43 +4931,12 @@
         btn.style.visibility = activeTab === 'all' ? 'hidden' : 'visible';
       });
 
-      // Metrics
-      const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-      set('metricEarnedMobile', fmt(totalEarned));
-      set('metricEarnedSubMobile', periodName);
-      set('metricBonusMobile', fmt(totalBonus));
-      set('metricBonusSubMobile', periodName);
-      const totalHoursM = Math.floor(totalMins / 60);
-      if (totalHoursM >= 24) {
-        const d = Math.floor(totalHoursM / 24);
-        set('metricTimeMobile', d + 'd ' + (totalHoursM % 24) + 'h ' + (totalMins % 60) + 'm');
-      } else {
-        set('metricTimeMobile', totalHoursM + 'h ' + (totalMins % 60) + 'm');
-      }
-      set('metricTimeSubMobile', periodName);
-      set('metricRateMobile', avgRate !== null ? fmt(avgRate) : '—');
-      set('metricStudiesMobile', fmtInt(disp.length));
-      set('metricStudiesSubMobile', periodName);
-
       // Goal card mobile
       const goalCardM = document.getElementById('goalCardMobile');
       if (goalCardM) goalCardM.style.display = weeklyGoalEnabled ? 'block' : 'none';
-      const pfM = document.getElementById('progressFillMobile');
-      const ptM = document.getElementById('progressTextMobile');
-      if (pfM) {
-        pfM.style.width = pct.toFixed(1) + '%';
-        pfM.className = 'progress-fill' + (pct >= 100 ? ' over' : '');
-      }
-      if (ptM) ptM.textContent = fmt(weekEarned) + ' / ' + currSymbol() + fmtNum(weeklyGoal);
 
-      // Currency labels in mobile manual add
-      const payLabelM = document.getElementById('payFieldLabelMobile');
-      if (payLabelM) payLabelM.textContent = 'Pay (' + currSymbol() + ')';
-      const bonusLabelM = document.getElementById('bonusFieldLabelMobile');
-      if (bonusLabelM) bonusLabelM.textContent = 'Bonus (' + currSymbol() + ')';
-
-      // Mobile Studies list (uses getDisplayEntries directly, which is already filtered and sorted by synced controls)
-      const allM = getDisplayEntries();
+      // Mobile Studies list (reuses the pre-computed allTableEntries to avoid duplicate filtering and sorting)
+      const allM = allTableEntries;
       const ecM = document.getElementById('entryCountMobile');
       if (ecM) ecM.textContent = fmtInt(allM.length) + ' stud' + (allM.length === 1 ? 'y' : 'ies');
 
@@ -5004,6 +5022,7 @@
         let labels = [];
         let approvedData = [];
         let pendingData = [];
+        const activeEntries = getPeriodEntries();
 
         if (chartRange === 'weekly_month') {
           const startOfMonth = getMonthStart(currentWeekOffset);
@@ -5017,23 +5036,23 @@
           ];
           labels = ["W1 (1-7)", "W2 (8-14)", "W3 (15-21)", `W4 (22-${totalDays})`];
           approvedData = weeks.map(w => {
-            const start = new Date(startOfMonth.getFullYear(), startOfMonth.getMonth(), w.start, 0, 0, 0, 0);
-            const end = new Date(startOfMonth.getFullYear(), startOfMonth.getMonth(), w.end, 23, 59, 59, 999);
-            const rawApproved = entries
+            const start = new Date(startOfMonth.getFullYear(), startOfMonth.getMonth(), w.start, 0, 0, 0, 0).getTime();
+            const end = new Date(startOfMonth.getFullYear(), startOfMonth.getMonth(), w.end, 23, 59, 59, 999).getTime();
+            const rawApproved = activeEntries
               .filter(e => {
-                const ed = new Date(e.date);
-                return ed >= start && ed <= end && e.status !== 'AWAITING REVIEW';
+                const t = e._ts || (e._ts = new Date(e.date).getTime());
+                return t >= start && t <= end && e.status !== 'AWAITING REVIEW';
               })
               .reduce((s, e) => s + e.pay + (e.bonus || 0), 0);
             return convert(rawApproved);
           });
           pendingData = weeks.map(w => {
-            const start = new Date(startOfMonth.getFullYear(), startOfMonth.getMonth(), w.start, 0, 0, 0, 0);
-            const end = new Date(startOfMonth.getFullYear(), startOfMonth.getMonth(), w.end, 23, 59, 59, 999);
-            const rawPending = entries
+            const start = new Date(startOfMonth.getFullYear(), startOfMonth.getMonth(), w.start, 0, 0, 0, 0).getTime();
+            const end = new Date(startOfMonth.getFullYear(), startOfMonth.getMonth(), w.end, 23, 59, 59, 999).getTime();
+            const rawPending = activeEntries
               .filter(e => {
-                const ed = new Date(e.date);
-                return ed >= start && ed <= end && e.status === 'AWAITING REVIEW';
+                const t = e._ts || (e._ts = new Date(e.date).getTime());
+                return t >= start && t <= end && e.status === 'AWAITING REVIEW';
               })
               .reduce((s, e) => s + e.pay + (e.bonus || 0), 0);
             return convert(rawPending);
@@ -5058,12 +5077,12 @@
               continue;
             }
 
-            const start = new Date(selectedYear, m, 1, 0, 0, 0, 0);
-            const end = new Date(selectedYear, m + 1, 1, 0, 0, 0, 0);
+            const start = new Date(selectedYear, m, 1, 0, 0, 0, 0).getTime();
+            const end = new Date(selectedYear, m + 1, 1, 0, 0, 0, 0).getTime();
 
-            const periodEntries = entries.filter(e => {
-              const ed = new Date(e.date);
-              return ed >= start && ed < end;
+            const periodEntries = activeEntries.filter(e => {
+              const t = e._ts || (e._ts = new Date(e.date).getTime());
+              return t >= start && t < end;
             });
 
             const rawApproved = periodEntries
@@ -5079,8 +5098,8 @@
         } else if (chartRange === 'all_years') {
           const currentYear = new Date().getFullYear();
           let minYear = currentYear;
-          if (entries.length > 0) {
-            entries.forEach(e => {
+          if (activeEntries.length > 0) {
+            activeEntries.forEach(e => {
               const y = new Date(e.date).getFullYear();
               if (y < minYear) minYear = y;
             });
@@ -5091,23 +5110,23 @@
           }
           labels = years.map(String);
           approvedData = years.map(y => {
-            const start = new Date(y, 0, 1, 0, 0, 0, 0);
-            const end = new Date(y + 1, 0, 1, 0, 0, 0, 0);
-            const rawApproved = entries
+            const start = new Date(y, 0, 1, 0, 0, 0, 0).getTime();
+            const end = new Date(y + 1, 0, 1, 0, 0, 0, 0).getTime();
+            const rawApproved = activeEntries
               .filter(e => {
-                const ed = new Date(e.date);
-                return ed >= start && ed < end && e.status !== 'AWAITING REVIEW';
+                const t = e._ts || (e._ts = new Date(e.date).getTime());
+                return t >= start && t < end && e.status !== 'AWAITING REVIEW';
               })
               .reduce((s, e) => s + e.pay + (e.bonus || 0), 0);
             return convert(rawApproved);
           });
           pendingData = years.map(y => {
-            const start = new Date(y, 0, 1, 0, 0, 0, 0);
-            const end = new Date(y + 1, 0, 1, 0, 0, 0, 0);
-            const rawPending = entries
+            const start = new Date(y, 0, 1, 0, 0, 0, 0).getTime();
+            const end = new Date(y + 1, 0, 1, 0, 0, 0, 0).getTime();
+            const rawPending = activeEntries
               .filter(e => {
-                const ed = new Date(e.date);
-                return ed >= start && ed < end && e.status === 'AWAITING REVIEW';
+                const t = e._ts || (e._ts = new Date(e.date).getTime());
+                return t >= start && t < end && e.status === 'AWAITING REVIEW';
               })
               .reduce((s, e) => s + e.pay + (e.bonus || 0), 0);
             return convert(rawPending);
@@ -5123,21 +5142,25 @@
           }
           labels = days.map(d => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }));
           approvedData = days.map(d => {
-            const next = new Date(d); next.setDate(d.getDate() + 1);
-            const rawApproved = entries
+            const nextTime = new Date(d); nextTime.setDate(d.getDate() + 1);
+            const dTime = d.getTime();
+            const nTime = nextTime.getTime();
+            const rawApproved = activeEntries
               .filter(e => {
-                const ed = new Date(e.date);
-                return ed >= d && ed < next && e.status !== 'AWAITING REVIEW';
+                const t = e._ts || (e._ts = new Date(e.date).getTime());
+                return t >= dTime && t < nTime && e.status !== 'AWAITING REVIEW';
               })
               .reduce((s, e) => s + e.pay + (e.bonus || 0), 0);
             return convert(rawApproved);
           });
           pendingData = days.map(d => {
-            const next = new Date(d); next.setDate(d.getDate() + 1);
-            const rawPending = entries
+            const nextTime = new Date(d); nextTime.setDate(d.getDate() + 1);
+            const dTime = d.getTime();
+            const nTime = nextTime.getTime();
+            const rawPending = activeEntries
               .filter(e => {
-                const ed = new Date(e.date);
-                return ed >= d && ed < next && e.status === 'AWAITING REVIEW';
+                const t = e._ts || (e._ts = new Date(e.date).getTime());
+                return t >= dTime && t < nTime && e.status === 'AWAITING REVIEW';
               })
               .reduce((s, e) => s + e.pay + (e.bonus || 0), 0);
             return convert(rawPending);
@@ -5256,14 +5279,13 @@
       }
     }
 
-    // ─── Manual add ───────────────────────────────────────────────────────────────
-    // FIX: addManual correctly converts USD pay back to GBP base before saving
-    function addManual() {
-      const name = document.getElementById('studyName').value.trim() || 'Unnamed study';
-      let pay = parseFloat(document.getElementById('studyPay').value);
-      let bonus = parseFloat(document.getElementById('studyBonus').value) || 0;
-      const mins = parseInt(document.getElementById('studyMins').value);
-      const date = document.getElementById('studyDate').value;
+    function addManualEntry(isMobile) {
+      const suffix = isMobile ? 'Mobile' : '';
+      const name = document.getElementById('studyName' + suffix)?.value.trim() || 'Unnamed study';
+      let pay = parseFloat(document.getElementById('studyPay' + suffix)?.value);
+      let bonus = parseFloat(document.getElementById('studyBonus' + suffix)?.value) || 0;
+      const mins = parseInt(document.getElementById('studyMins' + suffix)?.value);
+      const date = document.getElementById('studyDate' + suffix)?.value;
       if (isNaN(pay) || isNaN(mins) || mins < 1 || pay < 0 || !date) {
         alert('Please fill in pay, duration, date, and time.');
         return;
@@ -5274,14 +5296,20 @@
         bonus = bonus / (RATES[currency] || 1);
       }
 
-      entries.push({ id: Date.now(), name, pay, bonus, mins, date: parseInputDateTime(date).toISOString(), status: 'APPROVED', source: 'manual' });
+      const newEntry = { id: Date.now(), name, pay, bonus, mins, date: parseInputDateTime(date).toISOString(), status: 'APPROVED', source: 'manual' };
+      newEntry._ts = new Date(newEntry.date).getTime();
+      entries.push(newEntry);
       save();
-      document.getElementById('studyName').value = '';
-      document.getElementById('studyPay').value = '';
-      document.getElementById('studyBonus').value = '';
-      document.getElementById('studyMins').value = '';
-      document.getElementById('studyDate').value = todayDateTimeStr();
+      document.getElementById('studyName' + suffix).value = '';
+      document.getElementById('studyPay' + suffix).value = '';
+      document.getElementById('studyBonus' + suffix).value = '';
+      document.getElementById('studyMins' + suffix).value = '';
+      document.getElementById('studyDate' + suffix).value = todayDateTimeStr();
       render();
+    }
+
+    function addManual() {
+      addManualEntry(false);
     }
 
     // ─── Delete ───────────────────────────────────────────────────────────────────
@@ -5665,13 +5693,7 @@
       return result;
     }
 
-    function showToast(msg, isError) {
-      const t = document.getElementById('importToast');
-      t.textContent = msg;
-      t.className = 'import-toast' + (isError ? ' error' : '');
-      t.style.display = 'block';
-      setTimeout(() => { t.style.display = 'none'; }, 4000);
-    }
+
 
     function openImportModal() {
       const modal = document.getElementById('importModal');
@@ -5825,59 +5847,8 @@
 
 
     function handleImportFiles(files) {
-      if (!files || files.length === 0) return;
-      const filesArray = Array.from(files).filter(f => f.name.endsWith('.csv'));
-      if (filesArray.length === 0) {
-        showToast('Please select or drop .csv files only', true);
-        return;
-      }
-
-      let totalAdded = 0;
-      let totalSkipped = 0;
-      let hasError = false;
-      let errorMsg = '';
-      let processed = 0;
-
-      filesArray.forEach(file => {
-        const reader = new FileReader();
-        reader.onload = ev => {
-          const result = parseCSV(ev.target.result, file.name);
-          if (result.error) {
-            hasError = true;
-            errorMsg = result.error;
-          } else {
-            totalAdded += result.added;
-            totalSkipped += result.skipped;
-          }
-          processed++;
-
-          if (processed === filesArray.length) {
-            if (hasError && totalAdded === 0) {
-              showToast('Error: ' + errorMsg, true);
-            } else {
-              let msg = `${totalAdded} studies imported`;
-              if (totalSkipped > 0) msg += `, ${totalSkipped} skipped`;
-              if (hasError) msg += ` (some files failed: ${errorMsg})`;
-              showToast(msg, false);
-              render();
-              setTimeout(closeImportModal, 1500);
-            }
-          }
-        };
-        reader.onerror = () => {
-          hasError = true;
-          errorMsg = `Failed to read ${file.name}`;
-          processed++;
-          if (processed === filesArray.length) {
-            let msg = `${totalAdded} studies imported`;
-            if (totalSkipped > 0) msg += `, ${totalSkipped} skipped`;
-            msg += ` (some files failed)`;
-            showToast(msg, hasError && totalAdded === 0);
-            render();
-            setTimeout(closeImportModal, 1500);
-          }
-        };
-        reader.readAsText(file);
+      importCsvFiles(files, 'desktop', () => {
+        setTimeout(closeImportModal, 1500);
       });
     }
 
@@ -5935,41 +5906,50 @@
     let selectedCalendarDate = null;
     let calendarHour = 12;
     let calendarMinute = 0;
+    let calendarIsMobile = false;
 
-    function toggleM3Calendar(e) {
+    function toggleM3CalendarCommon(e, isMobile) {
       if (e) e.stopPropagation();
-      const cal = document.getElementById('m3Calendar');
+      calendarIsMobile = isMobile;
+      const calId = isMobile ? 'm3CalendarMobile' : 'm3Calendar';
+      const inputId = isMobile ? 'studyDateMobile' : 'studyDate';
+      
+      const cal = document.getElementById(calId);
       if (!cal) return;
+      
+      // Close other calendar first
+      const otherCalId = isMobile ? 'm3Calendar' : 'm3CalendarMobile';
+      const otherCal = document.getElementById(otherCalId);
+      if (otherCal) otherCal.style.display = 'none';
+
       if (cal.style.display === 'block') {
         cal.style.display = 'none';
       } else {
-        const currentVal = document.getElementById('studyDate').value;
-        const d = parseInputDateTime(currentVal);
-        if (!isNaN(d)) {
-          selectedCalendarDate = new Date(d);
-          calendarDate = new Date(d);
-          calendarHour = d.getHours();
-          calendarMinute = d.getMinutes();
-        } else {
-          selectedCalendarDate = new Date();
-          calendarDate = new Date();
-          calendarHour = selectedCalendarDate.getHours();
-          calendarMinute = selectedCalendarDate.getMinutes();
-        }
-        renderM3Calendar();
+        const input = document.getElementById(inputId);
+        const parsed = input && input.value ? parseInputDateTime(input.value) : new Date();
+        
+        selectedCalendarDate = new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
+        calendarDate = isMobile ? new Date(parsed.getFullYear(), parsed.getMonth(), 1) : new Date(parsed);
+        calendarHour = parsed.getHours();
+        calendarMinute = parsed.getMinutes();
+        
         cal.style.display = 'block';
+        renderM3CalendarCommon();
       }
     }
 
-    function renderM3Calendar() {
-      const cal = document.getElementById('m3Calendar');
+    function renderM3CalendarCommon() {
+      const calId = calendarIsMobile ? 'm3CalendarMobile' : 'm3Calendar';
+      const cal = document.getElementById(calId);
       if (!cal) return;
 
       const year = calendarDate.getFullYear();
       const month = calendarDate.getMonth();
 
       const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-      const titleText = `${monthNames[month]} ${year}`;
+      const titleText = calendarIsMobile 
+        ? calendarDate.toLocaleString('en-GB', { month: 'long', year: 'numeric' })
+        : `${monthNames[month]} ${year}`;
 
       const firstDay = new Date(year, month, 1).getDay();
       const totalDays = new Date(year, month + 1, 0).getDate();
@@ -5984,11 +5964,11 @@
       const weekdaysHtml = weekdaysOrdered.map(w => `<span>${w}</span>`).join('');
       const emptyCells = (firstDay - weekStartDay + 7) % 7;
 
-      let html = `
+      let calendarInnerHtml = `
         <div class="m3-calendar-header" onclick="event.stopPropagation()">
-          <button type="button" class="m3-calendar-btn" onclick="changeM3Month(-1, event)">‹</button>
+          <button type="button" class="m3-calendar-btn" onclick="${calendarIsMobile ? 'changeM3MonthMobile' : 'changeM3Month'}(-1, event)">‹</button>
           <span class="m3-calendar-title">${titleText}</span>
-          <button type="button" class="m3-calendar-btn" onclick="changeM3Month(1, event)">›</button>
+          <button type="button" class="m3-calendar-btn" onclick="${calendarIsMobile ? 'changeM3MonthMobile' : 'changeM3Month'}(1, event)">›</button>
         </div>
         <div class="m3-calendar-weekdays" onclick="event.stopPropagation()">
           ${weekdaysHtml}
@@ -5997,89 +5977,94 @@
       `;
 
       for (let i = 0; i < emptyCells; i++) {
-        html += `<span class="m3-calendar-day empty"></span>`;
+        calendarInnerHtml += `<span class="m3-calendar-day empty"></span>`;
       }
 
       for (let day = 1; day <= totalDays; day++) {
         const isSelected = isSameMonth && selectedCalendarDate.getDate() === day;
         const cls = isSelected ? 'm3-calendar-day selected' : 'm3-calendar-day';
-        html += `<span class="${cls}" onclick="selectM3Day(${day}, event)">${day}</span>`;
+        calendarInnerHtml += `<span class="${cls}" onclick="${calendarIsMobile ? 'selectM3DayMobile' : 'selectM3Day'}(${day}, event)">${day}</span>`;
       }
 
-      html += `</div>`;
+      calendarInnerHtml += `</div>`;
 
       // Time Selector Row
-      html += `
+      calendarInnerHtml += `
         <div class="m3-calendar-divider" onclick="event.stopPropagation()"></div>
         <div class="m3-calendar-time-row" onclick="event.stopPropagation()">
           <span class="m3-calendar-time-label">Time</span>
           <div class="m3-calendar-time-inputs">
-            <select class="m3-calendar-time-select" id="m3CalHour" onchange="updateM3Hour(this.value)">
+            <select class="m3-calendar-time-select" id="${calendarIsMobile ? 'm3CalHourMobile' : 'm3CalHour'}" onchange="${calendarIsMobile ? 'calendarHourMobile = +this.value' : 'updateM3Hour(this.value)'}">
       `;
+      
+      const displayHour = calendarHour % 12 === 0 ? 12 : calendarHour % 12;
       if (timeFormat === '12h') {
-        let displayHour = calendarHour % 12;
-        if (displayHour === 0) displayHour = 12;
         for (let h = 1; h <= 12; h++) {
           const val = String(h).padStart(2, '0');
           const selected = h === displayHour ? 'selected' : '';
-          html += `<option value="${h}" ${selected}>${val}</option>`;
+          calendarInnerHtml += `<option value="${h}" ${selected}>${val}</option>`;
         }
       } else {
         for (let h = 0; h < 24; h++) {
           const val = String(h).padStart(2, '0');
           const selected = h === calendarHour ? 'selected' : '';
-          html += `<option value="${h}" ${selected}>${val}</option>`;
+          calendarInnerHtml += `<option value="${h}" ${selected}>${val}</option>`;
         }
       }
-      html += `
+      
+      calendarInnerHtml += `
             </select>
             <span class="m3-calendar-time-colon">:</span>
-            <select class="m3-calendar-time-select" id="m3CalMinute" onchange="calendarMinute = parseInt(this.value)">
+            <select class="m3-calendar-time-select" id="${calendarIsMobile ? 'm3CalMinuteMobile' : 'm3CalMinute'}" onchange="${calendarIsMobile ? 'calendarMinuteMobile = +this.value' : 'calendarMinute = parseInt(this.value)'}">
       `;
       for (let m = 0; m < 60; m++) {
         const val = String(m).padStart(2, '0');
         const selected = m === calendarMinute ? 'selected' : '';
-        html += `<option value="${m}" ${selected}>${val}</option>`;
+        calendarInnerHtml += `<option value="${m}" ${selected}>${val}</option>`;
       }
-      html += `
+      calendarInnerHtml += `
             </select>
       `;
 
       if (timeFormat === '12h') {
         const isPm = calendarHour >= 12;
-        html += `
-            <select class="m3-calendar-time-select" id="m3CalAmPm" onchange="updateM3AmPm(this.value)" style="margin-left: 4px;">
+        calendarInnerHtml += `
+            <select class="m3-calendar-time-select" id="${calendarIsMobile ? 'm3CalAmPmMobile' : 'm3CalAmPm'}" onchange="${calendarIsMobile ? 'setM3AmPmMobile(this.value)' : 'updateM3AmPm(this.value)'}" style="margin-left: 4px;">
               <option value="AM" ${!isPm ? 'selected' : ''}>AM</option>
               <option value="PM" ${isPm ? 'selected' : ''}>PM</option>
             </select>
         `;
       }
 
-      html += `
+      calendarInnerHtml += `
           </div>
         </div>
       `;
 
       // Confirm & Cancel Buttons Footer
-      html += `
+      calendarInnerHtml += `
         <div class="m3-calendar-footer" onclick="event.stopPropagation()">
-          <button type="button" class="m3-calendar-footer-btn cancel" onclick="closeM3Calendar(event)">Cancel</button>
-          <button type="button" class="m3-calendar-footer-btn confirm" onclick="confirmM3Calendar(event)">Confirm</button>
+          <button type="button" class="m3-calendar-footer-btn cancel" onclick="${calendarIsMobile ? 'closeMobileCalendar' : 'closeM3Calendar'}(event)">Cancel</button>
+          <button type="button" class="m3-calendar-footer-btn confirm" onclick="${calendarIsMobile ? 'confirmM3CalendarMobile' : 'confirmM3Calendar'}(event)">${calendarIsMobile ? 'OK' : 'Confirm'}</button>
         </div>
       `;
 
-      cal.innerHTML = html;
+      if (calendarIsMobile) {
+        cal.innerHTML = `
+          <div class="m3-calendar-modal-card" onclick="event.stopPropagation()">
+            ${calendarInnerHtml}
+          </div>
+        `;
+      } else {
+        cal.innerHTML = calendarInnerHtml;
+      }
     }
 
     function updateM3Hour(val) {
       let h = parseInt(val);
       if (timeFormat === '12h') {
         const isPm = calendarHour >= 12;
-        if (isPm) {
-          calendarHour = h === 12 ? 12 : h + 12;
-        } else {
-          calendarHour = h === 12 ? 0 : h;
-        }
+        calendarHour = isPm ? (h === 12 ? 12 : h + 12) : (h === 12 ? 0 : h);
       } else {
         calendarHour = h;
       }
@@ -6088,142 +6073,63 @@
     function updateM3AmPm(val) {
       let displayHour = calendarHour % 12;
       if (displayHour === 0) displayHour = 12;
-      if (val === 'PM') {
-        calendarHour = displayHour === 12 ? 12 : displayHour + 12;
-      } else {
-        calendarHour = displayHour === 12 ? 0 : displayHour;
-      }
+      calendarHour = val === 'PM' ? (displayHour === 12 ? 12 : displayHour + 12) : (displayHour === 12 ? 0 : displayHour);
     }
 
-    // ─── Month and Day Navigation helpers ──────────────────────────────────────────
     function changeM3Month(dir, e) {
       if (e) e.stopPropagation();
       calendarDate.setMonth(calendarDate.getMonth() + dir);
-      renderM3Calendar();
+      renderM3CalendarCommon();
     }
 
     function selectM3Day(day, e) {
       if (e) e.stopPropagation();
       selectedCalendarDate = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), day);
-      renderM3Calendar();
+      renderM3CalendarCommon();
     }
 
     function confirmM3Calendar(e) {
       if (e) e.stopPropagation();
       if (!selectedCalendarDate) return;
       const finalDate = new Date(selectedCalendarDate.getFullYear(), selectedCalendarDate.getMonth(), selectedCalendarDate.getDate(), calendarHour, calendarMinute);
-      document.getElementById('studyDate').value = formatDateTimeForInput(finalDate);
+      const inputId = calendarIsMobile ? 'studyDateMobile' : 'studyDate';
+      const input = document.getElementById(inputId);
+      if (input) input.value = formatDateTimeForInput(finalDate);
       closeM3Calendar();
     }
 
     function closeM3Calendar(e) {
       if (e) e.stopPropagation();
-      const cal = document.getElementById('m3Calendar');
+      const calId = calendarIsMobile ? 'm3CalendarMobile' : 'm3Calendar';
+      const cal = document.getElementById(calId);
       if (cal) cal.style.display = 'none';
     }
 
+    // ─── Forwarders to preserve exact backward compatibility ─────────────────────
+    function toggleM3Calendar(e) { toggleM3CalendarCommon(e, false); }
+    function toggleM3CalendarMobile(e) { toggleM3CalendarCommon(e, true); }
+    function changeM3MonthMobile(dir, e) { changeM3Month(dir, e); }
+    function selectM3DayMobile(day, e) { selectM3Day(day, e); }
+    function setM3AmPmMobile(val) { updateM3AmPm(val); }
+    function confirmM3CalendarMobile(e) { confirmM3Calendar(e); }
+    function closeMobileCalendar(e) { closeM3Calendar(e); }
+
+    // Backward compatible bindings for onchange attributes in dynamic HTML
+    Object.defineProperty(window, 'calendarHourMobile', {
+      get() { return calendarHour; },
+      set(val) { calendarHour = val; }
+    });
+    Object.defineProperty(window, 'calendarMinuteMobile', {
+      get() { return calendarMinute; },
+      set(val) { calendarMinute = val; }
+    });
+
     document.addEventListener('click', () => {
-      closeM3Calendar();
+      const cal = document.getElementById('m3Calendar');
+      if (cal) cal.style.display = 'none';
       const calM = document.getElementById('m3CalendarMobile');
       if (calM) calM.style.display = 'none';
     });
-
-    // ─── Mobile Calendar (mirrors the desktop M3 calendar for the Add tab) ─────────
-    let calendarDateMobile = new Date();
-    let selectedCalendarDateMobile = null;
-    let calendarHourMobile = 12;
-    let calendarMinuteMobile = 0;
-
-    function toggleM3CalendarMobile(e) {
-      if (e) e.stopPropagation();
-      const cal = document.getElementById('m3CalendarMobile');
-      if (!cal) return;
-      if (cal.style.display === 'block') { cal.style.display = 'none'; return; }
-      const input = document.getElementById('studyDateMobile');
-      const parsed = input.value ? parseInputDateTime(input.value) : new Date();
-      calendarDateMobile = new Date(parsed.getFullYear(), parsed.getMonth(), 1);
-      selectedCalendarDateMobile = new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
-      calendarHourMobile = parsed.getHours();
-      calendarMinuteMobile = parsed.getMinutes();
-      cal.style.display = 'block';
-      renderM3CalendarMobile();
-    }
-
-    function renderM3CalendarMobile() {
-      // Reuse the same calendar render logic referencing mobile elements
-      const cal = document.getElementById('m3CalendarMobile');
-      if (!cal) return;
-      const year = calendarDateMobile.getFullYear();
-      const month = calendarDateMobile.getMonth();
-      const monthName = calendarDateMobile.toLocaleString('en-GB', { month: 'long', year: 'numeric' });
-      const firstDay = new Date(year, month, 1).getDay();
-      const daysInMonth = new Date(year, month + 1, 0).getDate();
-      const startOffset = (firstDay - weekStartDay + 7) % 7;
-      const dayNames = Array.from({ length: 7 }, (_, i) => {
-        const d = new Date(2024, 0, weekStartDay + i);
-        return d.toLocaleString('en-GB', { weekday: 'short' }).slice(0, 2);
-      });
-      let days = '';
-      for (let i = 0; i < startOffset; i++) days += '<span class="m3-calendar-day empty"></span>';
-      for (let d = 1; d <= daysInMonth; d++) {
-        const isSel = selectedCalendarDateMobile && selectedCalendarDateMobile.getFullYear() === year && selectedCalendarDateMobile.getMonth() === month && selectedCalendarDateMobile.getDate() === d;
-        days += `<span class="m3-calendar-day${isSel ? ' selected' : ''}" onclick="selectM3DayMobile(${d}, event)">${d}</span>`;
-      }
-      const use24h = timeFormat === '24h';
-      let timeHtml;
-      if (use24h) {
-        const hrs24 = Array.from({ length: 24 }, (_, i) => `<option value="${i}" ${calendarHourMobile === i ? 'selected' : ''}>${String(i).padStart(2, '0')}</option>`).join('');
-        const mins = Array.from({ length: 60 }, (_, i) => `<option value="${i}" ${calendarMinuteMobile === i ? 'selected' : ''}>${String(i).padStart(2, '0')}</option>`).join('');
-        timeHtml = `<select class="m3-calendar-time-select" onchange="calendarHourMobile=+this.value" onclick="event.stopPropagation()">${hrs24}</select><span class="m3-calendar-time-colon">:</span><select class="m3-calendar-time-select" onchange="calendarMinuteMobile=+this.value" onclick="event.stopPropagation()">${mins}</select>`;
-      } else {
-        const display12 = calendarHourMobile % 12 === 0 ? 12 : calendarHourMobile % 12;
-        const ampm = calendarHourMobile < 12 ? 'AM' : 'PM';
-        const hrs12 = Array.from({ length: 12 }, (_, i) => { const h = i + 1; return `<option value="${h}" ${display12 === h ? 'selected' : ''}>${h}</option>`; }).join('');
-        const mins = Array.from({ length: 60 }, (_, i) => `<option value="${i}" ${calendarMinuteMobile === i ? 'selected' : ''}>${String(i).padStart(2, '0')}</option>`).join('');
-        const ampmSel = `<select class="m3-calendar-time-select" onchange="setM3AmPmMobile(this.value)" onclick="event.stopPropagation()"><option ${ampm==='AM'?'selected':''}>AM</option><option ${ampm==='PM'?'selected':''}>PM</option></select>`;
-        timeHtml = `<select class="m3-calendar-time-select" onchange="calendarHourMobile=+this.value" onclick="event.stopPropagation()">${hrs12}</select><span class="m3-calendar-time-colon">:</span><select class="m3-calendar-time-select" onchange="calendarMinuteMobile=+this.value" onclick="event.stopPropagation()">${mins}</select>${ampmSel}`;
-      }
-      cal.innerHTML = `
-        <div class="m3-calendar-modal-card" onclick="event.stopPropagation()">
-          <div class="m3-calendar-header">
-            <button class="m3-calendar-btn" onclick="changeM3MonthMobile(-1,event)">‹</button>
-            <span class="m3-calendar-title">${monthName}</span>
-            <button class="m3-calendar-btn" onclick="changeM3MonthMobile(1,event)">›</button>
-          </div>
-          <div class="m3-calendar-weekdays">${dayNames.map(d => `<span>${d}</span>`).join('')}</div>
-          <div class="m3-calendar-days">${days}</div>
-          <div class="m3-calendar-divider"></div>
-          <div class="m3-calendar-time-row">
-            <span class="m3-calendar-time-label">Time</span>
-            <div class="m3-calendar-time-inputs">${timeHtml}</div>
-          </div>
-          <div class="m3-calendar-footer">
-            <button class="m3-calendar-footer-btn cancel" onclick="closeMobileCalendar(event)">Cancel</button>
-            <button class="m3-calendar-footer-btn confirm" onclick="confirmM3CalendarMobile(event)">OK</button>
-          </div>
-        </div>`;
-      cal.style.display = 'block';
-    }
-
-    function changeM3MonthMobile(dir, e) { if (e) e.stopPropagation(); calendarDateMobile.setMonth(calendarDateMobile.getMonth() + dir); renderM3CalendarMobile(); }
-    function selectM3DayMobile(day, e) { if (e) e.stopPropagation(); selectedCalendarDateMobile = new Date(calendarDateMobile.getFullYear(), calendarDateMobile.getMonth(), day); renderM3CalendarMobile(); }
-    function setM3AmPmMobile(val) {
-      let display12 = calendarHourMobile % 12 === 0 ? 12 : calendarHourMobile % 12;
-      if (display12 === 0) display12 = 12;
-      calendarHourMobile = val === 'PM' ? (display12 === 12 ? 12 : display12 + 12) : (display12 === 12 ? 0 : display12);
-    }
-    function confirmM3CalendarMobile(e) {
-      if (e) e.stopPropagation();
-      if (!selectedCalendarDateMobile) return;
-      const finalDate = new Date(selectedCalendarDateMobile.getFullYear(), selectedCalendarDateMobile.getMonth(), selectedCalendarDateMobile.getDate(), calendarHourMobile, calendarMinuteMobile);
-      document.getElementById('studyDateMobile').value = formatDateTimeForInput(finalDate);
-      closeMobileCalendar();
-    }
-    function closeMobileCalendar(e) {
-      if (e) e.stopPropagation();
-      const cal = document.getElementById('m3CalendarMobile');
-      if (cal) cal.style.display = 'none';
-    }
 
     // ─── Mobile Tab Switching ─────────────────────────────────────────────────────
     function switchMobileTab(tab) {
@@ -6244,44 +6150,9 @@
     }
 
     // ─── Mobile File Import ───────────────────────────────────────────────────────
-    function showMobileToast(msg, isError) {
-      const t = document.getElementById('mobileImportToast');
-      if (!t) return;
-      t.textContent = msg;
-      t.className = 'import-toast' + (isError ? ' error' : '');
-      t.style.display = 'block';
-      setTimeout(() => { t.style.display = 'none'; }, 4000);
-    }
-
     function handleMobileFileInput(input) {
       if (!input.files || input.files.length === 0) return;
-      const filesArray = Array.from(input.files).filter(f => f.name.endsWith('.csv'));
-      if (filesArray.length === 0) { showMobileToast('Please select .csv files only', true); input.value = ''; return; }
-      let totalAdded = 0, totalSkipped = 0, hasError = false, errorMsg = '', processed = 0;
-      filesArray.forEach(file => {
-        const reader = new FileReader();
-        reader.onload = ev => {
-          const result = parseCSV(ev.target.result, file.name);
-          if (result.error) { hasError = true; errorMsg = result.error; }
-          else { totalAdded += result.added; totalSkipped += result.skipped; }
-          processed++;
-          if (processed === filesArray.length) {
-            if (hasError && totalAdded === 0) { showMobileToast('Error: ' + errorMsg, true); }
-            else {
-              let msg = `${totalAdded} studies imported`;
-              if (totalSkipped > 0) msg += `, ${totalSkipped} skipped`;
-              if (hasError) msg += ` (some files failed)`;
-              showMobileToast(msg, false);
-              render();
-            }
-          }
-        };
-        reader.onerror = () => {
-          processed++;
-          showMobileToast('Failed to read file', true);
-        };
-        reader.readAsText(file);
-      });
+      importCsvFiles(input.files, 'mobile');
       input.value = '';
     }
 
@@ -6294,55 +6165,13 @@
         e.preventDefault();
         zone.classList.remove('drag-over');
         if (!e.dataTransfer.files || !e.dataTransfer.files.length) return;
-        const filesArray = Array.from(e.dataTransfer.files).filter(f => f.name.endsWith('.csv'));
-        if (!filesArray.length) { showMobileToast('Please drop .csv files only', true); return; }
-        // Simulate the mobile file input path
-        let totalAdded = 0, totalSkipped = 0, hasError = false, errorMsg = '', processed = 0;
-        filesArray.forEach(file => {
-          const reader = new FileReader();
-          reader.onload = ev => {
-            const result = parseCSV(ev.target.result, file.name);
-            if (result.error) { hasError = true; errorMsg = result.error; }
-            else { totalAdded += result.added; totalSkipped += result.skipped; }
-            processed++;
-            if (processed === filesArray.length) {
-              if (hasError && totalAdded === 0) { showMobileToast('Error: ' + errorMsg, true); }
-              else {
-                let msg = `${totalAdded} studies imported`;
-                if (totalSkipped > 0) msg += `, ${totalSkipped} skipped`;
-                showMobileToast(msg, false);
-                render();
-              }
-            }
-          };
-          reader.readAsText(file);
-        });
+        importCsvFiles(e.dataTransfer.files, 'mobile');
       });
     }
 
     // ─── Mobile Manual Add ────────────────────────────────────────────────────────
     function addManualMobile() {
-      const name = document.getElementById('studyNameMobile')?.value.trim() || 'Unnamed study';
-      let pay = parseFloat(document.getElementById('studyPayMobile')?.value);
-      let bonus = parseFloat(document.getElementById('studyBonusMobile')?.value) || 0;
-      const mins = parseInt(document.getElementById('studyMinsMobile')?.value);
-      const date = document.getElementById('studyDateMobile')?.value;
-      if (isNaN(pay) || isNaN(mins) || mins < 1 || pay < 0 || !date) {
-        alert('Please fill in pay, duration, date, and time.');
-        return;
-      }
-      if (currency !== 'GBP') {
-        pay = pay / (RATES[currency] || 1);
-        bonus = bonus / (RATES[currency] || 1);
-      }
-      entries.push({ id: Date.now(), name, pay, bonus, mins, date: parseInputDateTime(date).toISOString(), status: 'APPROVED', source: 'manual' });
-      save();
-      document.getElementById('studyNameMobile').value = '';
-      document.getElementById('studyPayMobile').value = '';
-      document.getElementById('studyBonusMobile').value = '';
-      document.getElementById('studyMinsMobile').value = '';
-      document.getElementById('studyDateMobile').value = todayDateTimeStr();
-      render();
+      addManualEntry(true);
     }
 
     // Initialize mobile drag-drop on load
