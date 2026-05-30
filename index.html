@@ -6,6 +6,12 @@
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>EarnTrack</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <meta name="theme-color" content="#111413">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <script>
     (() => {
       const storedMode = localStorage.getItem('prolific_theme_mode') || 'system';
@@ -178,7 +184,7 @@
     .app {
       max-width: 1200px;
       margin: 0 auto;
-      padding: 2.25rem 1.5rem 4rem;
+      padding: 2.25rem 1.5rem 6rem;
     }
 
     .dashboard-grid {
@@ -2151,6 +2157,366 @@
       transform: translateX(18px);
       background-color: var(--md-on-primary);
     }
+
+    /* ── Bottom Tab Bar (mobile only) ─────────────────────────────── */
+    .bottom-nav {
+      display: none;
+    }
+
+    /* Mobile panels and bottom nav are ONLY shown below 767px */
+    .mobile-tab-panel {
+      display: none;
+    }
+
+    @media (max-width: 767px) {
+      /* Hide desktop layout elements */
+      .desktop-only {
+        display: none !important;
+      }
+
+      /* FAB hidden on mobile — import lives in Add tab */
+      .fab {
+        display: none !important;
+      }
+
+      /* App container gets extra bottom padding for nav bar */
+      .app {
+        padding-bottom: 80px !important;
+      }
+
+      /* Mobile tab panels */
+      .mobile-tab-panel {
+        display: none;
+      }
+      .mobile-tab-panel.active {
+        display: block;
+      }
+
+      /* Dashboard panel: stack everything vertically */
+      .mobile-dashboard-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 1.1rem;
+      }
+
+      /* Add panel: import zone + manual add */
+      .mobile-add-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 1.1rem;
+      }
+
+      /* In Add panel, manual add rows go full-width stacked */
+      .mobile-add-stack .add-row {
+        grid-template-columns: 1fr 1fr !important;
+      }
+      .mobile-add-stack .add-row > *:nth-child(1) {
+        grid-column: span 2;
+      }
+      .mobile-add-stack .add-row > *:nth-child(6) {
+        grid-column: span 2;
+      }
+      .mobile-add-stack .add-btn {
+        width: 100%;
+      }
+
+      /* Studies panel fills full width */
+      .mobile-studies-panel .table-card {
+        border-radius: var(--radius) !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        border: none !important;
+        padding: 0 !important;
+      }
+      
+      /* Mobile study list styling */
+      .mobile-study-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+        margin-top: 12px;
+      }
+      .mobile-study-item {
+        background: var(--md-surface-container-low);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 12px 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        transition: background 0.2s var(--motion);
+      }
+      .mobile-study-item:hover {
+        background: var(--md-surface-container);
+      }
+      .mobile-study-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        gap: 12px;
+      }
+      .mobile-study-row.sub {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .mobile-study-name {
+        font-weight: 600;
+        font-size: 14px;
+        color: var(--text);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        flex: 1;
+      }
+      .mobile-study-pay {
+        font-weight: 700;
+        font-size: 15px;
+        color: var(--text);
+        font-family: var(--mono);
+        white-space: nowrap;
+      }
+      .mobile-study-meta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .mobile-study-date {
+        font-family: var(--mono);
+        font-size: 11px;
+      }
+      .mobile-study-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .mobile-study-actions .rate-badge {
+        font-size: 11px;
+        padding: 2px 6px;
+      }
+      .mobile-study-actions .del-btn {
+        background: transparent;
+        border: none;
+        color: var(--muted);
+        font-size: 16px;
+        cursor: pointer;
+        padding: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        border-radius: 99px;
+        transition: background 0.2s var(--motion), color 0.2s var(--motion);
+      }
+      .mobile-study-actions .del-btn:hover {
+        background: rgba(255, 0, 0, 0.1);
+        color: var(--red);
+      }
+
+      /* Mobile studies tab toolbar layout changes */
+      .mobile-toolbar-layout {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 12px !important;
+        margin-bottom: 1rem !important;
+        width: 100% !important;
+      }
+      .mobile-search-bar {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+      }
+      .mobile-toolbar-actions-row {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        width: 100% !important;
+        gap: 10px !important;
+      }
+
+      /* Mobile Settings panel styling */
+      .mobile-tab-panel .settings-modal-card {
+        box-shadow: none !important;
+        background: transparent !important;
+        border: none !important;
+        padding: 0 !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        transform: none !important;
+        animation: none !important;
+      }
+      .mobile-tab-panel .settings-modal-card .modal-close-btn {
+        display: none !important;
+      }
+      .mobile-tab-panel .settings-modal-card .settings-grid {
+        flex-direction: column !important;
+        gap: 1.5rem !important;
+      }
+      .mobile-tab-panel .settings-modal-card .settings-column {
+        flex: none !important;
+        width: 100% !important;
+      }
+      .mobile-tab-panel .settings-modal-card .settings-divider {
+        border-top: 1px solid var(--border2) !important;
+        border-left: 0 !important;
+        margin: 0 !important;
+        width: auto !important;
+        height: auto !important;
+        align-self: stretch !important;
+      }
+
+      /* Mobile calendar backdrop overlay */
+      #m3CalendarMobile {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        background: rgba(0, 0, 0, 0.6) !important;
+        backdrop-filter: blur(8px) !important;
+        -webkit-backdrop-filter: blur(8px) !important;
+        z-index: 2000 !important;
+        display: none !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 20px !important;
+        box-sizing: border-box !important;
+      }
+      
+      /* Make it use flex display when active */
+      #m3CalendarMobile[style*="display: block"] {
+        display: flex !important;
+      }
+      
+      /* Center modal card */
+      .m3-calendar-modal-card {
+        background: var(--md-surface-container-high) !important;
+        border: 1px solid var(--border) !important;
+        border-radius: var(--radius) !important;
+        box-shadow: 0 12px 48px var(--md-shadow) !important;
+        padding: 20px !important;
+        width: 300px !important;
+        box-sizing: border-box !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 12px !important;
+        animation: m3ScaleIn 0.3s var(--motion) !important;
+      }
+      @keyframes m3ScaleIn {
+        from { opacity: 0; transform: scale(0.9); }
+        to { opacity: 1; transform: scale(1); }
+      }
+
+      /* Header rules on mobile: hide entirely by default, show ONLY on Settings tab */
+      .header {
+        display: none !important;
+      }
+      html[data-active-mobile-tab="settings"] .header {
+        display: flex !important;
+        margin-bottom: 1.5rem !important;
+      }
+
+      /* Hide Settings cog button in header on mobile since Settings is a bottom tab */
+      #headerSettingsBtn {
+        display: none !important;
+      }
+
+      /* Controls (time frame selector) wraps nicely */
+      .controls {
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+        background: var(--md-surface-container-low) !important;
+        padding: 10px 12px !important;
+        border-radius: var(--radius) !important;
+        border: 1px solid var(--border) !important;
+        gap: 10px !important;
+      }
+      .controls .week-nav {
+        justify-content: center !important;
+        gap: 16px !important;
+        width: 100% !important;
+        margin-bottom: 0 !important;
+      }
+      .controls .tabs {
+        justify-content: center !important;
+        width: 100% !important;
+      }
+
+      /* Bottom navigation bar */
+      .bottom-nav {
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 64px;
+        background: var(--md-surface-container-high);
+        border-top: 1px solid var(--border);
+        z-index: 500;
+        align-items: stretch;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        /* Safe area for devices with home indicators */
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+      }
+
+      .bottom-tab {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        border: none;
+        background: transparent;
+        color: var(--muted);
+        font-family: var(--sans);
+        font-size: 10px;
+        font-weight: 500;
+        cursor: pointer;
+        padding: 6px 4px;
+        transition: color 0.2s var(--motion);
+        letter-spacing: 0.01em;
+        position: relative;
+      }
+
+      .bottom-tab .tab-icon {
+        width: 40px;
+        height: 28px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.25s var(--motion), transform 0.2s var(--motion);
+      }
+
+      .bottom-tab .tab-icon svg {
+        width: 20px;
+        height: 20px;
+        stroke: currentColor;
+        transition: transform 0.2s var(--motion);
+      }
+
+      .bottom-tab:hover {
+        color: var(--text);
+      }
+
+      .bottom-tab.active {
+        color: var(--md-primary);
+      }
+
+      .bottom-tab.active .tab-icon {
+        background: var(--md-primary-container);
+        transform: translateY(-1px);
+      }
+    }
   </style>
 
 </head>
@@ -2177,7 +2543,7 @@
           <span>Changelog</span>
         </button>
 
-        <button class="settings-btn" onclick="openSettingsModal()" title="Open Settings" type="button">
+        <button class="settings-btn" id="headerSettingsBtn" onclick="openSettingsModal()" title="Open Settings" type="button">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
             stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="3"></circle>
@@ -2190,273 +2556,488 @@
       </div>
     </div>
 
-    <!-- Controls -->
-    <div class="controls">
-      <div class="week-nav">
-        <button class="nav-btn" onclick="changeWeek(-1)">‹</button>
-        <span class="week-label" id="weekLabel">23 Mar – 29 Mar</span>
-        <button class="nav-btn" onclick="changeWeek(1)">›</button>
+    <!-- ── DESKTOP LAYOUT (hidden on mobile via .desktop-only) ──────── -->
+    <div class="desktop-only">
+      <!-- Controls -->
+      <div class="controls">
+        <div class="week-nav">
+          <button class="nav-btn" onclick="changeWeek(-1)">‹</button>
+          <span class="week-label" id="weekLabel">23 Mar – 29 Mar</span>
+          <button class="nav-btn" onclick="changeWeek(1)">›</button>
+        </div>
+        <div class="tabs">
+          <button class="tab active" onclick="switchTab(&#39;week&#39;, this)">Week</button>
+          <button class="tab" onclick="switchTab(&#39;month&#39;, this)">Month</button>
+          <button class="tab" onclick="switchTab(&#39;year&#39;, this)">Year</button>
+          <button class="tab" onclick="switchTab(&#39;all&#39;, this)">All time</button>
+        </div>
       </div>
-      <div class="tabs">
-        <button class="tab active" onclick="switchTab(&#39;week&#39;, this)">Week</button>
-        <button class="tab" onclick="switchTab(&#39;month&#39;, this)">Month</button>
-        <button class="tab" onclick="switchTab(&#39;year&#39;, this)">Year</button>
-        <button class="tab" onclick="switchTab(&#39;all&#39;, this)">All time</button>
-      </div>
-    </div>
 
-    <div class="dashboard-grid">
-      <div class="dashboard-left">
-        <!-- Chart Card -->
-        <div class="chart-card">
-          <div class="chart-header">
-            <span class="chart-title" id="chartTitle">Monthly earnings — last 12 months</span>
-            <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap; justify-content:flex-end;">
-              <div class="chart-legend">
-                <div class="legend-item">
-                  <div class="legend-dot" style="background: var(--chart-bar);"></div>Approved
+      <div class="dashboard-grid">
+        <div class="dashboard-left">
+          <!-- Chart Card -->
+          <div class="chart-card">
+            <div class="chart-header">
+              <span class="chart-title" id="chartTitle">Monthly earnings — last 12 months</span>
+              <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap; justify-content:flex-end;">
+                <div class="chart-legend">
+                  <div class="legend-item">
+                    <div class="legend-dot" style="background: var(--chart-bar);"></div>Approved
+                  </div>
+                  <div class="legend-item">
+                    <div class="legend-dot" style="background: var(--chart-bar-pending);"></div>Pending
+                  </div>
                 </div>
-                <div class="legend-item">
-                  <div class="legend-dot" style="background: var(--chart-bar-pending);"></div>Pending
+                <div class="chart-range-tabs" aria-label="Chart range" style="display: none;">
+                  <button id="chartRange14d" class="chart-range-btn" onclick="setChartRange(&#39;14d&#39;)">Daily</button>
+                  <button id="chartRange12m" class="chart-range-btn active"
+                    onclick="setChartRange(&#39;12m&#39;)">Monthly</button>
+                  <button id="chartRange5y" class="chart-range-btn" onclick="setChartRange(&#39;5y&#39;)">Yearly</button>
                 </div>
               </div>
-              <div class="chart-range-tabs" aria-label="Chart range" style="display: none;">
-                <button id="chartRange14d" class="chart-range-btn" onclick="setChartRange(&#39;14d&#39;)">Daily</button>
-                <button id="chartRange12m" class="chart-range-btn active"
-                  onclick="setChartRange(&#39;12m&#39;)">Monthly</button>
-                <button id="chartRange5y" class="chart-range-btn" onclick="setChartRange(&#39;5y&#39;)">Yearly</button>
+            </div>
+            <div style="position: relative; width: 100%; height: 180px;">
+              <canvas id="earningsChart" style="display: block; box-sizing: border-box; height: 180px; width: 870px;"
+                width="870" height="180"></canvas>
+            </div>
+          </div>
+
+          <!-- Status Summary Card -->
+          <div class="status-summary-card">
+            <div class="status-summary-header">
+              <div class="status-summary-title">Status totals</div>
+              <div class="status-summary-sub">All time</div>
+            </div>
+            <div class="status-summary-grid" id="statusSummaryGrid"></div>
+          </div>
+
+          <!-- Table Card -->
+          <div class="table-card">
+            <div class="table-toolbar">
+              <div class="table-toolbar-left">
+                <input type="text" class="search-input" id="searchInput" placeholder="Search studies..."
+                  oninput="render()">
+                <span class="entry-count" id="entryCount">16 studies</span>
+              </div>
+              <div style="display:flex; gap:6px;">
+                <button class="export-btn" onclick="exportCSV()">Export CSV</button>
+                <button class="export-btn" onclick="confirmClearAll()"
+                  style="color: var(--red); border-color: color-mix(in srgb, var(--md-error) 32%, transparent);">Clear
+                  all</button>
+              </div>
+            </div>
+            <div id="tableContainer">
+              <div style="overflow-x:auto;">
+                <table>
+                  <thead>
+                    <tr>
+                      <th class="" onclick="setSort(&#39;name&#39;)">Study <span class="sort-arrow">↕</span></th>
+                      <th class="sorted" onclick="setSort(&#39;date&#39;)">Date <span class="sort-arrow">↓</span></th>
+                      <th class="" onclick="setSort(&#39;pay&#39;)">Pay <span class="sort-arrow">↕</span></th>
+                      <th class="" onclick="setSort(&#39;mins&#39;)">Time <span class="sort-arrow">↕</span></th>
+                      <th class="" onclick="setSort(&#39;rate&#39;)">Rate <span class="sort-arrow">↕</span></th>
+                      <th>Status</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="td-name" title="Factors influencing alcohol drinking motivation">Factors influencing
+                        alcohol drinking motivation</td>
+                      <td class="td-date">25 Mar</td>
+                      <td class="td-pay">£3.00</td>
+                      <td class="td-time">18m</td>
+                      <td><span class="rate-badge rate-good">£10.00/hr</span></td>
+                      <td><span class="status-badge status-awaiting">Awaiting</span></td>
+                      <td><button class="del-btn" onclick="deleteEntry(1774456675179)">✕</button></td>
+                    </tr>
+                    <tr>
+                      <td class="td-name" title="3 min experiment on the perception of faces">3 min experiment on the
+                        perception of faces</td>
+                      <td class="td-date">25 Mar</td>
+                      <td class="td-pay">£0.78</td>
+                      <td class="td-time">2m</td>
+                      <td><span class="rate-badge rate-good">£23.40/hr</span></td>
+                      <td><span class="status-badge status-awaiting">Awaiting</span></td>
+                      <td><button class="del-btn" onclick="deleteEntry(1774456675180)">✕</button></td>
+                    </tr>
+                    <tr>
+                      <td class="td-name" title="Experiences at Work">Experiences at Work</td>
+                      <td class="td-date">25 Mar</td>
+                      <td class="td-pay">£1.50</td>
+                      <td class="td-time">5m</td>
+                      <td><span class="rate-badge rate-good">£18.00/hr</span></td>
+                      <td><span class="status-badge status-awaiting">Awaiting</span></td>
+                      <td><button class="del-btn" onclick="deleteEntry(1774456675181)">✕</button></td>
+                    </tr>
+                    <tr>
+                      <td class="td-name" title="Study about your beliefs">Study about your beliefs</td>
+                      <td class="td-date">25 Mar</td>
+                      <td class="td-pay">£0.66</td>
+                      <td class="td-time">4m</td>
+                      <td><span class="rate-badge rate-good">£9.88/hr</span></td>
+                      <td><span class="status-badge status-awaiting">Awaiting</span></td>
+                      <td><button class="del-btn" onclick="deleteEntry(1774456675183)">✕</button></td>
+                    </tr>
+                    <tr>
+                      <td class="td-name" title="Study on decision making (additional bonus up to 3.2 GBP)">Study on
+                        decision making (additional bonus up to 3.2 GBP)</td>
+                      <td class="td-date">25 Mar</td>
+                      <td class="td-pay">£2.50</td>
+                      <td class="td-time">19m</td>
+                      <td><span class="rate-badge rate-ok">£7.89/hr</span></td>
+                      <td><span class="status-badge status-approved">Approved</span></td>
+                      <td><button class="del-btn" onclick="deleteEntry(1774456675185)">✕</button></td>
+                    </tr>
+                    <tr>
+                      <td class="td-name" title="Feeding PAC-MAN (THIS STUDY INCLUDES A VIDEO CALL)">Feeding PAC-MAN (THIS
+                        STUDY INCLUDES A VIDEO CALL)</td>
+                      <td class="td-date">25 Mar</td>
+                      <td class="td-pay">£4.00</td>
+                      <td class="td-time">32m</td>
+                      <td><span class="rate-badge rate-ok">£7.50/hr</span></td>
+                      <td><span class="status-badge status-awaiting">Awaiting</span></td>
+                      <td><button class="del-btn" onclick="deleteEntry(1774456675186)">✕</button></td>
+                    </tr>
+                    <tr>
+                      <td class="td-name" title="Video Evaluatio">Video Evaluatio</td>
+                      <td class="td-date">25 Mar</td>
+                      <td class="td-pay">£0.35</td>
+                      <td class="td-time">17m</td>
+                      <td><span class="rate-badge rate-low">£1.24/hr</span></td>
+                      <td><span class="status-badge status-awaiting">Awaiting</span></td>
+                      <td><button class="del-btn" onclick="deleteEntry(1774456675187)">✕</button></td>
+                    </tr>
+                    <tr>
+                      <td class="td-name" title="UK Economic Trends">UK Economic Trends</td>
+                      <td class="td-date">24 Mar</td>
+                      <td class="td-pay">£2.13</td>
+                      <td class="td-time">8m</td>
+                      <td><span class="rate-badge rate-good">£15.99/hr</span></td>
+                      <td><span class="status-badge status-approved">Approved</span></td>
+                      <td><button class="del-btn" onclick="deleteEntry(1774456675188)">✕</button></td>
+                    </tr>
+                    <tr>
+                      <td class="td-name" title="Bystanders in public harassment">Bystanders in public harassment</td>
+                      <td class="td-date">24 Mar</td>
+                      <td class="td-pay">£4.50</td>
+                      <td class="td-time">14m</td>
+                      <td><span class="rate-badge rate-good">£19.29/hr</span></td>
+                      <td><span class="status-badge status-approved">Approved</span></td>
+                      <td><button class="del-btn" onclick="deleteEntry(1774456675190)">✕</button></td>
+                    </tr>
+                    <tr>
+                      <td class="td-name" title="Image Labeling">Image Labeling</td>
+                      <td class="td-date">24 Mar</td>
+                      <td class="td-pay">£3.88</td>
+                      <td class="td-time">11m</td>
+                      <td><span class="rate-badge rate-good">£21.14/hr</span></td>
+                      <td><span class="status-badge status-awaiting">Awaiting</span></td>
+                      <td><button class="del-btn" onclick="deleteEntry(1774456675192)">✕</button></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="table-pagination">
+                <button class="page-btn" onclick="setTablePage(0)" disabled="">Prev</button>
+                <span class="page-label">Page 1 / 2</span>
+                <button class="page-btn" onclick="setTablePage(2)">Next</button>
               </div>
             </div>
           </div>
-          <div style="position: relative; width: 100%; height: 180px;">
-            <canvas id="earningsChart" style="display: block; box-sizing: border-box; height: 180px; width: 870px;"
-              width="870" height="180"></canvas>
+        </div>
+
+        <div class="dashboard-right">
+          <!-- Goal Progress Card -->
+          <div class="goal-card" id="goalCard">
+            <span class="goal-label">Weekly Goal</span>
+            <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
+              <div class="progress-track" style="flex:1; min-width: 0;">
+                <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
+              </div>
+              <span class="progress-text" id="progressText">£0.00 / £60.00</span>
+            </div>
+          </div>
+
+          <!-- Metrics Card -->
+          <div class="metrics">
+            <div class="metric" id="metricEarnedCard">
+              <div class="metric-label">Total earned</div>
+              <div class="metric-value green" id="metricEarned">£32.03</div>
+              <div class="metric-sub" id="metricEarnedSub">this week</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Total bonuses</div>
+              <div class="metric-value" style="color: var(--accent);" id="metricBonus">£0.00</div>
+              <div class="metric-sub" id="metricBonusSub">this week</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Time spent</div>
+              <div class="metric-value" id="metricTime">2h 55m</div>
+              <div class="metric-sub" id="metricTimeSub">this week</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Avg hourly rate</div>
+              <div class="metric-value" id="metricRate">£10.98</div>
+              <div class="metric-sub" id="metricRateSub"></div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Studies done</div>
+              <div class="metric-value" id="metricStudies">16</div>
+              <div class="metric-sub" id="metricStudiesSub">this week</div>
+            </div>
+          </div>
+
+          <!-- Add Study Manually Card -->
+          <div class="add-card">
+            <div class="add-card-header">Add study manually</div>
+            <div class="add-row">
+              <div>
+                <div class="field-label">Study name</div>
+                <input type="text" class="field-input" id="studyName" placeholder="e.g. Memory &amp; attention task">
+              </div>
+              <div>
+                <div class="field-label" id="payFieldLabel">Pay (£)</div>
+                <input type="number" class="field-input" id="studyPay" placeholder="0.00" min="0" step="0.01">
+              </div>
+              <div>
+                <div class="field-label" id="bonusFieldLabel">Bonus (£)</div>
+                <input type="number" class="field-input" id="studyBonus" placeholder="0.00" min="0" step="0.01">
+              </div>
+              <div>
+                <div class="field-label">Minutes</div>
+                <input type="number" class="field-input" id="studyMins" placeholder="0" min="1" step="1">
+              </div>
+              <div style="position: relative;">
+                <div class="field-label">Date &amp; Time</div>
+                <div style="position: relative; display: flex; align-items: center;">
+                  <input type="text" class="field-input" id="studyDate" readonly style="cursor: pointer; padding-right: 32px;" onclick="toggleM3Calendar(event)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; right: 10px; width: 16px; height: 16px; color: var(--muted); pointer-events: none;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                </div>
+                <div id="m3Calendar" class="m3-calendar"></div>
+              </div>
+              <div style="display:flex; align-items:flex-end;">
+                <button class="add-btn" onclick="addManual()">+ Add</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- END .desktop-only -->
+
+    <!-- ── MOBILE TAB PANELS (hidden on desktop) ─────────────────── -->
+
+    <!-- Mobile: Dashboard Tab -->
+    <div class="mobile-tab-panel active" id="mobilePanel-dashboard">
+      <div class="mobile-dashboard-stack">
+        <!-- Time Frame Selector -->
+        <div class="controls" style="margin-bottom:0;">
+          <div class="week-nav">
+            <button class="nav-btn" onclick="changeWeek(-1)">‹</button>
+            <span class="week-label" id="weekLabelMobile">23 Mar – 29 Mar</span>
+            <button class="nav-btn" onclick="changeWeek(1)">›</button>
+          </div>
+          <div class="tabs">
+            <button class="tab active" onclick="switchTab(&#39;week&#39;, this)">Week</button>
+            <button class="tab" onclick="switchTab(&#39;month&#39;, this)">Month</button>
+            <button class="tab" onclick="switchTab(&#39;year&#39;, this)">Year</button>
+            <button class="tab" onclick="switchTab(&#39;all&#39;, this)">All time</button>
           </div>
         </div>
 
-        <!-- Status Summary Card -->
+        <!-- Earnings Chart -->
+        <div class="chart-card">
+          <div class="chart-header">
+            <span class="chart-title" id="chartTitleMobile">Earnings chart</span>
+            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:flex-end;">
+              <div class="chart-legend">
+                <div class="legend-item"><div class="legend-dot" style="background:var(--chart-bar);"></div>Approved</div>
+                <div class="legend-item"><div class="legend-dot" style="background:var(--chart-bar-pending);"></div>Pending</div>
+              </div>
+            </div>
+          </div>
+          <div style="position:relative; width:100%; height:180px;">
+            <canvas id="earningsChartMobile" style="display:block; box-sizing:border-box; height:180px; width:100%;" height="180"></canvas>
+          </div>
+        </div>
+
+        <!-- Weekly Goal -->
+        <div class="goal-card" id="goalCardMobile">
+          <span class="goal-label">Weekly Goal</span>
+          <div style="display:flex; align-items:center; gap:12px; width:100%;">
+            <div class="progress-track" style="flex:1; min-width:0;">
+              <div class="progress-fill" id="progressFillMobile" style="width:0%;"></div>
+            </div>
+            <span class="progress-text" id="progressTextMobile">£0.00 / £60.00</span>
+          </div>
+        </div>
+
+        <!-- Metric Tiles -->
+        <div class="metrics" style="grid-template-columns: repeat(2, minmax(0,1fr));">
+          <div class="metric" style="grid-column: span 2;">
+            <div class="metric-label">Total earned</div>
+            <div class="metric-value green" id="metricEarnedMobile">£0.00</div>
+            <div class="metric-sub" id="metricEarnedSubMobile">this week</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Total bonuses</div>
+            <div class="metric-value" style="color:var(--accent);" id="metricBonusMobile">£0.00</div>
+            <div class="metric-sub" id="metricBonusSubMobile">this week</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Studies done</div>
+            <div class="metric-value" id="metricStudiesMobile">0</div>
+            <div class="metric-sub" id="metricStudiesSubMobile">this week</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Time spent</div>
+            <div class="metric-value" id="metricTimeMobile">0m</div>
+            <div class="metric-sub" id="metricTimeSubMobile">this week</div>
+          </div>
+          <div class="metric">
+            <div class="metric-label">Avg hourly rate</div>
+            <div class="metric-value" id="metricRateMobile">—</div>
+            <div class="metric-sub" id="metricRateSubMobile"></div>
+          </div>
+        </div>
+
+        <!-- Status Summary -->
         <div class="status-summary-card">
           <div class="status-summary-header">
             <div class="status-summary-title">Status totals</div>
             <div class="status-summary-sub">All time</div>
           </div>
-          <div class="status-summary-grid" id="statusSummaryGrid"></div>
-        </div>
-
-        <!-- Table Card -->
-        <div class="table-card">
-          <div class="table-toolbar">
-            <div class="table-toolbar-left">
-              <input type="text" class="search-input" id="searchInput" placeholder="Search studies..."
-                oninput="render()">
-              <span class="entry-count" id="entryCount">16 studies</span>
-            </div>
-            <div style="display:flex; gap:6px;">
-              <button class="export-btn" onclick="exportCSV()">Export CSV</button>
-              <button class="export-btn" onclick="confirmClearAll()"
-                style="color: var(--red); border-color: color-mix(in srgb, var(--md-error) 32%, transparent);">Clear
-                all</button>
-            </div>
-          </div>
-          <div id="tableContainer">
-            <div style="overflow-x:auto;">
-              <table>
-                <thead>
-                  <tr>
-                    <th class="" onclick="setSort(&#39;name&#39;)">Study <span class="sort-arrow">↕</span></th>
-                    <th class="sorted" onclick="setSort(&#39;date&#39;)">Date <span class="sort-arrow">↓</span></th>
-                    <th class="" onclick="setSort(&#39;pay&#39;)">Pay <span class="sort-arrow">↕</span></th>
-                    <th class="" onclick="setSort(&#39;mins&#39;)">Time <span class="sort-arrow">↕</span></th>
-                    <th class="" onclick="setSort(&#39;rate&#39;)">Rate <span class="sort-arrow">↕</span></th>
-                    <th>Status</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td class="td-name" title="Factors influencing alcohol drinking motivation">Factors influencing
-                      alcohol drinking motivation</td>
-                    <td class="td-date">25 Mar</td>
-                    <td class="td-pay">£3.00</td>
-                    <td class="td-time">18m</td>
-                    <td><span class="rate-badge rate-good">£10.00/hr</span></td>
-                    <td><span class="status-badge status-awaiting">Awaiting</span></td>
-                    <td><button class="del-btn" onclick="deleteEntry(1774456675179)">✕</button></td>
-                  </tr>
-                  <tr>
-                    <td class="td-name" title="3 min experiment on the perception of faces">3 min experiment on the
-                      perception of faces</td>
-                    <td class="td-date">25 Mar</td>
-                    <td class="td-pay">£0.78</td>
-                    <td class="td-time">2m</td>
-                    <td><span class="rate-badge rate-good">£23.40/hr</span></td>
-                    <td><span class="status-badge status-awaiting">Awaiting</span></td>
-                    <td><button class="del-btn" onclick="deleteEntry(1774456675180)">✕</button></td>
-                  </tr>
-                  <tr>
-                    <td class="td-name" title="Experiences at Work">Experiences at Work</td>
-                    <td class="td-date">25 Mar</td>
-                    <td class="td-pay">£1.50</td>
-                    <td class="td-time">5m</td>
-                    <td><span class="rate-badge rate-good">£18.00/hr</span></td>
-                    <td><span class="status-badge status-awaiting">Awaiting</span></td>
-                    <td><button class="del-btn" onclick="deleteEntry(1774456675181)">✕</button></td>
-                  </tr>
-                  <tr>
-                    <td class="td-name" title="Study about your beliefs">Study about your beliefs</td>
-                    <td class="td-date">25 Mar</td>
-                    <td class="td-pay">£0.66</td>
-                    <td class="td-time">4m</td>
-                    <td><span class="rate-badge rate-good">£9.88/hr</span></td>
-                    <td><span class="status-badge status-awaiting">Awaiting</span></td>
-                    <td><button class="del-btn" onclick="deleteEntry(1774456675183)">✕</button></td>
-                  </tr>
-                  <tr>
-                    <td class="td-name" title="Study on decision making (additional bonus up to 3.2 GBP)">Study on
-                      decision making (additional bonus up to 3.2 GBP)</td>
-                    <td class="td-date">25 Mar</td>
-                    <td class="td-pay">£2.50</td>
-                    <td class="td-time">19m</td>
-                    <td><span class="rate-badge rate-ok">£7.89/hr</span></td>
-                    <td><span class="status-badge status-approved">Approved</span></td>
-                    <td><button class="del-btn" onclick="deleteEntry(1774456675185)">✕</button></td>
-                  </tr>
-                  <tr>
-                    <td class="td-name" title="Feeding PAC-MAN (THIS STUDY INCLUDES A VIDEO CALL)">Feeding PAC-MAN (THIS
-                      STUDY INCLUDES A VIDEO CALL)</td>
-                    <td class="td-date">25 Mar</td>
-                    <td class="td-pay">£4.00</td>
-                    <td class="td-time">32m</td>
-                    <td><span class="rate-badge rate-ok">£7.50/hr</span></td>
-                    <td><span class="status-badge status-awaiting">Awaiting</span></td>
-                    <td><button class="del-btn" onclick="deleteEntry(1774456675186)">✕</button></td>
-                  </tr>
-                  <tr>
-                    <td class="td-name" title="Video Evaluatio">Video Evaluatio</td>
-                    <td class="td-date">25 Mar</td>
-                    <td class="td-pay">£0.35</td>
-                    <td class="td-time">17m</td>
-                    <td><span class="rate-badge rate-low">£1.24/hr</span></td>
-                    <td><span class="status-badge status-awaiting">Awaiting</span></td>
-                    <td><button class="del-btn" onclick="deleteEntry(1774456675187)">✕</button></td>
-                  </tr>
-                  <tr>
-                    <td class="td-name" title="UK Economic Trends">UK Economic Trends</td>
-                    <td class="td-date">24 Mar</td>
-                    <td class="td-pay">£2.13</td>
-                    <td class="td-time">8m</td>
-                    <td><span class="rate-badge rate-good">£15.99/hr</span></td>
-                    <td><span class="status-badge status-approved">Approved</span></td>
-                    <td><button class="del-btn" onclick="deleteEntry(1774456675188)">✕</button></td>
-                  </tr>
-                  <tr>
-                    <td class="td-name" title="Bystanders in public harassment">Bystanders in public harassment</td>
-                    <td class="td-date">24 Mar</td>
-                    <td class="td-pay">£4.50</td>
-                    <td class="td-time">14m</td>
-                    <td><span class="rate-badge rate-good">£19.29/hr</span></td>
-                    <td><span class="status-badge status-approved">Approved</span></td>
-                    <td><button class="del-btn" onclick="deleteEntry(1774456675190)">✕</button></td>
-                  </tr>
-                  <tr>
-                    <td class="td-name" title="Image Labeling">Image Labeling</td>
-                    <td class="td-date">24 Mar</td>
-                    <td class="td-pay">£3.88</td>
-                    <td class="td-time">11m</td>
-                    <td><span class="rate-badge rate-good">£21.14/hr</span></td>
-                    <td><span class="status-badge status-awaiting">Awaiting</span></td>
-                    <td><button class="del-btn" onclick="deleteEntry(1774456675192)">✕</button></td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <div class="table-pagination">
-              <button class="page-btn" onclick="setTablePage(0)" disabled="">Prev</button>
-              <span class="page-label">Page 1 / 2</span>
-              <button class="page-btn" onclick="setTablePage(2)">Next</button>
-            </div>
-          </div>
+          <div class="status-summary-grid" id="statusSummaryGridMobile"></div>
         </div>
       </div>
+    </div>
 
-      <div class="dashboard-right">
-        <!-- Goal Progress Card -->
-        <div class="goal-card" id="goalCard">
-          <span class="goal-label">Weekly Goal</span>
-          <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
-            <div class="progress-track" style="flex:1; min-width: 0;">
-              <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
-            </div>
-            <span class="progress-text" id="progressText">£0.00 / £60.00</span>
+    <!-- Mobile: Add Tab -->
+    <div class="mobile-tab-panel" id="mobilePanel-add">
+      <div class="mobile-add-stack">
+        <!-- Inline Import Zone -->
+        <div class="import-zone" id="mobileImportZone">
+          <div class="import-icon">📥</div>
+          <div class="import-title">Import from Prolific or CloudResearch CSV</div>
+          <div class="import-sub">Drag &amp; drop your CSV here, or click Browse file</div>
+          <div class="import-actions">
+            <label class="import-file-btn">
+              Browse file
+              <input type="file" accept=".csv" id="mobileCsvInput" onchange="handleMobileFileInput(this)" style="display:none;" multiple>
+            </label>
           </div>
+          <div class="import-toast" id="mobileImportToast"></div>
         </div>
 
-        <!-- Metrics Card -->
-        <div class="metrics">
-          <div class="metric" id="metricEarnedCard">
-            <div class="metric-label">Total earned</div>
-            <div class="metric-value green" id="metricEarned">£32.03</div>
-            <div class="metric-sub" id="metricEarnedSub">this week</div>
-          </div>
-          <div class="metric">
-            <div class="metric-label">Total bonuses</div>
-            <div class="metric-value" style="color: var(--accent);" id="metricBonus">£0.00</div>
-            <div class="metric-sub" id="metricBonusSub">this week</div>
-          </div>
-          <div class="metric">
-            <div class="metric-label">Time spent</div>
-            <div class="metric-value" id="metricTime">2h 55m</div>
-            <div class="metric-sub" id="metricTimeSub">this week</div>
-          </div>
-          <div class="metric">
-            <div class="metric-label">Avg hourly rate</div>
-            <div class="metric-value" id="metricRate">£10.98</div>
-            <div class="metric-sub" id="metricRateSub"></div>
-          </div>
-          <div class="metric">
-            <div class="metric-label">Studies done</div>
-            <div class="metric-value" id="metricStudies">16</div>
-            <div class="metric-sub" id="metricStudiesSub">this week</div>
-          </div>
-        </div>
-
-        <!-- Add Study Manually Card -->
+        <!-- Manual Add Card -->
         <div class="add-card">
           <div class="add-card-header">Add study manually</div>
           <div class="add-row">
             <div>
               <div class="field-label">Study name</div>
-              <input type="text" class="field-input" id="studyName" placeholder="e.g. Memory &amp; attention task">
+              <input type="text" class="field-input" id="studyNameMobile" placeholder="e.g. Memory &amp; attention task">
             </div>
             <div>
-              <div class="field-label" id="payFieldLabel">Pay (£)</div>
-              <input type="number" class="field-input" id="studyPay" placeholder="0.00" min="0" step="0.01">
+              <div class="field-label" id="payFieldLabelMobile">Pay (£)</div>
+              <input type="number" class="field-input" id="studyPayMobile" placeholder="0.00" min="0" step="0.01">
             </div>
             <div>
-              <div class="field-label" id="bonusFieldLabel">Bonus (£)</div>
-              <input type="number" class="field-input" id="studyBonus" placeholder="0.00" min="0" step="0.01">
+              <div class="field-label" id="bonusFieldLabelMobile">Bonus (£)</div>
+              <input type="number" class="field-input" id="studyBonusMobile" placeholder="0.00" min="0" step="0.01">
             </div>
             <div>
               <div class="field-label">Minutes</div>
-              <input type="number" class="field-input" id="studyMins" placeholder="0" min="1" step="1">
+              <input type="number" class="field-input" id="studyMinsMobile" placeholder="0" min="1" step="1">
             </div>
-            <div style="position: relative;">
-              <div class="field-label">Date & Time</div>
-              <div style="position: relative; display: flex; align-items: center;">
-                <input type="text" class="field-input" id="studyDate" readonly style="cursor: pointer; padding-right: 32px;" onclick="toggleM3Calendar(event)">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; right: 10px; width: 16px; height: 16px; color: var(--muted); pointer-events: none;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            <div style="position:relative;">
+              <div class="field-label">Date &amp; Time</div>
+              <div style="position:relative; display:flex; align-items:center;">
+                <input type="text" class="field-input" id="studyDateMobile" readonly style="cursor:pointer; padding-right:32px;" onclick="toggleM3CalendarMobile(event)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position:absolute; right:10px; width:16px; height:16px; color:var(--muted); pointer-events:none;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
               </div>
-              <div id="m3Calendar" class="m3-calendar"></div>
+              <div id="m3CalendarMobile" class="m3-calendar"></div>
             </div>
             <div style="display:flex; align-items:flex-end;">
-              <button class="add-btn" onclick="addManual()">+ Add</button>
+              <button class="add-btn" onclick="addManualMobile()">+ Add</button>
             </div>
           </div>
         </div>
       </div>
     </div>
 
+    <!-- Mobile: Studies Tab -->
+    <div class="mobile-tab-panel mobile-studies-panel" id="mobilePanel-studies">
+      <div class="table-card">
+        <div class="table-toolbar mobile-toolbar-layout">
+          <!-- Row 1: Search Input -->
+          <input type="text" class="search-input mobile-search-bar" id="searchInputMobile" placeholder="Search studies..." oninput="render()">
+          
+          <!-- Row 2: Info & Buttons row -->
+          <div class="mobile-toolbar-actions-row">
+            <span class="entry-count" id="entryCountMobile">0 studies</span>
+            <div style="display:flex; gap:6px;">
+              <button class="export-btn" onclick="exportCSV()">Export</button>
+              <button class="export-btn" onclick="confirmClearAll()" style="color:var(--red); border-color:color-mix(in srgb, var(--md-error) 32%, transparent);">Clear</button>
+            </div>
+          </div>
+        </div>
+        <div id="tableContainerMobile"></div>
+      </div>
+    </div>
+
+    <!-- Mobile: Settings Tab -->
+    <div class="mobile-tab-panel" id="mobilePanel-settings">
+    </div>
+    <!-- END mobile panels -->
+
   </div>
+  <!-- END .app -->
+
+  <!-- ── Bottom Tab Navigation Bar ───────────────────────────────── -->
+  <nav class="bottom-nav" id="bottomNav" aria-label="Main navigation">
+    <button class="bottom-tab active" id="mobileTab-dashboard" onclick="switchMobileTab('dashboard')" aria-label="Dashboard">
+      <span class="tab-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+          <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+          <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+          <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+        </svg>
+      </span>
+      Dashboard
+    </button>
+    <button class="bottom-tab" id="mobileTab-add" onclick="switchMobileTab('add')" aria-label="Add">
+      <span class="tab-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="16"></line>
+          <line x1="8" y1="12" x2="16" y2="12"></line>
+        </svg>
+      </span>
+      Add
+    </button>
+    <button class="bottom-tab" id="mobileTab-studies" onclick="switchMobileTab('studies')" aria-label="Studies">
+      <span class="tab-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+        </svg>
+      </span>
+      Studies
+    </button>
+    <button class="bottom-tab" id="mobileTab-settings" onclick="switchMobileTab('settings')" aria-label="Settings">
+      <span class="tab-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+      </span>
+      Settings
+    </button>
+  </nav>
 
   <button class="fab" id="fabImport" onclick="openImportModal()" title="Import CSV data">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
@@ -2799,6 +3380,8 @@
             <ul>
               <li><strong>What's New Dialog</strong>: Added this very dialog — the one you're reading right now. Meta, we know.</li>
               <li><strong>Initial Setup &amp; OOBE Wizard</strong>: Added a friendly Out-Of-Box Experience (OOBE) setup wizard that guides first-time users through configuring their preferred display currency, time format, start of the week, setting an optional weekly goal, and importing their very first CSV file to get started immediately.</li>
+              <li><strong>Mobile Optimized UI</strong>: Overhauled the layout for touch devices by introducing a bottom navigation bar and adjusting card padding for consistent presentation across diverse screen sizes.</li>
+              <li><strong>Progressive Web App (PWA) Support</strong>: Added comprehensive PWA capabilities with a service worker for offline caching of app resources, modern custom app icons, and install configurations so the site can be installed and launched offline.</li>
               <li><strong>Unified Dashboard &amp; Chart Range Selector</strong>: Replaced the separate chart range tabs with automatic synchronization: switching dashboard periods (Week, Month, Year, All time) now automatically adjusts the earnings chart view to matching granularities (7-day Daily, 12-month selected Year, All-Time Yearly), simplifying navigation and decluttering the layout.</li>
               <li><strong>Bitcoin Currency Support</strong>: Added Bitcoin (BTC) as a display currency option, complete with live exchange rates and high-precision decimal formatting.</li>
               <li><strong>Thousands Separator</strong>: Large monetary and numeric values now display commas for much easier readability.</li>
@@ -3117,6 +3700,7 @@
     let sortCol = 'date';
     let sortDir = -1;
     let chart = null;
+    let chartMobile = null;
     const PAGE_SIZE = 10;
     let tablePage = parseInt(localStorage.getItem('prolific_table_page') || '1', 10);
     let lastSearch = null;
@@ -3124,6 +3708,7 @@
     let lastSortCol = null;
     let chartRange = '7d'; // Synced to activeTab 'week'
     let lastChartKey = null;
+    let lastChartKeyMobile = null;
     let themeMode = localStorage.getItem('prolific_theme_mode') || 'system';
     let timeFormat = localStorage.getItem('prolific_time_format') || '24h';
     let weekStartDay = parseInt(localStorage.getItem('prolific_week_start') || '1', 10);
@@ -3177,7 +3762,9 @@
       }
 
       lastChartKey = null;
-      if (chart) renderChart();
+      lastChartKeyMobile = null;
+      if (chart) renderChart('earningsChart');
+      if (chartMobile) renderChart('earningsChartMobile');
     }
 
     function setThemeMode(mode) {
@@ -3230,6 +3817,13 @@
         if (themeMode === 'system') applyTheme();
       });
     }
+
+    const layoutQuery = window.matchMedia('(max-width: 767px)');
+    layoutQuery.addEventListener('change', () => {
+      lastChartKey = null;
+      lastChartKeyMobile = null;
+      render();
+    });
 
     function setTablePage(p) {
       tablePage = p;
@@ -3337,12 +3931,18 @@
     }
 
     // ─── Init ─────────────────────────────────────────────────────────────────────
-    document.getElementById('goalInput').value = weeklyGoal.toFixed(currency === 'BTC' ? 8 : 2);
+    const settingsGoalEnable = document.getElementById('settingsGoalEnable');
+    if (settingsGoalEnable) {
+      settingsGoalEnable.checked = weeklyGoalEnabled;
+    }
+    toggleSettingsGoalInput(weeklyGoalEnabled);
     if (minWage > 0) {
       const minWageInput = document.getElementById('minWageInput');
       if (minWageInput) minWageInput.value = minWage.toFixed(currency === 'BTC' ? 8 : 2);
     }
     document.getElementById('studyDate').value = todayDateTimeStr();
+    const studyDateMobileEl = document.getElementById('studyDateMobile');
+    if (studyDateMobileEl) studyDateMobileEl.value = todayDateTimeStr();
     document.getElementById('currencySelect').value = currency;
     document.getElementById('weekStartSelect').value = String(weekStartDay);
     applyTheme();
@@ -3350,7 +3950,7 @@
     updateChartRangeUI();
     updateTimeFormatUI();
     setupDragDrop();
-    render();
+    switchMobileTab('dashboard');
 
     // ─── OOBE Wizard Logic ──────────────────────────────────────────────────────────
     let oobeStep = 1;
@@ -3773,9 +4373,6 @@
     }
 
     function renderStatusSummary() {
-      const grid = document.getElementById('statusSummaryGrid');
-      if (!grid) return;
-
       const statuses = [
         getStatusMeta('APPROVED'),
         getStatusMeta('PARTIALLY APPROVED'),
@@ -3795,7 +4392,7 @@
         totals[meta.key].amount += e.pay + (e.bonus || 0);
       });
 
-      grid.innerHTML = statuses.map(s => {
+      const html = statuses.map(s => {
         const total = totals[s.key] || { count: 0, amount: 0 };
         return `<div class="status-summary-item">
       <div class="status-summary-label">
@@ -3805,10 +4402,32 @@
       <div class="status-summary-count">${fmt(total.amount)}</div>
     </div>`;
       }).join('');
+
+      const grid = document.getElementById('statusSummaryGrid');
+      if (grid) grid.innerHTML = html;
+      const gridM = document.getElementById('statusSummaryGridMobile');
+      if (gridM) gridM.innerHTML = html;
     }
 
     // ─── Render ───────────────────────────────────────────────────────────────────
     function render() {
+      // Relocate settings card between overlay modal and mobile tab container dynamically
+      const isMobileNow = window.matchMedia('(max-width: 767px)').matches;
+      const settingsCard = document.querySelector('.settings-modal-card');
+      if (settingsCard) {
+        if (isMobileNow) {
+          const mobilePanelSettings = document.getElementById('mobilePanel-settings');
+          if (mobilePanelSettings && settingsCard.parentElement !== mobilePanelSettings) {
+            mobilePanelSettings.appendChild(settingsCard);
+          }
+        } else {
+          const settingsModalOverlay = document.getElementById('settingsModal');
+          if (settingsModalOverlay && settingsCard.parentElement !== settingsModalOverlay) {
+            settingsModalOverlay.appendChild(settingsCard);
+          }
+        }
+      }
+
       const disp = getPeriodEntries();
       const totalEarned = disp.reduce((s, e) => s + e.pay + (e.bonus || 0), 0);
       const totalBonus = disp.reduce((s, e) => s + (e.bonus || 0), 0);
@@ -4017,16 +4636,143 @@
         }
       }
 
+      // Sync timeframe tab active classes on both mobile and desktop
+      document.querySelectorAll('.tabs').forEach(tabsContainer => {
+        tabsContainer.querySelectorAll('.tab').forEach(btn => {
+          const onClickAttr = btn.getAttribute('onclick') || '';
+          const isMatch = onClickAttr.includes(`'${activeTab}'`);
+          btn.classList.toggle('active', isMatch);
+        });
+      });
+
+      // Sync search queries
+      const activeEl = document.activeElement;
+      const sInput = document.getElementById('searchInput');
+      const sInputM = document.getElementById('searchInputMobile');
+      if (sInput && sInputM) {
+        if (activeEl === sInput) {
+          sInputM.value = sInput.value;
+        } else if (activeEl === sInputM) {
+          sInput.value = sInputM.value;
+        }
+      }
+
+      const isMobile = window.matchMedia('(max-width: 767px)').matches;
+      const isDesktop = !isMobile;
+      const isMobileDashboard = isMobile && document.getElementById('mobilePanel-dashboard')?.classList.contains('active');
+
       const chartKey = currency + '|' + chartRange + '|' + currentWeekOffset + '|' + latestKey + '|' + document.documentElement.dataset.theme + '|' + (RATES[currency] || 1) + '|' + themeSeed.h + '|' + themeSeed.s + '|' + weekStartDay;
-      if (chartKey !== lastChartKey) {
-        renderChart();
+      
+      if (isDesktop && chartKey !== lastChartKey) {
+        renderChart('earningsChart');
         lastChartKey = chartKey;
+      }
+      if (isMobileDashboard && chartKey !== lastChartKeyMobile) {
+        renderChart('earningsChartMobile');
+        lastChartKeyMobile = chartKey;
+      }
+
+      // ── Mirror render output to mobile panel elements ────────────
+      // Update mobile chart title
+      const ctM = document.getElementById('chartTitleMobile');
+      if (ctM) {
+        const desktopTitle = document.getElementById('chartTitle');
+        if (desktopTitle) ctM.textContent = desktopTitle.textContent;
+      }
+
+      // Week label
+      const wlM = document.getElementById('weekLabelMobile');
+      if (wlM) wlM.textContent = periodLabel;
+
+      // Hide/show nav buttons in mobile controls too
+      document.querySelectorAll('#mobilePanel-dashboard .week-nav .nav-btn').forEach(btn => {
+        btn.style.visibility = activeTab === 'all' ? 'hidden' : 'visible';
+      });
+
+      // Metrics
+      const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+      set('metricEarnedMobile', fmt(totalEarned));
+      set('metricEarnedSubMobile', periodName);
+      set('metricBonusMobile', fmt(totalBonus));
+      set('metricBonusSubMobile', periodName);
+      const totalHoursM = Math.floor(totalMins / 60);
+      if (totalHoursM >= 24) {
+        const d = Math.floor(totalHoursM / 24);
+        set('metricTimeMobile', d + 'd ' + (totalHoursM % 24) + 'h ' + (totalMins % 60) + 'm');
+      } else {
+        set('metricTimeMobile', totalHoursM + 'h ' + (totalMins % 60) + 'm');
+      }
+      set('metricTimeSubMobile', periodName);
+      set('metricRateMobile', avgRate !== null ? fmt(avgRate) : '—');
+      set('metricStudiesMobile', fmtInt(disp.length));
+      set('metricStudiesSubMobile', periodName);
+
+      // Goal card mobile
+      const goalCardM = document.getElementById('goalCardMobile');
+      if (goalCardM) goalCardM.style.display = weeklyGoalEnabled ? 'block' : 'none';
+      const pfM = document.getElementById('progressFillMobile');
+      const ptM = document.getElementById('progressTextMobile');
+      if (pfM) {
+        pfM.style.width = pct.toFixed(1) + '%';
+        pfM.className = 'progress-fill' + (pct >= 100 ? ' over' : '');
+      }
+      if (ptM) ptM.textContent = fmt(weekEarned) + ' / ' + currSymbol() + fmtNum(weeklyGoal);
+
+      // Currency labels in mobile manual add
+      const payLabelM = document.getElementById('payFieldLabelMobile');
+      if (payLabelM) payLabelM.textContent = 'Pay (' + currSymbol() + ')';
+      const bonusLabelM = document.getElementById('bonusFieldLabelMobile');
+      if (bonusLabelM) bonusLabelM.textContent = 'Bonus (' + currSymbol() + ')';
+
+      // Mobile Studies list (uses getDisplayEntries directly, which is already filtered and sorted by synced controls)
+      const allM = getDisplayEntries();
+      const ecM = document.getElementById('entryCountMobile');
+      if (ecM) ecM.textContent = fmtInt(allM.length) + ' stud' + (allM.length === 1 ? 'y' : 'ies');
+
+      const containerM = document.getElementById('tableContainerMobile');
+      if (containerM) {
+        if (allM.length === 0) {
+          containerM.innerHTML = '<div class="empty-state" style="padding: 30px; text-align: center; color: var(--muted); font-family: var(--sans);">No studies for this period</div>';
+        } else {
+          containerM.innerHTML = `<div class="mobile-study-list">
+            ${allM.map(e => {
+              const totalPay = e.pay + (e.bonus || 0);
+              const rate = e.mins > 0 ? totalPay / (e.mins / 60) : 0;
+              const rateCls = rate >= goodRate() ? 'rate-good' : rate >= okRate() ? 'rate-ok' : 'rate-low';
+              const dateStr = fmtDate(new Date(e.date));
+              const status = e.status || 'APPROVED';
+              const statusCls = status === 'APPROVED' ? 'status-approved' : status === 'AWAITING REVIEW' ? 'status-awaiting' : status === 'PARTIALLY APPROVED' ? 'status-approved' : status === 'SCREENED OUT' ? 'status-screened' : 'status-rejected';
+              const statusLabel = status === 'AWAITING REVIEW' ? 'Awaiting' : status.charAt(0) + status.slice(1).toLowerCase();
+              
+              return `<div class="mobile-study-item">
+                <!-- Row 1: Name and Pay -->
+                <div class="mobile-study-row">
+                  <div class="mobile-study-name" title="${e.name}">${e.name}</div>
+                  <div class="mobile-study-pay">${fmt(totalPay)}</div>
+                </div>
+                <!-- Row 2: Date + Status and Rate + Actions -->
+                <div class="mobile-study-row sub">
+                  <div class="mobile-study-meta">
+                    <span class="mobile-study-date">${dateStr}</span>
+                    <span class="status-badge ${statusCls}">${statusLabel}</span>
+                  </div>
+                  <div class="mobile-study-actions">
+                    <span class="rate-badge ${rateCls}">${fmtRate(rate)}</span>
+                    <button class="del-btn" onclick="deleteEntry(${e.id})" aria-label="Delete entry">✕</button>
+                  </div>
+                </div>
+              </div>`;
+            }).join('')}
+          </div>`;
+        }
       }
     }
 
     // ─── Chart ────────────────────────────────────────────────────────────────────
-    function renderChart() {
-      const container = document.getElementById('earningsChart')?.parentElement;
+    function renderChart(canvasId) {
+      canvasId = canvasId || 'earningsChart';
+      const isMobileCanvas = canvasId === 'earningsChartMobile';
+      const container = document.getElementById(canvasId)?.parentElement;
 
       if (typeof Chart === 'undefined') {
         console.warn('Chart.js library is not loaded.');
@@ -4197,16 +4943,20 @@
         }
 
         // Ensure container has canvas element (recreate if it was replaced by fallback HTML)
-        let canvas = document.getElementById('earningsChart');
+        let canvas = document.getElementById(canvasId);
         if (!canvas && container) {
-          container.innerHTML = '<canvas id="earningsChart" style="display: block; box-sizing: border-box; height: 180px; width: 100%;" height="180"></canvas>';
-          canvas = document.getElementById('earningsChart');
+          container.innerHTML = `<canvas id="${canvasId}" style="display: block; box-sizing: border-box; height: 180px; width: 100%;" height="180"></canvas>`;
+          canvas = document.getElementById(canvasId);
         }
         if (!canvas) return;
 
         const ctx = canvas.getContext('2d');
-        if (chart) chart.destroy();
-        chart = new Chart(ctx, {
+        if (isMobileCanvas) {
+          if (chartMobile) chartMobile.destroy();
+        } else {
+          if (chart) chart.destroy();
+        }
+        const newChart = new Chart(ctx, {
           type: 'bar',
           data: {
             labels,
@@ -4256,9 +5006,7 @@
                   },
                   footer: tooltipItems => {
                     let sum = 0;
-                    tooltipItems.forEach(item => {
-                      sum += item.parsed.y;
-                    });
+                    tooltipItems.forEach(item => { sum += item.parsed.y; });
                     return 'Total: ' + currSymbol() + fmtNum(sum);
                   },
                   title: tooltipCtx => tooltipCtx[0].label
@@ -4292,6 +5040,7 @@
             }
           }
         });
+        if (isMobileCanvas) { chartMobile = newChart; } else { chart = newChart; }
       } catch (err) {
         console.error('Error rendering chart:', err);
         if (container) {
@@ -4778,6 +5527,12 @@
       updateTimeFormatUI();
       applyTheme();
 
+      const isMobile = window.matchMedia('(max-width: 767px)').matches;
+      if (isMobile) {
+        switchMobileTab('settings');
+        return;
+      }
+
       const modal = document.getElementById('settingsModal');
       if (modal) modal.classList.add('open');
     }
@@ -5167,7 +5922,242 @@
 
     document.addEventListener('click', () => {
       closeM3Calendar();
+      const calM = document.getElementById('m3CalendarMobile');
+      if (calM) calM.style.display = 'none';
     });
+
+    // ─── Mobile Calendar (mirrors the desktop M3 calendar for the Add tab) ─────────
+    let calendarDateMobile = new Date();
+    let selectedCalendarDateMobile = null;
+    let calendarHourMobile = 12;
+    let calendarMinuteMobile = 0;
+
+    function toggleM3CalendarMobile(e) {
+      if (e) e.stopPropagation();
+      const cal = document.getElementById('m3CalendarMobile');
+      if (!cal) return;
+      if (cal.style.display === 'block') { cal.style.display = 'none'; return; }
+      const input = document.getElementById('studyDateMobile');
+      const parsed = input.value ? parseInputDateTime(input.value) : new Date();
+      calendarDateMobile = new Date(parsed.getFullYear(), parsed.getMonth(), 1);
+      selectedCalendarDateMobile = new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
+      calendarHourMobile = parsed.getHours();
+      calendarMinuteMobile = parsed.getMinutes();
+      cal.style.display = 'block';
+      renderM3CalendarMobile();
+    }
+
+    function renderM3CalendarMobile() {
+      // Reuse the same calendar render logic referencing mobile elements
+      const cal = document.getElementById('m3CalendarMobile');
+      if (!cal) return;
+      const year = calendarDateMobile.getFullYear();
+      const month = calendarDateMobile.getMonth();
+      const monthName = calendarDateMobile.toLocaleString('en-GB', { month: 'long', year: 'numeric' });
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const startOffset = (firstDay - weekStartDay + 7) % 7;
+      const dayNames = Array.from({ length: 7 }, (_, i) => {
+        const d = new Date(2024, 0, weekStartDay + i);
+        return d.toLocaleString('en-GB', { weekday: 'short' }).slice(0, 2);
+      });
+      let days = '';
+      for (let i = 0; i < startOffset; i++) days += '<span class="m3-calendar-day empty"></span>';
+      for (let d = 1; d <= daysInMonth; d++) {
+        const isSel = selectedCalendarDateMobile && selectedCalendarDateMobile.getFullYear() === year && selectedCalendarDateMobile.getMonth() === month && selectedCalendarDateMobile.getDate() === d;
+        days += `<span class="m3-calendar-day${isSel ? ' selected' : ''}" onclick="selectM3DayMobile(${d}, event)">${d}</span>`;
+      }
+      const use24h = timeFormat === '24h';
+      let timeHtml;
+      if (use24h) {
+        const hrs24 = Array.from({ length: 24 }, (_, i) => `<option value="${i}" ${calendarHourMobile === i ? 'selected' : ''}>${String(i).padStart(2, '0')}</option>`).join('');
+        const mins = Array.from({ length: 60 }, (_, i) => `<option value="${i}" ${calendarMinuteMobile === i ? 'selected' : ''}>${String(i).padStart(2, '0')}</option>`).join('');
+        timeHtml = `<select class="m3-calendar-time-select" onchange="calendarHourMobile=+this.value" onclick="event.stopPropagation()">${hrs24}</select><span class="m3-calendar-time-colon">:</span><select class="m3-calendar-time-select" onchange="calendarMinuteMobile=+this.value" onclick="event.stopPropagation()">${mins}</select>`;
+      } else {
+        const display12 = calendarHourMobile % 12 === 0 ? 12 : calendarHourMobile % 12;
+        const ampm = calendarHourMobile < 12 ? 'AM' : 'PM';
+        const hrs12 = Array.from({ length: 12 }, (_, i) => { const h = i + 1; return `<option value="${h}" ${display12 === h ? 'selected' : ''}>${h}</option>`; }).join('');
+        const mins = Array.from({ length: 60 }, (_, i) => `<option value="${i}" ${calendarMinuteMobile === i ? 'selected' : ''}>${String(i).padStart(2, '0')}</option>`).join('');
+        const ampmSel = `<select class="m3-calendar-time-select" onchange="setM3AmPmMobile(this.value)" onclick="event.stopPropagation()"><option ${ampm==='AM'?'selected':''}>AM</option><option ${ampm==='PM'?'selected':''}>PM</option></select>`;
+        timeHtml = `<select class="m3-calendar-time-select" onchange="calendarHourMobile=+this.value" onclick="event.stopPropagation()">${hrs12}</select><span class="m3-calendar-time-colon">:</span><select class="m3-calendar-time-select" onchange="calendarMinuteMobile=+this.value" onclick="event.stopPropagation()">${mins}</select>${ampmSel}`;
+      }
+      cal.innerHTML = `
+        <div class="m3-calendar-modal-card" onclick="event.stopPropagation()">
+          <div class="m3-calendar-header">
+            <button class="m3-calendar-btn" onclick="changeM3MonthMobile(-1,event)">‹</button>
+            <span class="m3-calendar-title">${monthName}</span>
+            <button class="m3-calendar-btn" onclick="changeM3MonthMobile(1,event)">›</button>
+          </div>
+          <div class="m3-calendar-weekdays">${dayNames.map(d => `<span>${d}</span>`).join('')}</div>
+          <div class="m3-calendar-days">${days}</div>
+          <div class="m3-calendar-divider"></div>
+          <div class="m3-calendar-time-row">
+            <span class="m3-calendar-time-label">Time</span>
+            <div class="m3-calendar-time-inputs">${timeHtml}</div>
+          </div>
+          <div class="m3-calendar-footer">
+            <button class="m3-calendar-footer-btn cancel" onclick="closeMobileCalendar(event)">Cancel</button>
+            <button class="m3-calendar-footer-btn confirm" onclick="confirmM3CalendarMobile(event)">OK</button>
+          </div>
+        </div>`;
+      cal.style.display = 'block';
+    }
+
+    function changeM3MonthMobile(dir, e) { if (e) e.stopPropagation(); calendarDateMobile.setMonth(calendarDateMobile.getMonth() + dir); renderM3CalendarMobile(); }
+    function selectM3DayMobile(day, e) { if (e) e.stopPropagation(); selectedCalendarDateMobile = new Date(calendarDateMobile.getFullYear(), calendarDateMobile.getMonth(), day); renderM3CalendarMobile(); }
+    function setM3AmPmMobile(val) {
+      let display12 = calendarHourMobile % 12 === 0 ? 12 : calendarHourMobile % 12;
+      if (display12 === 0) display12 = 12;
+      calendarHourMobile = val === 'PM' ? (display12 === 12 ? 12 : display12 + 12) : (display12 === 12 ? 0 : display12);
+    }
+    function confirmM3CalendarMobile(e) {
+      if (e) e.stopPropagation();
+      if (!selectedCalendarDateMobile) return;
+      const finalDate = new Date(selectedCalendarDateMobile.getFullYear(), selectedCalendarDateMobile.getMonth(), selectedCalendarDateMobile.getDate(), calendarHourMobile, calendarMinuteMobile);
+      document.getElementById('studyDateMobile').value = formatDateTimeForInput(finalDate);
+      closeMobileCalendar();
+    }
+    function closeMobileCalendar(e) {
+      if (e) e.stopPropagation();
+      const cal = document.getElementById('m3CalendarMobile');
+      if (cal) cal.style.display = 'none';
+    }
+
+    // ─── Mobile Tab Switching ─────────────────────────────────────────────────────
+    function switchMobileTab(tab) {
+      document.documentElement.dataset.activeMobileTab = tab;
+      ['dashboard', 'add', 'studies', 'settings'].forEach(t => {
+        const panel = document.getElementById('mobilePanel-' + t);
+        const btn = document.getElementById('mobileTab-' + t);
+        if (panel) panel.classList.toggle('active', t === tab);
+        if (btn) btn.classList.toggle('active', t === tab);
+      });
+      // Re-render so the newly visible tab gets fresh data
+      render();
+    }
+
+    function setMobileTablePage(p) {
+      window._mobileTablePage = p;
+      render();
+    }
+
+    // ─── Mobile File Import ───────────────────────────────────────────────────────
+    function showMobileToast(msg, isError) {
+      const t = document.getElementById('mobileImportToast');
+      if (!t) return;
+      t.textContent = msg;
+      t.className = 'import-toast' + (isError ? ' error' : '');
+      t.style.display = 'block';
+      setTimeout(() => { t.style.display = 'none'; }, 4000);
+    }
+
+    function handleMobileFileInput(input) {
+      if (!input.files || input.files.length === 0) return;
+      const filesArray = Array.from(input.files).filter(f => f.name.endsWith('.csv'));
+      if (filesArray.length === 0) { showMobileToast('Please select .csv files only', true); input.value = ''; return; }
+      let totalAdded = 0, totalSkipped = 0, hasError = false, errorMsg = '', processed = 0;
+      filesArray.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = ev => {
+          const result = parseCSV(ev.target.result, file.name);
+          if (result.error) { hasError = true; errorMsg = result.error; }
+          else { totalAdded += result.added; totalSkipped += result.skipped; }
+          processed++;
+          if (processed === filesArray.length) {
+            if (hasError && totalAdded === 0) { showMobileToast('Error: ' + errorMsg, true); }
+            else {
+              let msg = `${totalAdded} studies imported`;
+              if (totalSkipped > 0) msg += `, ${totalSkipped} skipped`;
+              if (hasError) msg += ` (some files failed)`;
+              showMobileToast(msg, false);
+              render();
+            }
+          }
+        };
+        reader.onerror = () => {
+          processed++;
+          showMobileToast('Failed to read file', true);
+        };
+        reader.readAsText(file);
+      });
+      input.value = '';
+    }
+
+    function setupMobileDragDrop() {
+      const zone = document.getElementById('mobileImportZone');
+      if (!zone) return;
+      zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+      zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+      zone.addEventListener('drop', e => {
+        e.preventDefault();
+        zone.classList.remove('drag-over');
+        if (!e.dataTransfer.files || !e.dataTransfer.files.length) return;
+        const filesArray = Array.from(e.dataTransfer.files).filter(f => f.name.endsWith('.csv'));
+        if (!filesArray.length) { showMobileToast('Please drop .csv files only', true); return; }
+        // Simulate the mobile file input path
+        let totalAdded = 0, totalSkipped = 0, hasError = false, errorMsg = '', processed = 0;
+        filesArray.forEach(file => {
+          const reader = new FileReader();
+          reader.onload = ev => {
+            const result = parseCSV(ev.target.result, file.name);
+            if (result.error) { hasError = true; errorMsg = result.error; }
+            else { totalAdded += result.added; totalSkipped += result.skipped; }
+            processed++;
+            if (processed === filesArray.length) {
+              if (hasError && totalAdded === 0) { showMobileToast('Error: ' + errorMsg, true); }
+              else {
+                let msg = `${totalAdded} studies imported`;
+                if (totalSkipped > 0) msg += `, ${totalSkipped} skipped`;
+                showMobileToast(msg, false);
+                render();
+              }
+            }
+          };
+          reader.readAsText(file);
+        });
+      });
+    }
+
+    // ─── Mobile Manual Add ────────────────────────────────────────────────────────
+    function addManualMobile() {
+      const name = document.getElementById('studyNameMobile')?.value.trim() || 'Unnamed study';
+      let pay = parseFloat(document.getElementById('studyPayMobile')?.value);
+      let bonus = parseFloat(document.getElementById('studyBonusMobile')?.value) || 0;
+      const mins = parseInt(document.getElementById('studyMinsMobile')?.value);
+      const date = document.getElementById('studyDateMobile')?.value;
+      if (isNaN(pay) || isNaN(mins) || mins < 1 || pay < 0 || !date) {
+        alert('Please fill in pay, duration, date, and time.');
+        return;
+      }
+      if (currency !== 'GBP') {
+        pay = pay / (RATES[currency] || 1);
+        bonus = bonus / (RATES[currency] || 1);
+      }
+      entries.push({ id: Date.now(), name, pay, bonus, mins, date: parseInputDateTime(date).toISOString(), status: 'APPROVED', source: 'manual' });
+      save();
+      document.getElementById('studyNameMobile').value = '';
+      document.getElementById('studyPayMobile').value = '';
+      document.getElementById('studyBonusMobile').value = '';
+      document.getElementById('studyMinsMobile').value = '';
+      document.getElementById('studyDateMobile').value = todayDateTimeStr();
+      render();
+    }
+
+    // Initialize mobile drag-drop on load
+    setupMobileDragDrop();
+
+    // Register Service Worker for offline capability
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then((registration) => {
+            console.log('ServiceWorker registration successful with scope: ', registration.scope);
+          })
+          .catch((err) => {
+            console.error('ServiceWorker registration failed: ', err);
+          });
+      });
+    }
   </script>
 
 
