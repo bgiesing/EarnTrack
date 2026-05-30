@@ -2231,6 +2231,7 @@
       }
       .mobile-tab-panel.active {
         display: block;
+        animation: mobileTabFadeIn 0.35s var(--motion) forwards;
       }
 
       /* Dashboard panel: stack everything vertically */
@@ -2392,6 +2393,7 @@
         margin: 0 !important;
         transform: none !important;
         animation: none !important;
+        opacity: 1 !important;
       }
       .mobile-tab-panel .settings-modal-card .modal-close-btn {
         display: none !important;
@@ -2722,6 +2724,192 @@
         margin-left: auto !important;
       }
     }
+
+    /* ── RICH ANIMATIONS & TRANSITIONS ────────────────────────────── */
+
+    /* 1. Page Load Entrance Animations (Staggered) */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(16px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .animate-fade-in-up {
+      animation: fadeInUp 0.5s var(--motion) both;
+    }
+
+    .delay-50 { animation-delay: 50ms; }
+    .delay-100 { animation-delay: 100ms; }
+    .delay-150 { animation-delay: 150ms; }
+    .delay-200 { animation-delay: 200ms; }
+    .delay-250 { animation-delay: 250ms; }
+    .delay-300 { animation-delay: 300ms; }
+
+    /* 2. Interactive Tactile Compression (Press feedback) */
+    button:not(.nav-btn):active, 
+    .tab:active, 
+    .theme-btn:active, 
+    .settings-btn:active, 
+    .page-btn:active, 
+    .export-btn:active, 
+    .add-btn:active, 
+    .bottom-tab:active {
+      transform: scale(0.96) !important;
+    }
+
+    /* 3. Dynamic Card Lifts & Shadows (Hover effects) */
+    .metric {
+      transition: transform 0.25s var(--motion), box-shadow 0.25s var(--motion), background 0.25s var(--motion), border-color 0.25s var(--motion);
+    }
+    .metric:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 28px var(--md-shadow);
+      border-color: var(--accent);
+    }
+
+    .goal-card {
+      transition: transform 0.25s var(--motion), box-shadow 0.25s var(--motion), background 0.25s var(--motion);
+    }
+    .goal-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px var(--md-shadow);
+    }
+
+    .add-card {
+      transition: transform 0.25s var(--motion), box-shadow 0.25s var(--motion);
+    }
+    .add-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px var(--md-shadow);
+    }
+
+    .table-card {
+      transition: transform 0.25s var(--motion), box-shadow 0.25s var(--motion);
+    }
+    .table-card:hover {
+      box-shadow: 0 12px 30px var(--md-shadow);
+    }
+
+    .status-summary-card {
+      transition: transform 0.25s var(--motion), box-shadow 0.25s var(--motion);
+    }
+    .status-summary-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px var(--md-shadow);
+    }
+
+    .chart-card {
+      transition: transform 0.25s var(--motion), box-shadow 0.25s var(--motion);
+    }
+    .chart-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px var(--md-shadow);
+    }
+
+    /* 4. Table Row Smooth Cell Background Highlights */
+    td {
+      transition: background-color 0.2s var(--motion);
+    }
+
+    /* 5. SVG Micro-interactions & Spinners */
+    .settings-btn svg {
+      transition: transform 0.4s var(--motion);
+    }
+    .settings-btn:hover svg {
+      transform: rotate(90deg);
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .spinning {
+      animation: spin 1s linear infinite !important;
+    }
+
+    /* 6. Premium Spring Curve Modal Transitions */
+    .modal-card {
+      transform: scale(0.9) translateY(20px);
+      opacity: 0;
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s var(--motion) !important;
+    }
+    .modal-overlay.open .modal-card {
+      transform: scale(1) translateY(0) !important;
+      opacity: 1 !important;
+    }
+
+    /* 7. Mobile Navigation keyframes */
+    @keyframes mobileTabFadeIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .bottom-tab .tab-icon svg {
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .bottom-tab.active .tab-icon svg {
+      transform: scale(1.15) translateY(-2px);
+    }
+
+    /* 8. Timeframe Tab Sliding Highlight */
+    .tabs {
+      position: relative;
+      z-index: 1;
+    }
+
+    .tab {
+      position: relative;
+      z-index: 2;
+      transition: color 0.25s var(--motion) !important;
+      border-color: transparent !important;
+    }
+
+    .tab:hover {
+      border-color: transparent !important;
+    }
+
+    .tab:hover:not(.active) {
+      background: color-mix(in srgb, var(--md-on-surface) 6%, transparent) !important;
+    }
+
+    .tab.active {
+      background: transparent !important;
+      border-color: transparent !important;
+      color: var(--md-on-primary-container) !important;
+      font-weight: 600;
+    }
+
+    .tabs-indicator {
+      position: absolute;
+      top: 4px;
+      bottom: 4px;
+      left: 0;
+      width: 0;
+      background: var(--md-primary-container);
+      border-radius: 99px;
+      z-index: 1;
+      pointer-events: none;
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), width 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* 9. Desktop FAB Container Transform for Import Modal */
+    @media (min-width: 768px) {
+      #importModal .modal-card {
+        transform: translate(calc(50vw - 84px), calc(50vh - 84px)) scale(0.05);
+        transform-origin: bottom right;
+        opacity: 0;
+        transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.35s var(--motion) !important;
+      }
+      #importModal.open .modal-card {
+        transform: translate(0, 0) scale(1) !important;
+        opacity: 1 !important;
+      }
+    }
   </style>
 
 </head>
@@ -2729,7 +2917,7 @@
 <body>
   <div class="app">
 
-    <div class="header">
+    <div class="header animate-fade-in-up">
       <div class="header-left">
         <h1>EarnTrack</h1>
         <div style="margin-top: 5px; font-size: 11px; color: var(--muted); font-family: var(--mono);" id="lastUpdated">
@@ -2764,7 +2952,7 @@
     <!-- ── DESKTOP LAYOUT (hidden on mobile via .desktop-only) ──────── -->
     <div class="desktop-only">
       <!-- Controls -->
-      <div class="controls">
+      <div class="controls animate-fade-in-up delay-50">
         <div class="week-nav">
           <button class="nav-btn" onclick="changeWeek(-1)">‹</button>
           <span class="week-label" id="weekLabel">23 Mar – 29 Mar</span>
@@ -2781,7 +2969,7 @@
       <div class="dashboard-grid">
         <div class="dashboard-left">
           <!-- Chart Card -->
-          <div class="chart-card">
+          <div class="chart-card animate-fade-in-up delay-100">
             <div class="chart-header">
               <span class="chart-title" id="chartTitle">Monthly earnings — last 12 months</span>
               <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap; justify-content:flex-end;">
@@ -2808,7 +2996,7 @@
           </div>
 
           <!-- Status Summary Card -->
-          <div class="status-summary-card">
+          <div class="status-summary-card animate-fade-in-up delay-150">
             <div class="status-summary-header">
               <div class="status-summary-title">Status totals</div>
               <div class="status-summary-sub">All time</div>
@@ -2817,7 +3005,7 @@
           </div>
 
           <!-- Table Card -->
-          <div class="table-card">
+          <div class="table-card animate-fade-in-up delay-200">
             <div class="table-toolbar">
               <div class="table-toolbar-left">
                 <input type="text" class="search-input" id="searchInput" placeholder="Search studies..."
@@ -2954,7 +3142,7 @@
 
         <div class="dashboard-right">
           <!-- Goal Progress Card -->
-          <div class="goal-card" id="goalCard">
+          <div class="goal-card animate-fade-in-up delay-100" id="goalCard">
             <span class="goal-label">Weekly Goal</span>
             <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
               <div class="progress-track" style="flex:1; min-width: 0;">
@@ -2965,7 +3153,7 @@
           </div>
 
           <!-- Metrics Card -->
-          <div class="metrics">
+          <div class="metrics animate-fade-in-up delay-150">
             <div class="metric" id="metricEarnedCard">
               <div class="metric-label">Total earned</div>
               <div class="metric-value green" id="metricEarned">£32.03</div>
@@ -2994,7 +3182,7 @@
           </div>
 
           <!-- Add Study Manually Card -->
-          <div class="add-card">
+          <div class="add-card animate-fade-in-up delay-200">
             <div class="add-card-header">Add study manually</div>
             <div class="add-row">
               <div>
@@ -3868,7 +4056,7 @@
         btn.disabled = true;
         const svg = btn.querySelector('svg');
         if (svg) {
-          svg.style.transform = 'rotate(360deg)';
+          svg.classList.add('spinning');
         }
         const textNode = [...btn.childNodes].find(n => n.nodeType === Node.TEXT_NODE && n.textContent.trim());
         if (textNode) {
@@ -3886,7 +4074,7 @@
           
           setTimeout(() => {
             if (textNode) textNode.textContent = ' Refresh';
-            if (svg) svg.style.transform = '';
+            if (svg) svg.classList.remove('spinning');
             btn.disabled = false;
           }, 1500);
         } catch (e) {
@@ -3894,7 +4082,7 @@
           if (textNode) textNode.textContent = ' Failed';
           setTimeout(() => {
             if (textNode) textNode.textContent = ' Refresh';
-            if (svg) svg.style.transform = '';
+            if (svg) svg.classList.remove('spinning');
             btn.disabled = false;
           }, 1500);
         }
@@ -4741,14 +4929,11 @@
         const t = e._ts || (e._ts = new Date(e.date).getTime());
         return t >= wsNow && t <= weNow;
       }).reduce((s, e) => s + e.pay + (e.bonus || 0), 0);
+      const minWageText = minWage > 0 ? 'Min wage: ' + currSymbol() + fmtNum(minWage) + '/hr' : '';
       const metricRateSubEl = document.getElementById('metricRateSub');
-      if (metricRateSubEl) {
-        if (minWage > 0) {
-          metricRateSubEl.textContent = 'Min wage: ' + currSymbol() + fmtNum(minWage) + '/hr';
-        } else {
-          metricRateSubEl.textContent = '';
-        }
-      }
+      if (metricRateSubEl) metricRateSubEl.textContent = minWageText;
+      const metricRateSubMobileEl = document.getElementById('metricRateSubMobile');
+      if (metricRateSubMobileEl) metricRateSubMobileEl.textContent = minWageText;
       updateLabel('goalSymbol', currSymbol());
       const minWageSymbolEl = document.getElementById('minWageSymbol');
       if (minWageSymbolEl) minWageSymbolEl.textContent = currSymbol();
@@ -5007,6 +5192,7 @@
           }
         }
       }
+      updateTabsIndicators();
     }
 
     // ─── Chart ────────────────────────────────────────────────────────────────────
@@ -6211,6 +6397,39 @@
           });
       });
     }
+
+    // ─── Sliding Highlight Tab Indicators ─────────────────────────────────────────
+    function updateTabsIndicators() {
+      document.querySelectorAll('.tabs').forEach(tabsContainer => {
+        let indicator = tabsContainer.querySelector('.tabs-indicator');
+        if (!indicator) {
+          indicator = document.createElement('div');
+          indicator.className = 'tabs-indicator';
+          tabsContainer.appendChild(indicator);
+        }
+
+        const activeTab = tabsContainer.querySelector('.tab.active');
+        if (activeTab && activeTab.offsetWidth > 0) {
+          const containerRect = tabsContainer.getBoundingClientRect();
+          const activeRect = activeTab.getBoundingClientRect();
+          
+          const left = activeRect.left - containerRect.left;
+          const width = activeRect.width;
+          
+          indicator.style.transform = `translateX(${left}px)`;
+          indicator.style.width = `${width}px`;
+        } else {
+          indicator.style.width = '0px';
+        }
+      });
+    }
+
+    // Bind window resize & initial load events to handle responsive recalculation
+    window.addEventListener('resize', updateTabsIndicators);
+    window.addEventListener('load', updateTabsIndicators);
+    
+    // Periodically run as fallback for delayed rendering / state transitions
+    setTimeout(updateTabsIndicators, 100);
   </script>
 
 
