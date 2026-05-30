@@ -1599,6 +1599,26 @@
       justify-content: center;
     }
 
+    .btn-load-more {
+      padding: 10px 24px;
+      background: var(--md-primary-container);
+      border: 1px solid color-mix(in srgb, var(--md-primary) 24%, transparent);
+      border-radius: 999px;
+      color: var(--md-on-primary-container);
+      cursor: pointer;
+      font-family: var(--sans);
+      font-size: 14px;
+      font-weight: 500;
+      transition: filter 0.2s, transform 0.1s;
+      box-shadow: var(--shadow-sm);
+    }
+    .btn-load-more:hover {
+      filter: brightness(0.95);
+    }
+    .btn-load-more:active {
+      transform: scale(0.98);
+    }
+
     .btn-cancel {
       padding: 7px 20px;
       background: var(--md-surface-container);
@@ -2208,16 +2228,19 @@
 
       /* In Add panel, manual add rows go full-width stacked */
       .mobile-add-stack .add-row {
-        grid-template-columns: 1fr 1fr !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 1.1rem !important;
+        align-items: stretch !important;
       }
-      .mobile-add-stack .add-row > *:nth-child(1) {
-        grid-column: span 2;
+      .mobile-add-stack .add-row > * {
+        width: 100% !important;
       }
       .mobile-add-stack .add-row > *:nth-child(6) {
-        grid-column: span 2;
+        margin-top: 1rem !important;
       }
       .mobile-add-stack .add-btn {
-        width: 100%;
+        width: 100% !important;
       }
 
       /* Studies panel fills full width */
@@ -2515,6 +2538,167 @@
       .bottom-tab.active .tab-icon {
         background: var(--md-primary-container);
         transform: translateY(-1px);
+      }
+
+      /* Comprehensive Mobile Text & Button Size Adjustments */
+      body {
+        font-size: 15.5px !important;
+      }
+      
+      /* Increase button sizes and touch targets */
+      button:not(.del-btn):not(.m3-calendar-btn), 
+      .add-btn, 
+      .export-btn, 
+      .btn-load-more, 
+      .theme-btn, 
+      .oobe-primary-btn, 
+      .oobe-secondary-btn, 
+      .tab, 
+      .nav-btn, 
+      .chart-range-btn, 
+      .page-btn,
+      .import-file-btn {
+        font-size: 14.5px !important;
+        padding: 10px 18px !important;
+        min-height: 42px !important;
+      }
+      
+      /* Fine-tune specific smaller buttons for ideal mobile layout */
+      .nav-btn {
+        font-size: 22px !important;
+        width: 44px !important;
+        height: 44px !important;
+        padding: 0 !important;
+        min-height: 44px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+      }
+      
+      .tab {
+        padding: 8px 16px !important;
+        min-height: 38px !important;
+        font-size: 13.5px !important;
+      }
+      
+      .export-btn {
+        padding: 8px 16px !important;
+        min-height: 38px !important;
+        font-size: 13.5px !important;
+      }
+
+      /* Increase input field and dropdown sizes */
+      .field-input,
+      .search-input,
+      .goal-input,
+      select {
+        font-size: 15px !important;
+        padding: 12px 14px !important;
+        min-height: 44px !important;
+      }
+      
+      /* Scale up mobile bottom navigation */
+      .bottom-nav {
+        height: 72px !important;
+        padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+      }
+      .app {
+        padding-bottom: 92px !important;
+      }
+      .bottom-tab {
+        font-size: 11.5px !important;
+        gap: 4px !important;
+      }
+      .bottom-tab .tab-icon {
+        width: 48px !important;
+        height: 30px !important;
+      }
+      .bottom-tab .tab-icon svg {
+        width: 22px !important;
+        height: 22px !important;
+      }
+
+      /* Text size increases for metrics and layout cards */
+      .metric-label,
+      .goal-label,
+      .field-label {
+        font-size: 13px !important;
+      }
+      .metric-value {
+        font-size: 28px !important;
+      }
+      .metric-sub,
+      .progress-text {
+        font-size: 13px !important;
+      }
+      .status-summary-title,
+      .add-card-header,
+      .chart-title {
+        font-size: 16px !important;
+      }
+      .status-summary-sub {
+        font-size: 12.5px !important;
+      }
+
+      /* Study item lists text & actions */
+      .mobile-study-name {
+        font-size: 15.5px !important;
+      }
+      .mobile-study-pay {
+        font-size: 16.5px !important;
+      }
+      .mobile-study-row.sub {
+        font-size: 13.5px !important;
+      }
+      .mobile-study-date {
+        font-size: 12.5px !important;
+      }
+      .mobile-study-actions .rate-badge {
+        font-size: 12.5px !important;
+        padding: 3px 8px !important;
+      }
+      .mobile-study-actions .del-btn {
+        width: 28px !important;
+        height: 28px !important;
+        font-size: 17px !important;
+      }
+
+      /* Studies tab count text & full-width search alignment */
+      .mobile-studies-panel .table-toolbar {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+      }
+      .entry-count {
+        font-size: 14.5px !important;
+        font-weight: 500 !important;
+      }
+
+      /* Single line status totals on mobile dashboard */
+      .status-summary-grid {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 8px !important;
+      }
+      .status-summary-item {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding: 10px 14px !important;
+        min-height: auto !important;
+      }
+      .status-summary-label {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        gap: 8px !important;
+        margin-bottom: 0 !important;
+        min-height: auto !important;
+        font-size: 13px !important;
+      }
+      .status-summary-count {
+        font-size: 16px !important;
+        margin-left: auto !important;
       }
     }
   </style>
@@ -3703,9 +3887,11 @@
     let chartMobile = null;
     const PAGE_SIZE = 10;
     let tablePage = parseInt(localStorage.getItem('prolific_table_page') || '1', 10);
+    let mobileLimit = 50;
     let lastSearch = null;
     let lastTab = null;
     let lastSortCol = null;
+    let lastWeekOffset = 0;
     let chartRange = '7d'; // Synced to activeTab 'week'
     let lastChartKey = null;
     let lastChartKeyMobile = null;
@@ -3828,6 +4014,11 @@
     function setTablePage(p) {
       tablePage = p;
       localStorage.setItem('prolific_table_page', String(tablePage));
+      render();
+    }
+
+    function loadMoreMobile() {
+      mobileLimit += 50;
       render();
     }
 
@@ -4549,12 +4740,14 @@
 
       // Table
       const qNow = document.getElementById('searchInput')?.value.toLowerCase() || '';
-      const shouldResetPage = qNow !== lastSearch || activeTab !== lastTab || sortCol !== lastSortCol;
+      const shouldResetPage = qNow !== lastSearch || activeTab !== lastTab || sortCol !== lastSortCol || currentWeekOffset !== lastWeekOffset;
       if (shouldResetPage) {
         tablePage = 1;
+        mobileLimit = 50;
         lastSearch = qNow;
         lastTab = activeTab;
         lastSortCol = sortCol;
+        lastWeekOffset = currentWeekOffset;
       }
 
       const allTableEntries = getDisplayEntries();
@@ -4734,8 +4927,9 @@
         if (allM.length === 0) {
           containerM.innerHTML = '<div class="empty-state" style="padding: 30px; text-align: center; color: var(--muted); font-family: var(--sans);">No studies for this period</div>';
         } else {
+          const visibleM = allM.slice(0, mobileLimit);
           containerM.innerHTML = `<div class="mobile-study-list">
-            ${allM.map(e => {
+            ${visibleM.map(e => {
               const totalPay = e.pay + (e.bonus || 0);
               const rate = e.mins > 0 ? totalPay / (e.mins / 60) : 0;
               const rateCls = rate >= goodRate() ? 'rate-good' : rate >= okRate() ? 'rate-ok' : 'rate-low';
@@ -4764,6 +4958,14 @@
               </div>`;
             }).join('')}
           </div>`;
+
+          if (allM.length > mobileLimit) {
+            containerM.innerHTML += `
+              <div class="load-more-container" style="display: flex; justify-content: center; margin: 20px 0; padding-bottom: 24px;">
+                <button class="btn-load-more" onclick="loadMoreMobile()">Load More</button>
+              </div>
+            `;
+          }
         }
       }
     }
