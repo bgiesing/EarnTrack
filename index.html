@@ -1776,16 +1776,27 @@
     }
 
     /* Material You Theme Presets & Color Picker */
+    .color-presets {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 6px;
+      margin: 0;
+    }
+
     .seed-pill {
       width: 28px;
       height: 28px;
       border-radius: 50%;
-      border: 2px solid transparent;
+      border: none;
       cursor: pointer;
       box-shadow: 0 2px 6px var(--md-shadow);
-      transition: transform 0.2s var(--motion), border-color 0.2s var(--motion);
+      transition: transform 0.2s var(--motion);
       padding: 0;
       outline: none;
+      box-sizing: border-box;
+      flex-shrink: 0;
     }
 
     .seed-pill:hover {
@@ -1793,7 +1804,6 @@
     }
 
     .seed-pill.active {
-      border-color: var(--text);
       transform: scale(1.15);
       box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--text);
     }
@@ -1807,9 +1817,10 @@
       cursor: pointer;
       background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red);
       box-shadow: 0 2px 6px var(--md-shadow);
-      transition: transform 0.2s var(--motion), border-color 0.2s var(--motion);
+      transition: transform 0.2s var(--motion);
       box-sizing: border-box;
       padding: 0;
+      flex-shrink: 0;
     }
 
     .color-picker-wrapper:hover {
@@ -1817,9 +1828,19 @@
     }
 
     .color-picker-wrapper.active {
-      border-color: var(--text);
       transform: scale(1.15);
       box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--text);
+    }
+
+    @media (max-width: 767px) {
+      .color-presets {
+        gap: 16px;
+        padding: 8px 8px 8px 10px;
+      }
+      .seed-pill, .color-picker-wrapper {
+        width: 32px;
+        height: 32px;
+      }
     }
     .m3-calendar {
       position: absolute;
@@ -2546,7 +2567,7 @@
       }
       
       /* Increase button sizes and touch targets */
-      button:not(.del-btn):not(.m3-calendar-btn), 
+      button:not(.del-btn):not(.m3-calendar-btn):not(.seed-pill), 
       .add-btn, 
       .export-btn, 
       .btn-load-more, 
@@ -3406,7 +3427,7 @@
           <!-- Accent Color Selection -->
           <div style="display: flex; flex-direction: column; gap: 0.5rem;">
             <label style="font-weight: 500; font-size: 13px; color: var(--text); font-family: var(--sans);">Accent Color</label>
-            <div class="color-presets" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <div class="color-presets">
               <button type="button" class="seed-pill" data-hue="171" data-sat="100" style="background-color: #006b5d;"
                 onclick="applyThemeSeed(171, 100)" title="Classic Teal"></button>
               <button type="button" class="seed-pill" data-hue="220" data-sat="85" style="background-color: #1a56db;"
@@ -6140,6 +6161,7 @@
         if (panel) panel.classList.toggle('active', t === tab);
         if (btn) btn.classList.toggle('active', t === tab);
       });
+      window.scrollTo(0, 0);
       // Re-render so the newly visible tab gets fresh data
       render();
     }
