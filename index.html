@@ -380,9 +380,10 @@
     .changelog-entries {
       display: flex;
       flex-direction: column;
-      max-height: 380px;
+      gap: 0.5rem;
+      max-height: 400px;
       overflow-y: auto;
-      padding-right: 6px;
+      padding-right: 4px;
     }
 
     .changelog-entries::-webkit-scrollbar {
@@ -405,8 +406,7 @@
     .changelog-item {
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      background: rgba(0, 0, 0, 0.08);
-      margin-bottom: 0.75rem;
+      background: var(--md-surface-container);
       transition: border-color 0.2s var(--motion);
     }
 
@@ -497,6 +497,128 @@
 
     .changelog-content strong {
       font-weight: 600 !important;
+    }
+
+    /* What's New Modal */
+    .whats-new-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 1.5rem;
+    }
+
+    .whats-new-icon {
+      font-size: 1.5rem;
+      line-height: 1;
+    }
+
+    .whats-new-title {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text);
+      font-family: var(--sans);
+    }
+
+    .whats-new-ver-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 10px;
+      border-radius: 99px;
+      background: var(--md-primary);
+      color: var(--md-on-primary);
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      margin-left: auto;
+      flex-shrink: 0;
+    }
+
+    .whats-new-content {
+      background: var(--md-surface-container);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 0.75rem 1.25rem 1rem;
+      max-height: 340px;
+      overflow-y: auto;
+    }
+
+    .whats-new-content::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .whats-new-content::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .whats-new-content::-webkit-scrollbar-thumb {
+      background: var(--border2);
+      border-radius: 99px;
+    }
+
+    .whats-new-content ul {
+      margin: 0.5rem 0 0 1rem;
+      padding: 0;
+    }
+
+    .whats-new-content li {
+      color: var(--text);
+      margin-bottom: 0.45rem;
+      font-size: 13px;
+      line-height: 1.55;
+      font-family: var(--sans);
+    }
+
+    .whats-new-content li:last-child {
+      margin-bottom: 0;
+    }
+
+    .whats-new-content strong {
+      font-weight: 600 !important;
+    }
+
+    .whats-new-dismiss-btn {
+      display: block;
+      width: 100%;
+      margin-top: 1.25rem;
+      padding: 0.65rem 1rem;
+      border-radius: var(--radius);
+      border: none;
+      background: var(--md-primary);
+      color: var(--md-on-primary);
+      font-family: var(--sans);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s var(--motion), transform 0.15s var(--motion);
+    }
+
+    .whats-new-dismiss-btn:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+
+    .whats-new-close-btn {
+      background: none;
+      border: none;
+      font-size: 15px;
+      color: var(--muted);
+      cursor: pointer;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      flex-shrink: 0;
+      margin-left: 4px;
+      transition: background 0.2s var(--motion), color 0.2s var(--motion);
+    }
+
+    .whats-new-close-btn:hover {
+      background: var(--md-surface-container);
+      color: var(--text);
     }
 
     .rate-status {
@@ -1981,6 +2103,13 @@
         max-height: none !important;
         flex: 1;
       }
+      .whats-new-modal-card {
+        justify-content: flex-start;
+      }
+      .whats-new-content {
+        max-height: none !important;
+        flex: 1;
+      }
     }
     
     /* Toggle Switch styles */
@@ -2627,15 +2756,33 @@
     </div>
   </div>
 
-  <div class="modal-overlay" id="changelogModal" onclick="closeChangelogModalOnBackdrop(event)">
-    <div class="modal-card" style="max-width: 520px; padding: 2.25rem 2rem 2rem;">
-      <button class="modal-close-btn" onclick="closeChangelogModal()">✕</button>
-      <h2
-        style="margin-top: 0; margin-bottom: 1.5rem; font-size: 1.25rem; font-weight: 600; color: var(--text); font-family: var(--sans);">
-        Changelog</h2>
+  <!-- What's New Modal -->
+  <div class="modal-overlay" id="whatsNewModal" onclick="closeWhatsNewModalOnBackdrop(event)">
+    <div class="modal-card whats-new-modal-card" style="max-width: 500px; padding: 2rem 2rem 1.75rem;">
+      <div class="whats-new-header">
+        <span class="whats-new-icon">✨</span>
+        <h2 class="whats-new-title">What's New</h2>
+        <span class="whats-new-ver-pill" id="whatsNewVerPill">v3.0</span>
+        <button class="whats-new-close-btn" onclick="closeWhatsNewModal()" title="Dismiss">✕</button>
+      </div>
 
-      <div class="changelog-entries"
-        style="display: flex; flex-direction: column; max-height: 380px; overflow-y: auto; padding-right: 6px;">
+      <div class="whats-new-content" id="whatsNewContent">
+        <!-- Populated dynamically from the first .changelog-item -->
+      </div>
+
+      <button class="whats-new-dismiss-btn" onclick="closeWhatsNewModal()">Got it 🎉</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="changelogModal" onclick="closeChangelogModalOnBackdrop(event)">
+    <div class="modal-card" style="max-width: 520px; padding: 2rem 2rem 1.75rem;">
+      <div class="whats-new-header">
+        <span class="whats-new-icon">📋</span>
+        <h2 class="whats-new-title">Changelog</h2>
+        <button class="whats-new-close-btn" style="margin-left: auto;" onclick="closeChangelogModal()" title="Close">✕</button>
+      </div>
+
+      <div class="changelog-entries">
 
         <!-- v3.0 (Newest) -->
         <details class="changelog-item" name="changelog" open>
@@ -2650,6 +2797,7 @@
           </summary>
           <div class="changelog-content">
             <ul>
+              <li><strong>What's New Dialog</strong>: Added this very dialog — the one you're reading right now. Meta, we know.</li>
               <li><strong>Initial Setup &amp; OOBE Wizard</strong>: Added a friendly Out-Of-Box Experience (OOBE) setup wizard that guides first-time users through configuring their preferred display currency, time format, start of the week, setting an optional weekly goal, and importing their very first CSV file to get started immediately.</li>
               <li><strong>Unified Dashboard &amp; Chart Range Selector</strong>: Replaced the separate chart range tabs with automatic synchronization: switching dashboard periods (Week, Month, Year, All time) now automatically adjusts the earnings chart view to matching granularities (7-day Daily, 12-month selected Year, All-Time Yearly), simplifying navigation and decluttering the layout.</li>
               <li><strong>Bitcoin Currency Support</strong>: Added Bitcoin (BTC) as a display currency option, complete with live exchange rates and high-precision decimal formatting.</li>
@@ -2657,13 +2805,14 @@
               <li><strong>Improved Time Metrics</strong>: The "Time Spent" metric card now displays elapsed days when applicable.</li>
               <li><strong>12/24 Hour Format &amp; Hover Tooltips</strong>: Added configurable 12-hour and 24-hour time formats, and hovering over a study's date now reveals the exact full timestamp.</li>
               <li><strong>Redesigned Manual Entry</strong>: Upgraded the manual entry form with a custom Material 3-inspired date/time picker, and fixed the bonus currency label to correctly match the selected currency.</li>
+              <li><strong>Start of Week Selector</strong>: Added a Start of Week selector to adjust the charts, studies list, stat calculation, etc. based on what day of the week your work week starts on.</li>
+              <li><strong>Categorized Settings Modal</strong>: Categorized the settings modal to group related configuration options.</li>
+              <li><strong>Manual Currency Rate Refresh</strong>: Added a Refresh button in the Currency settings to force-update the cached exchange rates immediately without waiting for the 6-hour cache to expire.</li>
               <li><strong>Refined Chart Visuals</strong>: Corrected chart bar rounding so that bars are flat on the bottom and rounded on top.</li>
               <li><strong>Accent Color Picker Fix</strong>: Fixed a layout issue where the rainbow icon for custom accent color selection was getting clipped.</li>
               <li><strong>Status Totals Alignment</strong>: Fixed status count and amount alignment in the status totals grid to ensure columns align perfectly even when a status label wraps to multiple lines.</li>
               <li><strong>Consistent Metric Card Layout</strong>: Improved responsive styling to ensure core metric card sizes (e.g. Total Earned, Time Spent) remain consistent and proportional across mobile and desktop devices.</li>
               <li><strong>CloudResearch Import Date Fix</strong>: Resolved an issue where CloudResearch imports failed to capture the correct date and time due to the export file containing dynamic timezone-specific column names.</li>
-              <li><strong>Start of Week Selector</strong>: Added a Start of Week selector to adjust the charts, studies list, stat calculation, etc. based on what day of the week your work week starts on.</li>
-              <li><strong>Categorized Settings Modal</strong>: Categorized the settings modal to group related configuration options.</li>
             </ul>
           </div>
         </details>
@@ -2818,6 +2967,7 @@
 
   <script>
     // ─── State ───────────────────────────────────────────────────────────────────
+    const APP_VERSION = '3.0';
     let entries = JSON.parse(localStorage.getItem('prolific_entries') || '[]');
 
     // Migration: ensure all entries have a bonus field
@@ -3430,6 +3580,7 @@
     }
 
     initOobe();
+    checkWhatsNew();
 
 
     function formatDateTimeForInput(dateObj) {
@@ -4671,6 +4822,46 @@
     function closeChangelogModalOnBackdrop(event) {
       if (event.target.id === 'changelogModal') {
         closeChangelogModal();
+      }
+    }
+
+    // ─── What's New Modal ──────────────────────────────────────────────────────────
+    function checkWhatsNew() {
+      // Don't show if OOBE hasn't been completed yet (first-time users see OOBE instead)
+      const oobeCompleted = localStorage.getItem('prolific_oobe_completed');
+      if (!oobeCompleted) return;
+
+      const seenVersion = localStorage.getItem('prolific_seen_version');
+      if (seenVersion === APP_VERSION) return; // Already seen this version
+
+      // Populate the modal content from the first .changelog-item in the changelog
+      const firstEntry = document.querySelector('.changelog-item');
+      const contentEl = document.getElementById('whatsNewContent');
+      const verPill = document.getElementById('whatsNewVerPill');
+
+      if (firstEntry && contentEl) {
+        const verEl = firstEntry.querySelector('.changelog-ver');
+        if (verEl && verPill) verPill.textContent = verEl.textContent.trim();
+
+        const ul = firstEntry.querySelector('.changelog-content ul');
+        if (ul) {
+          contentEl.innerHTML = '<ul>' + ul.innerHTML + '</ul>';
+        }
+      }
+
+      const modal = document.getElementById('whatsNewModal');
+      if (modal) modal.classList.add('open');
+    }
+
+    function closeWhatsNewModal() {
+      localStorage.setItem('prolific_seen_version', APP_VERSION);
+      const modal = document.getElementById('whatsNewModal');
+      if (modal) modal.classList.remove('open');
+    }
+
+    function closeWhatsNewModalOnBackdrop(event) {
+      if (event.target.id === 'whatsNewModal') {
+        closeWhatsNewModal();
       }
     }
 
