@@ -1824,7 +1824,206 @@
       color: var(--md-on-primary);
       font-weight: 600;
     }
+
+    /* OOBE Wizard Modal Styles */
+    .oobe-modal-card {
+      max-width: 480px;
+      padding: 2.5rem 2.25rem 2rem;
+      transition: all 0.3s var(--motion);
+    }
+    .oobe-progress {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 2rem;
+    }
+    .oobe-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--border2);
+      transition: all 0.3s var(--motion);
+    }
+    .oobe-dot.active {
+      background: var(--md-primary);
+      width: 24px;
+      border-radius: 4px;
+    }
+    .oobe-step {
+      display: none;
+      animation: oobeFadeIn 0.3s var(--motion);
+    }
+    .oobe-step.active {
+      display: block;
+    }
+    @keyframes oobeFadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .oobe-welcome-icon {
+      font-size: 3.5rem;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+    .oobe-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-top: 0;
+      margin-bottom: 0.75rem;
+      font-family: var(--sans);
+      text-align: center;
+    }
+    .oobe-desc {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 2rem;
+      font-family: var(--sans);
+      text-align: center;
+    }
+    .oobe-feature-list {
+      background: var(--md-surface-container);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius);
+      padding: 1rem;
+      margin-bottom: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .oobe-feature-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12.5px;
+      color: var(--text);
+      font-family: var(--sans);
+      text-align: left;
+    }
+    .oobe-feature-bullet {
+      color: var(--md-primary);
+      font-weight: bold;
+    }
+    .oobe-field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 1.25rem;
+      text-align: left;
+    }
+    .oobe-field-group label {
+      font-weight: 500;
+      font-size: 13px;
+      color: var(--text);
+      font-family: var(--sans);
+    }
+    .oobe-btn-group {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 2rem;
+    }
+    .oobe-primary-btn {
+      flex: 1;
+      padding: 10px 20px;
+      background: var(--md-primary);
+      color: var(--md-on-primary);
+      border: none;
+      border-radius: 999px;
+      font-weight: 600;
+      font-family: var(--sans);
+      font-size: 13.5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background 0.2s var(--motion);
+    }
+    .oobe-primary-btn:hover {
+      background: var(--accent);
+      color: var(--md-on-primary);
+    }
+    .oobe-secondary-btn {
+      padding: 10px 20px;
+      background: var(--md-surface-container);
+      border: 1px solid var(--border2);
+      border-radius: 999px;
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 13.5px;
+      cursor: pointer;
+      transition: background 0.2s var(--motion);
+    }
+    .oobe-secondary-btn:hover {
+      background: var(--md-surface-container-highest);
+    }
+    @media (max-width: 600px) {
+      .modal-card {
+        width: 100% !important;
+        height: 100% !important;
+        max-width: 100% !important;
+        max-height: 100% !important;
+        border-radius: 0 !important;
+        border: none !important;
+        margin: 0 !important;
+        padding: 1.5rem !important;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+      }
+      .oobe-modal-card {
+        justify-content: center;
+      }
+      .changelog-entries {
+        max-height: none !important;
+        flex: 1;
+      }
+    }
+    
+    /* Toggle Switch styles */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 40px;
+      height: 22px;
+      flex-shrink: 0;
+    }
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background-color: var(--border2);
+      transition: .3s var(--motion);
+      border-radius: 999px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 3px;
+      bottom: 3px;
+      background-color: var(--text);
+      transition: .3s var(--motion);
+      border-radius: 50%;
+    }
+    input:checked + .slider {
+      background-color: var(--md-primary);
+    }
+    input:checked + .slider:before {
+      transform: translateX(18px);
+      background-color: var(--md-on-primary);
+    }
   </style>
+
 </head>
 
 <body>
@@ -2053,7 +2252,7 @@
 
       <div class="dashboard-right">
         <!-- Goal Progress Card -->
-        <div class="goal-card">
+        <div class="goal-card" id="goalCard">
           <span class="goal-label">Weekly Goal</span>
           <div style="display: flex; align-items: center; gap: 12px; width: 100%;">
             <div class="progress-track" style="flex:1; min-width: 0;">
@@ -2138,6 +2337,136 @@
       <line x1="12" y1="15" x2="12" y2="3"></line>
     </svg>
   </button>
+
+  <div class="modal-overlay" id="oobeModal">
+    <div class="modal-card oobe-modal-card">
+      <div class="oobe-progress">
+        <div class="oobe-dot active" id="oobeDot1"></div>
+        <div class="oobe-dot" id="oobeDot2"></div>
+        <div class="oobe-dot" id="oobeDot3"></div>
+        <div class="oobe-dot" id="oobeDot4"></div>
+      </div>
+
+      <!-- Step 1: Welcome -->
+      <div class="oobe-step active" id="oobeStep1">
+        <div class="oobe-welcome-icon">💰</div>
+        <h2 class="oobe-title">Welcome to EarnTrack</h2>
+        <p class="oobe-desc">Your dashboard for tracking and analyzing your study earnings. Let's set up your workspace in less than a minute!</p>
+        <div style="background: var(--md-surface-container); border: 1px dashed var(--border2); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 11px; color: var(--muted); text-align: center; margin-top: -10px; margin-bottom: 20px; font-family: var(--sans); line-height: 1.45;">
+          🔒 <strong>100% Local & Private</strong>: All study entries and settings are stored entirely in your browser's local storage. No data ever leaves your device, and you can save this page to run it completely offline.
+        </div>
+        <div class="oobe-feature-list">
+          <div class="oobe-feature-item">
+            <span class="oobe-feature-bullet">✓</span>
+            <span>Automatically parse and merge multiple platform CSV exports.</span>
+          </div>
+          <div class="oobe-feature-item">
+            <span class="oobe-feature-bullet">✓</span>
+            <span>Sleek interactive charts with pending vs. approved visibility.</span>
+          </div>
+          <div class="oobe-feature-item">
+            <span class="oobe-feature-bullet">✓</span>
+            <span>Real-time display currency conversion with live exchange rates.</span>
+          </div>
+        </div>
+        <div class="oobe-btn-group">
+          <button class="oobe-primary-btn" onclick="nextOobeStep()">Get Started ➔</button>
+        </div>
+      </div>
+
+      <!-- Step 2: Core Preferences -->
+      <div class="oobe-step" id="oobeStep2">
+        <h2 class="oobe-title" style="text-align: left; margin-bottom: 0.5rem;">Core Preferences</h2>
+        <p class="oobe-desc" style="text-align: left; margin-bottom: 1.5rem;">Set up your display and regional options. You can always change these later in settings.</p>
+        
+        <div class="oobe-field-group">
+          <label for="oobeCurrencySelect">Currency</label>
+          <select class="currency-select" id="oobeCurrencySelect" style="margin: 0; width: 100%; box-sizing: border-box; background-color: var(--md-surface-container);">
+            <option value="GBP">🇬🇧 GBP</option>
+            <option value="USD">🇺🇸 USD</option>
+            <option value="EUR">🇪🇺 EUR</option>
+            <option value="SAR">🇸🇦 SAR</option>
+            <option value="BTC">₿  BTC</option>
+          </select>
+        </div>
+
+        <div class="oobe-field-group">
+          <label>Time Format</label>
+          <div class="theme-toggle" aria-label="Time Format" style="align-self: flex-start;">
+            <button class="theme-btn active" id="oobeTimeFormat12H" type="button" onclick="setOobeTimeFormat('12h')">12-Hour</button>
+            <button class="theme-btn" id="oobeTimeFormat24H" type="button" onclick="setOobeTimeFormat('24h')">24-Hour</button>
+          </div>
+        </div>
+
+        <div class="oobe-field-group">
+          <label for="oobeWeekStartSelect">Start of Week</label>
+          <select class="currency-select" id="oobeWeekStartSelect" style="margin: 0; width: 100%; box-sizing: border-box; background-color: var(--md-surface-container);">
+            <option value="1">Monday</option>
+            <option value="2">Tuesday</option>
+            <option value="3">Wednesday</option>
+            <option value="4">Thursday</option>
+            <option value="5">Friday</option>
+            <option value="6">Saturday</option>
+            <option value="0">Sunday</option>
+          </select>
+        </div>
+
+        <div class="oobe-btn-group">
+          <button class="oobe-secondary-btn" onclick="prevOobeStep()">Back</button>
+          <button class="oobe-primary-btn" onclick="nextOobeStep()">Next Step ➔</button>
+        </div>
+      </div>
+
+      <!-- Step 3: Weekly Goal -->
+      <div class="oobe-step" id="oobeStep3">
+        <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 0.5rem;">
+          <h2 class="oobe-title" style="text-align: left; margin: 0;">Weekly Goal</h2>
+          <label class="switch" title="Toggle Weekly Goal">
+            <input type="checkbox" id="oobeGoalEnable" onchange="toggleOobeGoalInput(this.checked)">
+            <span class="slider"></span>
+          </label>
+        </div>
+        <p class="oobe-desc" style="text-align: left; margin-bottom: 1.5rem;">Keep yourself motivated by setting an optional weekly earnings goal.</p>
+
+        <div id="oobeGoalInputWrap" class="oobe-field-group" style="transition: all 0.2s var(--motion);">
+          <label for="oobeGoalInput">Weekly Goal Amount</label>
+          <div class="goal-input-wrap" style="align-self: flex-start; width: 100%; box-sizing: border-box;">
+            <span id="oobeGoalSymbol">£</span>
+            <input type="number" class="goal-input" id="oobeGoalInput" value="" placeholder="e.g. 50" min="1" step="1" style="width: 100%; box-sizing: border-box; padding-left: 24px;" disabled>
+          </div>
+        </div>
+
+        <div class="oobe-btn-group">
+          <button class="oobe-secondary-btn" onclick="prevOobeStep()">Back</button>
+          <button class="oobe-primary-btn" onclick="nextOobeStep()">Next Step ➔</button>
+        </div>
+      </div>
+
+      <!-- Step 4: First CSV Import -->
+      <div class="oobe-step" id="oobeStep4">
+        <h2 class="oobe-title" style="text-align: left; margin-bottom: 0.5rem;">Bring in Your Data</h2>
+        <p class="oobe-desc" style="text-align: left; margin-bottom: 1.5rem;">Import your Prolific or CloudResearch CSV to populate your dashboard immediately, or skip to start entering studies manually.</p>
+
+        <div class="import-zone" id="oobeImportZone" style="margin-bottom: 1.5rem;">
+          <div class="import-icon">📥</div>
+          <div class="import-title">Import your first CSV</div>
+          <div class="import-sub">Drag &amp; drop your CSV here, or click Browse file</div>
+          <div class="import-actions">
+            <label class="import-file-btn">
+              Browse file
+              <input type="file" accept=".csv" id="oobeCsvInput" onchange="handleOobeFileInput(this)" style="display:none;" multiple="">
+            </label>
+          </div>
+          <div class="import-toast" id="oobeImportToast"></div>
+        </div>
+
+        <div class="oobe-btn-group">
+          <button class="oobe-secondary-btn" onclick="prevOobeStep()">Back</button>
+          <button class="oobe-secondary-btn" style="flex: 1; border-color: var(--md-primary); color: var(--md-primary);" onclick="completeOobe()">Skip &amp; Finish</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <div class="modal-overlay" id="importModal" onclick="closeImportModalOnBackdrop(event)">
     <div class="modal-card">
@@ -2241,7 +2570,10 @@
 
           <!-- Currency Selection -->
           <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-            <label style="font-weight: 500; font-size: 13px; color: var(--text); font-family: var(--sans);">Currency</label>
+            <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+              <label style="font-weight: 500; font-size: 13px; color: var(--text); font-family: var(--sans);">Currency</label>
+              <span class="rate-status" id="rateStatus" style="font-size: 11px; margin: 0;">···</span>
+            </div>
             <div style="display: flex; align-items: center; gap: 8px;">
               <select class="currency-select" id="currencySelect" onchange="setCurrency(this.value)"
                 style="margin: 0; align-self: flex-start; background-color: var(--md-surface-container);">
@@ -2251,20 +2583,29 @@
                 <option value="SAR">🇸🇦 SAR</option>
                 <option value="BTC">₿  BTC</option>
               </select>
-              <span class="rate-status" id="rateStatus" style="font-size: 11px;">···</span>
+              <button type="button" class="theme-btn" id="refreshRatesBtn" style="border: 1px solid var(--border); display: flex; align-items: center; gap: 4px; padding: 7px 10px; background: var(--md-surface-container-high); align-self: flex-start;" onclick="forceRefreshRates(this)">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="transition: transform 0.6s ease-in-out;"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                Refresh
+              </button>
             </div>
           </div>
 
-          <!-- Weekly Goal Input -->
+          <!-- Weekly Goal Section -->
           <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-            <label style="font-weight: 500; font-size: 13px; color: var(--text); font-family: var(--sans);"
-              for="goalInput">Weekly Goal</label>
-            <div class="goal-input-wrap" style="align-self: flex-start;">
-              <span id="goalSymbol">£</span>
-              <input type="number" class="goal-input" id="goalInput" value="60" min="1" step="1" oninput="updateGoal()">
+            <div style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+              <label style="font-weight: 500; font-size: 13px; color: var(--text); font-family: var(--sans);" for="goalInput">Weekly Goal</label>
+              <label class="switch" title="Toggle Weekly Goal">
+                <input type="checkbox" id="settingsGoalEnable" onchange="updateSettingsGoalEnable(this.checked)">
+                <span class="slider"></span>
+              </label>
             </div>
-            <span style="font-size: 11px; color: var(--muted); font-family: var(--sans);">Your weekly earnings target
-              (entered in your local currency).</span>
+            <div id="settingsGoalInputWrap" style="display: none; align-self: flex-start; margin-top: 4px;">
+              <div class="goal-input-wrap">
+                <span id="goalSymbol">£</span>
+                <input type="number" class="goal-input" id="goalInput" value="" placeholder="e.g. 50" min="1" step="1" oninput="updateGoal()">
+              </div>
+            </div>
+            <span style="font-size: 11px; color: var(--muted); font-family: var(--sans);">Your weekly earnings target.</span>
           </div>
 
           <!-- Minimum Wage Input -->
@@ -2274,13 +2615,12 @@
             <div style="display: flex; align-items: center; gap: 6px;">
               <div class="goal-input-wrap">
                 <span id="minWageSymbol">£</span>
-                <input type="number" class="goal-input" id="minWageInput" value="" placeholder="—" min="0" step="0.01"
+                <input type="number" class="goal-input" id="minWageInput" value="6.00" min="0" step="0.01"
                   oninput="updateMinWage()">
               </div>
               <span style="font-size: 12px; color: var(--text); opacity: 0.7; font-family: var(--mono);">/hr</span>
             </div>
-            <span style="font-size: 11px; color: var(--muted); font-family: var(--sans);">Used to color-code study hourly
-              rate badges (leave blank for Prolific default of £6.00/hr).</span>
+            <span style="font-size: 11px; color: var(--muted); font-family: var(--sans);">Used to color-code study hourly rate badges.</span>
           </div>
         </div>
       </div>
@@ -2297,11 +2637,11 @@
       <div class="changelog-entries"
         style="display: flex; flex-direction: column; max-height: 380px; overflow-y: auto; padding-right: 6px;">
 
-        <!-- v2.1 (Newest) -->
+        <!-- v3.0 (Newest) -->
         <details class="changelog-item" name="changelog" open>
           <summary>
             <div class="changelog-header">
-              <span class="changelog-ver">v2.1</span>
+              <span class="changelog-ver">v3.0</span>
               <div style="display: flex; align-items: center; gap: 8px; margin-left: auto;">
                 <span class="changelog-date">2026-05-29</span>
                 <span class="changelog-icon">▼</span>
@@ -2310,11 +2650,12 @@
           </summary>
           <div class="changelog-content">
             <ul>
-              <li><strong>Unified Dashboard & Chart Range Selector</strong>: Replaced the separate chart range tabs with automatic synchronization: switching dashboard periods (Week, Month, Year, All time) now automatically adjusts the earnings chart view to matching granularities (7-day Daily, 12-month selected Year, All-Time Yearly), simplifying navigation and decluttering the layout.</li>
+              <li><strong>Initial Setup &amp; OOBE Wizard</strong>: Added a friendly Out-Of-Box Experience (OOBE) setup wizard that guides first-time users through configuring their preferred display currency, time format, start of the week, setting an optional weekly goal, and importing their very first CSV file to get started immediately.</li>
+              <li><strong>Unified Dashboard &amp; Chart Range Selector</strong>: Replaced the separate chart range tabs with automatic synchronization: switching dashboard periods (Week, Month, Year, All time) now automatically adjusts the earnings chart view to matching granularities (7-day Daily, 12-month selected Year, All-Time Yearly), simplifying navigation and decluttering the layout.</li>
               <li><strong>Bitcoin Currency Support</strong>: Added Bitcoin (BTC) as a display currency option, complete with live exchange rates and high-precision decimal formatting.</li>
               <li><strong>Thousands Separator</strong>: Large monetary and numeric values now display commas for much easier readability.</li>
               <li><strong>Improved Time Metrics</strong>: The "Time Spent" metric card now displays elapsed days when applicable.</li>
-              <li><strong>12/24 Hour Format & Hover Tooltips</strong>: Added configurable 12-hour and 24-hour time formats, and hovering over a study's date now reveals the exact full timestamp.</li>
+              <li><strong>12/24 Hour Format &amp; Hover Tooltips</strong>: Added configurable 12-hour and 24-hour time formats, and hovering over a study's date now reveals the exact full timestamp.</li>
               <li><strong>Redesigned Manual Entry</strong>: Upgraded the manual entry form with a custom Material 3-inspired date/time picker, and fixed the bonus currency label to correctly match the selected currency.</li>
               <li><strong>Refined Chart Visuals</strong>: Corrected chart bar rounding so that bars are flat on the bottom and rounded on top.</li>
               <li><strong>Accent Color Picker Fix</strong>: Fixed a layout issue where the rainbow icon for custom accent color selection was getting clipped.</li>
@@ -2496,7 +2837,7 @@
 
     // Fetch live rates from free, no-key APIs.
     // Rates are cached in localStorage for 6 hours so we don't hammer the APIs.
-    async function loadRates() {
+    async function loadRates(force = false) {
       const CACHE_KEY = 'prolific_rates';
       const CACHE_TIME = 'prolific_rates_ts';
       const SIX_HOURS = 6 * 60 * 60 * 1000;
@@ -2543,7 +2884,7 @@
       try {
         const cached = localStorage.getItem(CACHE_KEY);
         const ts = parseInt(localStorage.getItem(CACHE_TIME) || '0');
-        if (cached && Date.now() - ts < SIX_HOURS) {
+        if (!force && cached && Date.now() - ts < SIX_HOURS) {
           const parsed = JSON.parse(cached);
           if (parsed && parsed.BTC !== undefined) {
             applyRates(parsed, 'cached', 'live');
@@ -2573,9 +2914,54 @@
         }
       }
     }
+
+    async function forceRefreshRates(btn) {
+      if (btn) {
+        btn.disabled = true;
+        const svg = btn.querySelector('svg');
+        if (svg) {
+          svg.style.transform = 'rotate(360deg)';
+        }
+        const textNode = [...btn.childNodes].find(n => n.nodeType === Node.TEXT_NODE && n.textContent.trim());
+        if (textNode) {
+          textNode.textContent = ' Refreshing...';
+        }
+
+        try {
+          await loadRates(true);
+          const statusEl = document.getElementById('rateStatus');
+          const success = statusEl && statusEl.textContent === 'live';
+          
+          if (textNode) {
+            textNode.textContent = success ? ' Updated!' : ' Failed';
+          }
+          
+          setTimeout(() => {
+            if (textNode) textNode.textContent = ' Refresh';
+            if (svg) svg.style.transform = '';
+            btn.disabled = false;
+          }, 1500);
+        } catch (e) {
+          console.error(e);
+          if (textNode) textNode.textContent = ' Failed';
+          setTimeout(() => {
+            if (textNode) textNode.textContent = ' Refresh';
+            if (svg) svg.style.transform = '';
+            btn.disabled = false;
+          }, 1500);
+        }
+      } else {
+        await loadRates(true);
+      }
+    }
+    let weeklyGoalEnabled = localStorage.getItem('prolific_goal_enabled') === 'true';
     let weeklyGoalRaw = localStorage.getItem('prolific_goal');
-    let weeklyGoal = parseFloat(weeklyGoalRaw || '60');
-    let minWage = parseFloat(localStorage.getItem('prolific_min_wage') || '0');
+    let weeklyGoal = (weeklyGoalRaw !== null && parseFloat(weeklyGoalRaw) > 0) ? parseFloat(weeklyGoalRaw) : 60;
+    let minWageRaw = localStorage.getItem('prolific_min_wage');
+    let minWage = (minWageRaw !== null && parseFloat(minWageRaw) > 0) ? parseFloat(minWageRaw) : 6 * (RATES[currency] || 1);
+    if (minWageRaw === null || parseFloat(minWageRaw) === 0) {
+      localStorage.setItem('prolific_min_wage', minWage);
+    }
     let currentWeekOffset = 0;
     let activeTab = 'week';
     let sortCol = 'date';
@@ -2816,6 +3202,236 @@
     setupDragDrop();
     render();
 
+    // ─── OOBE Wizard Logic ──────────────────────────────────────────────────────────
+    let oobeStep = 1;
+    let oobeTimeFormat = '24h';
+
+    function initOobe() {
+      const oobeCompleted = localStorage.getItem('prolific_oobe_completed');
+      if (!oobeCompleted) {
+        oobeTimeFormat = timeFormat;
+        const modal = document.getElementById('oobeModal');
+        if (modal) modal.classList.add('open');
+        showOobeStep(1);
+        setupOobeDragDrop();
+        
+        // Sync inputs
+        document.getElementById('oobeCurrencySelect').value = currency;
+        document.getElementById('oobeWeekStartSelect').value = String(weekStartDay);
+        updateOobeTimeFormatUI();
+      }
+    }
+
+    function showOobeStep(step) {
+      oobeStep = step;
+      for (let i = 1; i <= 4; i++) {
+        const stepEl = document.getElementById('oobeStep' + i);
+        const dotEl = document.getElementById('oobeDot' + i);
+        if (stepEl) stepEl.classList.toggle('active', i === step);
+        if (dotEl) dotEl.classList.toggle('active', i === step);
+      }
+      if (step === 3) {
+        const oobeGoalEnable = document.getElementById('oobeGoalEnable');
+        if (oobeGoalEnable) {
+          oobeGoalEnable.checked = weeklyGoalEnabled;
+          toggleOobeGoalInput(weeklyGoalEnabled);
+        }
+      }
+    }
+
+    function nextOobeStep() {
+      if (oobeStep === 2) {
+        // Step 2 Core settings validated and saved
+        const selCurrency = document.getElementById('oobeCurrencySelect').value;
+        const selWeekStart = document.getElementById('oobeWeekStartSelect').value;
+        
+        setCurrency(selCurrency);
+        setWeekStartDay(selWeekStart);
+        setTimeFormat(oobeTimeFormat);
+        
+        // Sync currency symbol and initial value in Step 3
+        const sym = currSymbol();
+        const oobeGoalSymbol = document.getElementById('oobeGoalSymbol');
+        if (oobeGoalSymbol) oobeGoalSymbol.textContent = sym;
+        const oobeGoalInput = document.getElementById('oobeGoalInput');
+        if (oobeGoalInput) oobeGoalInput.value = ''; // Do not prefill initially
+      } else if (oobeStep === 3) {
+        // Step 3 Weekly Goal setting saved
+        const enableGoal = document.getElementById('oobeGoalEnable').checked;
+        weeklyGoalEnabled = enableGoal;
+        localStorage.setItem('prolific_goal_enabled', String(weeklyGoalEnabled));
+        if (enableGoal) {
+          const val = parseFloat(document.getElementById('oobeGoalInput').value);
+          if (!isNaN(val) && val > 0) {
+            weeklyGoal = val;
+            localStorage.setItem('prolific_goal', weeklyGoal);
+            const goalInput = document.getElementById('goalInput');
+            if (goalInput) goalInput.value = weeklyGoal.toFixed(currency === 'BTC' ? 8 : 2);
+          }
+        }
+        render();
+      }
+      
+      if (oobeStep < 4) {
+        showOobeStep(oobeStep + 1);
+      }
+    }
+
+    function prevOobeStep() {
+      if (oobeStep > 1) {
+        showOobeStep(oobeStep - 1);
+      }
+    }
+
+    function setOobeTimeFormat(fmt) {
+      oobeTimeFormat = fmt;
+      updateOobeTimeFormatUI();
+    }
+
+    function updateOobeTimeFormatUI() {
+      const btn12 = document.getElementById('oobeTimeFormat12H');
+      const btn24 = document.getElementById('oobeTimeFormat24H');
+      if (btn12) btn12.classList.toggle('active', oobeTimeFormat === '12h');
+      if (btn24) btn24.classList.toggle('active', oobeTimeFormat === '24h');
+    }
+
+    function toggleOobeGoalInput(checked) {
+      const oobeGoalInput = document.getElementById('oobeGoalInput');
+      if (oobeGoalInput) {
+        oobeGoalInput.disabled = !checked;
+        if (checked) {
+          oobeGoalInput.value = weeklyGoal.toFixed(currency === 'BTC' ? 8 : 2);
+        } else {
+          oobeGoalInput.value = '';
+        }
+      }
+    }
+
+    function updateSettingsGoalEnable(checked) {
+      weeklyGoalEnabled = checked;
+      localStorage.setItem('prolific_goal_enabled', String(weeklyGoalEnabled));
+      toggleSettingsGoalInput(checked);
+      if (checked) {
+        const val = parseFloat(document.getElementById('goalInput').value);
+        if (!isNaN(val) && val > 0) {
+          weeklyGoal = val;
+          localStorage.setItem('prolific_goal', weeklyGoal);
+        }
+      }
+      render();
+    }
+
+    function toggleSettingsGoalInput(checked) {
+      const wrap = document.getElementById('settingsGoalInputWrap');
+      if (wrap) {
+        wrap.style.display = checked ? 'flex' : 'none';
+      }
+      const goalInput = document.getElementById('goalInput');
+      if (goalInput) {
+        if (checked) {
+          goalInput.value = weeklyGoal.toFixed(currency === 'BTC' ? 8 : 2);
+        } else {
+          goalInput.value = '';
+        }
+      }
+    }
+
+    function completeOobe() {
+      localStorage.setItem('prolific_oobe_completed', 'true');
+      const modal = document.getElementById('oobeModal');
+      if (modal) modal.classList.remove('open');
+      render();
+    }
+
+    function handleOobeFileInput(input) {
+      if (!input.files || input.files.length === 0) return;
+      handleOobeImportFiles(input.files);
+      input.value = '';
+    }
+
+    function handleOobeImportFiles(files) {
+      if (!files || files.length === 0) return;
+      const filesArray = Array.from(files).filter(f => f.name.endsWith('.csv'));
+      if (filesArray.length === 0) {
+        showOobeToast('Please select or drop .csv files only', true);
+        return;
+      }
+
+      let totalAdded = 0;
+      let totalSkipped = 0;
+      let hasError = false;
+      let errorMsg = '';
+      let processed = 0;
+
+      filesArray.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = ev => {
+          const result = parseCSV(ev.target.result, file.name);
+          if (result.error) {
+            hasError = true;
+            errorMsg = result.error;
+          } else {
+            totalAdded += result.added;
+            totalSkipped += result.skipped;
+          }
+          processed++;
+
+          if (processed === filesArray.length) {
+            if (hasError && totalAdded === 0) {
+              showOobeToast('Error: ' + errorMsg, true);
+            } else {
+              let msg = `${totalAdded} studies imported`;
+              if (totalSkipped > 0) msg += `, ${totalSkipped} skipped`;
+              if (hasError) msg += ` (some files failed: ${errorMsg})`;
+              showOobeToast(msg, false);
+              render();
+              setTimeout(completeOobe, 1500);
+            }
+          }
+        };
+        reader.onerror = () => {
+          hasError = true;
+          errorMsg = `Failed to read ${file.name}`;
+          processed++;
+          if (processed === filesArray.length) {
+            let msg = `${totalAdded} studies imported`;
+            if (totalSkipped > 0) msg += `, ${totalSkipped} skipped`;
+            msg += ` (some files failed)`;
+            showOobeToast(msg, hasError && totalAdded === 0);
+            render();
+            setTimeout(completeOobe, 1500);
+          }
+        };
+        reader.readAsText(file);
+      });
+    }
+
+    function showOobeToast(msg, isError) {
+      const t = document.getElementById('oobeImportToast');
+      if (t) {
+        t.textContent = msg;
+        t.className = 'import-toast' + (isError ? ' error' : '');
+        t.style.display = 'block';
+        setTimeout(() => { t.style.display = 'none'; }, 4000);
+      }
+    }
+
+    function setupOobeDragDrop() {
+      const zone = document.getElementById('oobeImportZone');
+      if (!zone) return;
+      zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+      zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+      zone.addEventListener('drop', e => {
+        e.preventDefault();
+        zone.classList.remove('drag-over');
+        if (!e.dataTransfer.files || e.dataTransfer.files.length === 0) return;
+        handleOobeImportFiles(e.dataTransfer.files);
+      });
+    }
+
+    initOobe();
+
+
     function formatDateTimeForInput(dateObj) {
       const year = dateObj.getFullYear();
       const month = String(dateObj.getMonth() + 1).padStart(2, '0');
@@ -2942,7 +3558,7 @@
 
     function updateMinWage() {
       const val = parseFloat(document.getElementById('minWageInput').value);
-      minWage = isNaN(val) || val <= 0 ? 0 : val;
+      minWage = isNaN(val) || val <= 0 ? 6 * (RATES[currency] || 1) : val;
       save();
       render();
     }
@@ -3113,6 +3729,12 @@
       document.getElementById('goalSymbol').textContent = currSymbol();
       const minWageSymbolEl = document.getElementById('minWageSymbol');
       if (minWageSymbolEl) minWageSymbolEl.textContent = currSymbol();
+
+      // Dynamically toggle dashboard Weekly Goal Card visibility
+      const goalCard = document.getElementById('goalCard');
+      if (goalCard) {
+        goalCard.style.display = weeklyGoalEnabled ? 'block' : 'none';
+      }
       const weekEarnedConverted = weekEarned * (RATES[currency] || 1);
       const pct = Math.min(100, (weekEarnedConverted / weeklyGoal) * 100);
       document.getElementById('progressFill').style.width = pct.toFixed(1) + '%';
@@ -3966,6 +4588,45 @@
     }
 
     function openSettingsModal() {
+      // Sync Currency selection
+      const currencySelect = document.getElementById('currencySelect');
+      if (currencySelect) currencySelect.value = currency;
+
+      // Sync Start of Week selection
+      const weekStartSelect = document.getElementById('weekStartSelect');
+      if (weekStartSelect) weekStartSelect.value = String(weekStartDay);
+
+      // Sync Weekly Goal Input and Toggle
+      const settingsGoalEnable = document.getElementById('settingsGoalEnable');
+      if (settingsGoalEnable) {
+        settingsGoalEnable.checked = weeklyGoalEnabled;
+      }
+      toggleSettingsGoalInput(weeklyGoalEnabled);
+
+      // Sync Weekly Goal Input value if enabled
+      const goalInput = document.getElementById('goalInput');
+      if (goalInput) {
+        if (weeklyGoalEnabled) {
+          goalInput.value = weeklyGoal.toFixed(currency === 'BTC' ? 8 : 2);
+        } else {
+          goalInput.value = '';
+        }
+      }
+
+      // Sync Minimum Wage Input
+      const minWageInput = document.getElementById('minWageInput');
+      if (minWageInput) minWageInput.value = minWage.toFixed(currency === 'BTC' ? 8 : 2);
+
+      // Sync currency symbols
+      const goalSymbol = document.getElementById('goalSymbol');
+      if (goalSymbol) goalSymbol.textContent = currSymbol();
+      const minWageSymbol = document.getElementById('minWageSymbol');
+      if (minWageSymbol) minWageSymbol.textContent = currSymbol();
+
+      // Sync time format and theme
+      updateTimeFormatUI();
+      applyTheme();
+
       const modal = document.getElementById('settingsModal');
       if (modal) modal.classList.add('open');
     }
