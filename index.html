@@ -4938,9 +4938,16 @@
     }
 
     function save() {
-      localStorage.setItem('prolific_entries', JSON.stringify(entries));
-      localStorage.setItem('prolific_goal', weeklyGoal);
-      localStorage.setItem('prolific_min_wage', minWage);
+      try {
+        localStorage.setItem('prolific_entries', JSON.stringify(entries));
+        localStorage.setItem('prolific_goal', weeklyGoal);
+        localStorage.setItem('prolific_min_wage', minWage);
+      } catch (e) {
+        console.error('Failed to save to localStorage:', e);
+        if (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
+          alert('Warning: Local storage quota exceeded! Your data is too large to be fully saved. Please consider clearing older entries.');
+        }
+      }
     }
 
     // ─── Date helpers ─────────────────────────────────────────────────────────────
@@ -5828,15 +5835,17 @@
           'study_name': ['study', 'study_name', 'study name', 'studyname', 'name', 'title', 'project name'],
           'status': ['status'],
           'started_at': ['started at', 'started_at', 'start_time', 'time_started'],
-          'completed_at': ['completed at', 'completed_at', 'end_time', 'time_completed', 'datetime_started', 'completion time', 'completiontime'],
+          'completed_at': ['completed at', 'completed_at', 'end_time', 'time_completed', 'datetime_started', 'completion time', 'completiontime', 'date'],
           'reward': ['reward', 'pay', 'payment', 'reward (£)', 'reward(£)', 'reward (gbp)', 'reward ($)', 'reward($)', 'reward (usd)'],
           'bonus': ['bonus', 'bonus (£)', 'bonus(£)', 'bonus ($)', 'bonus($)', 'bonus (usd)'],
-          'submission_id': ['submission_id', 'id', 'submission id'],
+          'submission_id': ['submission_id', 'id', 'submission id', 'submission id (prolific)', 'prolific id', 'prolific_id'],
           'project_id': ['projectid', 'project id', 'project_id'],
           'completion_code': ['completioncode', 'completion code', 'completion_code'],
           'payment_received': ['payment received', 'payment_received'],
           'payment_pending': ['payment pending', 'payment_pending'],
           'amount_bonused': ['amount bonused', 'amount_bonused'],
+          'duration': ['duration', 'duration (mins)', 'duration(mins)', 'time spent', 'time_spent', 'mins', 'minutes'],
+          'source': ['source', 'platform'],
         };
         const alts = variants[name] || [name];
         for (const a of alts) {
@@ -5845,6 +5854,15 @@
         }
         if (name === 'completed_at') {
           const idx = headers.findIndex(h => h.startsWith('completiontime'));
+          if (idx !== -1) return idx;
+        }
+        // Substring / regex / dynamic fallbacks for exported columns with variable currency symbols
+        if (name === 'reward') {
+          const idx = headers.findIndex(h => h.startsWith('pay (') || h === 'pay' || h.startsWith('reward ('));
+          if (idx !== -1) return idx;
+        }
+        if (name === 'bonus') {
+          const idx = headers.findIndex(h => h.startsWith('bonus (') || h === 'bonus');
           if (idx !== -1) return idx;
         }
         return -1;
@@ -5862,9 +5880,14 @@
       const idxPaymentReceived = col('payment_received');
       const idxPaymentPending = col('payment_pending');
       const idxAmountBonused = col('amount_bonused');
+      const idxDuration = col('duration');
+      const idxSource = col('source');
 
-      let isCloudResearch = idxProjectId !== -1 && (idxPaymentReceived !== -1 || idxPaymentPending !== -1);
-      if (filename) {
+      const isEarnTrack = headers.includes('study name') && headers.includes('date') && headers.includes('duration (mins)');
+      const preferDMY = isEarnTrack;
+
+      let isCloudResearch = !isEarnTrack && idxProjectId !== -1 && (idxPaymentReceived !== -1 || idxPaymentPending !== -1);
+      if (filename && !isEarnTrack) {
         const fnLower = filename.toLowerCase();
         if (fnLower.includes('prolific')) {
           isCloudResearch = false;
@@ -5873,7 +5896,40 @@
         }
       }
 
-      if (!isCloudResearch && idxReward === -1) return { added: 0, skipped: 0, error: 'Could not find a payment column. Is this a Prolific or CloudResearch CSV?' };
+      if (!isCloudResearch && idxReward === -1) return { added: 0, skipped: 0, error: 'Could not find a payment column. Is this a Prolific, CloudResearch, or EarnTrack CSV?' };
+
+      // Detect CSV currency from the Pay or Reward column header
+      let csvCurrency = 'GBP';
+      if (idxReward !== -1) {
+        const rewardHeader = rawHeaders[idxReward];
+        const match = rewardHeader.match(/\(([^)]+)\)/);
+        if (match) {
+          const val = match[1].trim().toUpperCase();
+          if (val === '£' || val === 'GBP') {
+            csvCurrency = 'GBP';
+          } else if (val === '$' || val === 'USD') {
+            csvCurrency = 'USD';
+          } else if (val === '€' || val === 'EUR') {
+            csvCurrency = 'EUR';
+          } else if (val === 'SAR') {
+            csvCurrency = 'SAR';
+          } else if (val === 'BTC') {
+            csvCurrency = 'BTC';
+          } else if (RATES[val]) {
+            csvCurrency = val;
+          } else if (val.includes('$')) {
+            csvCurrency = 'USD';
+          } else if (val.includes('€')) {
+            csvCurrency = 'EUR';
+          } else if (val.includes('£')) {
+            csvCurrency = 'GBP';
+          }
+        } else {
+          if (rewardHeader.includes('$')) csvCurrency = 'USD';
+          else if (rewardHeader.includes('€')) csvCurrency = 'EUR';
+          else if (rewardHeader.includes('£')) csvCurrency = 'GBP';
+        }
+      }
 
       let completedAtTz = null;
       if (idxEnd !== -1) {
@@ -5895,17 +5951,34 @@
       const existingIds = new Set(entries.filter(e => e.prolificId).map(e => e.prolificId));
       const existingCloudResearchIds = new Set(entries.filter(e => e.cloudResearchId).map(e => e.cloudResearchId));
       const existingFingerprints = new Set(entries.filter(e => e.fingerprint).map(e => e.fingerprint));
+      const existingNormFingerprints = new Set(entries.map(e => {
+        const d = e.date ? new Date(e.date) : null;
+        if (d && !isNaN(d)) {
+          const dCopy = new Date(d.getTime());
+          dCopy.setMilliseconds(0);
+          return e.name + '|' + dCopy.toISOString();
+        }
+        return e.name + '|';
+      }));
       let added = 0, skipped = 0;
 
       // Convert CSV money into the internal base (GBP).
       function parseMoneyToGBP(raw, defaultCurrency = 'GBP') {
         const s = (raw ?? '0').toString().trim();
         const hasUSD = s.includes('$');
+        const hasEUR = s.includes('€');
+        const hasGBP = s.includes('£');
         const numberStr = s.replace(/[^0-9.\-]/g, '');
         const amount = parseFloat(numberStr);
         const safe = isNaN(amount) ? 0 : amount;
-        if (hasUSD || defaultCurrency === 'USD') return safe / (RATES['USD'] || 1.29);
-        return safe; // assume GBP when no explicit USD marker is present
+
+        let curr = defaultCurrency;
+        if (hasUSD) curr = 'USD';
+        else if (hasEUR) curr = 'EUR';
+        else if (hasGBP) curr = 'GBP';
+
+        if (curr === 'GBP') return safe;
+        return safe / (RATES[curr] || 1);
       }
 
       function normalizeImportStatus(rawStatus) {
@@ -5921,11 +5994,11 @@
         return raw.toUpperCase();
       }
 
-      function parseDateParts(str) {
+      function parseDateParts(str, preferDMY = false) {
         const m1 = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})\s+(\d{1,2}):(\d{2}):(\d{2})\s*(AM|PM)?$/i);
         if (m1) {
-          const month = parseInt(m1[1], 10);
-          const day = parseInt(m1[2], 10);
+          const first = parseInt(m1[1], 10);
+          const second = parseInt(m1[2], 10);
           const year = parseInt(m1[3], 10);
           let hour = parseInt(m1[4], 10);
           const min = parseInt(m1[5], 10);
@@ -5935,7 +6008,40 @@
           if (ampm === 'PM' && hour < 12) hour += 12;
           if (ampm === 'AM' && hour === 12) hour = 0;
 
+          let day, month;
+          if (first > 12) {
+            day = first;
+            month = second;
+          } else if (preferDMY) {
+            day = first;
+            month = second;
+          } else {
+            month = first;
+            day = second;
+          }
+
           return { year, month: month - 1, day, hour, min, sec };
+        }
+
+        const mDateOnly = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+        if (mDateOnly) {
+          const first = parseInt(mDateOnly[1], 10);
+          const second = parseInt(mDateOnly[2], 10);
+          const year = parseInt(mDateOnly[3], 10);
+
+          let day, month;
+          if (first > 12) {
+            day = first;
+            month = second;
+          } else if (preferDMY) {
+            day = first;
+            month = second;
+          } else {
+            month = first;
+            day = second;
+          }
+
+          return { year, month: month - 1, day, hour: 12, min: 0, sec: 0 };
         }
 
         const m2 = str.match(/^(\d{4})-(\d{2})-(\d{2})[T\s](\d{2}):(\d{2}):(\d{2})/);
@@ -6002,12 +6108,12 @@
         }
       }
 
-      function parseImportDate(raw, tzName) {
+      function parseImportDate(raw, tzName, preferDMY = false) {
         if (!raw) return null;
         let str = raw.trim();
 
-        if (tzName) {
-          const parts = parseDateParts(str);
+        if (tzName || preferDMY) {
+          const parts = parseDateParts(str, preferDMY);
           if (parts) {
             const d = getUTCDateInTimezone(parts, tzName);
             if (d && !isNaN(d)) return d;
@@ -6040,7 +6146,7 @@
         const rowCols = parseCSVLine(lines[rowIndex]);
         const rowEnd = idxEnd !== -1 ? rowCols[idxEnd]?.trim() : '';
         const rowStart = idxStart !== -1 ? rowCols[idxStart]?.trim() : '';
-        return parseImportDate(rowEnd, completedAtTz) || parseImportDate(rowStart, startedAtTz);
+        return parseImportDate(rowEnd, completedAtTz, preferDMY) || parseImportDate(rowStart, startedAtTz, preferDMY);
       }
 
       function inferDateFromNeighborRows(rowIndex) {
@@ -6084,9 +6190,9 @@
         const status = normalizeImportStatus(idxStatus !== -1 ? cols[idxStatus] : 'APPROVED');
         const startRaw = idxStart !== -1 ? cols[idxStart]?.trim() : '';
         const fingerprint = name + '|' + (startRaw || endRaw || '');
-        if (!prolificId && existingFingerprints.has(fingerprint)) { skipped++; continue; }
+        if (!prolificId && !cloudResearchId && existingFingerprints.has(fingerprint)) { skipped++; continue; }
 
-        const defaultCurrency = isCloudResearch ? 'USD' : 'GBP';
+        const defaultCurrency = isCloudResearch ? 'USD' : csvCurrency;
         const rewardPayGBP = isCloudResearch
           ? parseMoneyToGBP(cols[idxPaymentReceived] || '0', defaultCurrency) + parseMoneyToGBP(cols[idxPaymentPending] || '0', defaultCurrency)
           : parseMoneyToGBP(cols[idxReward] || '0', defaultCurrency);
@@ -6097,27 +6203,34 @@
         let pay = 0;
         let mins = 0;
         let dateStr = '';
-        const start = parseImportDate(startRaw, startedAtTz);
-        const end = parseImportDate(endRaw, completedAtTz);
+        const start = parseImportDate(startRaw, startedAtTz, preferDMY);
+        const end = parseImportDate(endRaw, completedAtTz, preferDMY);
 
         // Check if this is a completed study (has end time)
         const hasCompletion = end && !isNaN(end);
+
+        // Deduplicate using normalized fingerprint (ISO Date)
+        const parsedDate = start && !isNaN(start) ? start : (end && !isNaN(end) ? end : null);
+        let normFingerprint = name + '|';
+        if (parsedDate) {
+          const dCopy = new Date(parsedDate.getTime());
+          dCopy.setMilliseconds(0);
+          normFingerprint = name + '|' + dCopy.toISOString();
+        }
+        if (existingNormFingerprints.has(normFingerprint)) { skipped++; continue; }
 
         // Determine payment based on status while preserving unpaid records for stats.
         if (status === 'RETURNED' || status === 'TIMED-OUT' || status === 'REJECTED') {
           pay = 0;
         }
         else if (status === 'SCREENED OUT') {
-          // The reward column is often the full study amount which they don't pay.
           // Keep any actual bonus, but do not count the base reward.
           pay = 0;
         }
         else if (status === 'PARTIALLY APPROVED') {
-          // Partially approved: usually pay the full reward plus any bonus
           pay = rewardPayGBP;
         }
         else if (status === 'APPROVED' || status === 'AWAITING REVIEW') {
-          // Fully approved or awaiting: pay full reward plus any bonus
           pay = rewardPayGBP;
         }
         else {
@@ -6147,9 +6260,17 @@
         // Calculate minutes - only if both start and end exist and end > start
         if (start && end && !isNaN(start) && !isNaN(end) && end > start) {
           mins = Math.round((end - start) / 60000);
+        } else if (idxDuration !== -1 && cols[idxDuration]) {
+          mins = parseInt(cols[idxDuration].trim(), 10) || 1;
         } else {
           // For studies without duration, default to 1 minute so they show in stats
           mins = 1;
+        }
+
+        // Detect source from column if available, else default to CloudResearch or CSV
+        let rowSource = isCloudResearch ? 'cloudresearch-csv' : 'csv';
+        if (idxSource !== -1 && cols[idxSource]) {
+          rowSource = cols[idxSource].trim();
         }
 
         const entry = {
@@ -6160,7 +6281,7 @@
           mins,
           date: dateStr,
           status,
-          source: isCloudResearch ? 'cloudresearch-csv' : 'csv',
+          source: rowSource,
           fingerprint
         };
         if (prolificId) entry.prolificId = prolificId;
@@ -6169,6 +6290,7 @@
         if (prolificId) existingIds.add(prolificId);
         if (cloudResearchId) existingCloudResearchIds.add(cloudResearchId);
         if (!prolificId) existingFingerprints.add(fingerprint);
+        if (parsedDate) existingNormFingerprints.add(normFingerprint);
         added++;
       }
 
@@ -6433,7 +6555,7 @@
     // ─── Export CSV ───────────────────────────────────────────────────────────────
     function exportCSV() {
       const sym = currSymbol();
-      const rows = [['Study name', 'Date', 'Pay (' + sym + ')', 'Bonus (' + sym + ')', 'Duration (mins)', 'Hourly rate (' + sym + '/hr)', 'Status']];
+      const rows = [['Study name', 'Date', 'Pay (' + sym + ')', 'Bonus (' + sym + ')', 'Duration (mins)', 'Hourly rate (' + sym + '/hr)', 'Status', 'Submission ID', 'Project ID', 'Source']];
       const list = getDisplayEntries();
       const multiplier = RATES[currency] || 1;
       list.forEach(e => {
@@ -6441,7 +6563,22 @@
         const baseReward = e.pay * multiplier;
         const totalPay = (e.pay + (e.bonus || 0)) * multiplier;
         const rate = e.mins > 0 ? (totalPay / (e.mins / 60)).toFixed(currency === 'BTC' ? 8 : 2) : '';
-        rows.push(['"' + e.name.replace(/"/g, '""') + '"', new Date(e.date).toLocaleDateString('en-GB'), baseReward.toFixed(currency === 'BTC' ? 8 : 2), bonus.toFixed(currency === 'BTC' ? 8 : 2), e.mins, rate, e.status || 'APPROVED']);
+        const submissionId = e.prolificId || '';
+        const projectId = e.cloudResearchId ? e.cloudResearchId.split('|')[0] : '';
+        const sourceVal = e.source || '';
+        const formattedDate = new Date(e.date).toISOString().replace('T', ' ').substring(0, 19);
+        rows.push([
+          '"' + e.name.replace(/"/g, '""') + '"',
+          formattedDate,
+          baseReward.toFixed(currency === 'BTC' ? 8 : 2),
+          bonus.toFixed(currency === 'BTC' ? 8 : 2),
+          e.mins,
+          rate,
+          e.status || 'APPROVED',
+          submissionId,
+          projectId,
+          sourceVal
+        ]);
       });
       const csv = rows.map(r => r.join(',')).join('\n');
       const blob = new Blob([csv], { type: 'text/csv' });
