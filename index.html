@@ -4015,6 +4015,7 @@
                 redesigned the export filename format to now include the active period (e.g.
                 <code>Mar-2026-EarnTrack-2026-06-01.csv</code>) for better clarity.
               </li>
+              <li><strong>Automatic Updates</strong>: Improved the offline mode so the app now automatically stays up-to-date and loads new versions without requiring a manual hard refresh.</li>
             </ul>
           </div>
         </details>
@@ -6749,10 +6750,35 @@
 
     // Register Service Worker for offline capability
     if ('serviceWorker' in navigator) {
+      let refreshing = false;
+
+      // Listen for the controllerchange event to reload the page when a new service worker takes over
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (refreshing) return;
+        refreshing = true;
+        
+        // Try to notify the user using the existing toast system
+        const toastEl = document.getElementById('importToast') || document.getElementById('mobileImportToast') || document.getElementById('oobeImportToast');
+        if (toastEl) {
+          toastEl.textContent = 'App updated! Reloading...';
+          toastEl.className = 'import-toast';
+          toastEl.style.display = 'block';
+        }
+        
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      });
+
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('./sw.js')
           .then((registration) => {
             console.log('ServiceWorker registration successful with scope: ', registration.scope);
+
+            // Check for service worker updates periodically (once a day / every 24 hours)
+            setInterval(() => {
+              registration.update().catch(err => console.debug('SW update check failed:', err));
+            }, 24 * 60 * 60 * 1000);
           })
           .catch((err) => {
             console.error('ServiceWorker registration failed: ', err);

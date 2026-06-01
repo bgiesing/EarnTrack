@@ -1,4 +1,4 @@
-const CACHE_NAME = 'earntrack-cache-v1';
+const CACHE_NAME = 'earntrack-cache-v2';
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -21,15 +21,28 @@ const DYNAMIC_CACHE_DOMAINS = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[Service Worker] Caching static assets');
+      console.log('[Service Worker] Caching static assets with cache-busting');
       // Using map with individual cache attempts so that if one external URL fails, 
       // the entire service worker installation is not blocked.
       return Promise.allSettled(
-        STATIC_ASSETS.map((asset) => 
-          cache.add(asset).catch((err) => {
-            console.error(`[Service Worker] Failed to cache asset: ${asset}`, err);
-          })
-        )
+        STATIC_ASSETS.map((asset) => {
+          // Force network fetch to bypass browser HTTP cache on install/update
+          const request = new Request(asset, { cache: 'reload' });
+          return fetch(request)
+            .then((response) => {
+              if (response.ok) {
+                return cache.put(asset, response);
+              }
+              throw new Error(`Response status: ${response.status}`);
+            })
+            .catch((err) => {
+              console.warn(`[Service Worker] Reload-fetch failed for: ${asset}, falling back to default add`, err);
+              // Fallback to standard cache.add if new Request with reload cache fails for any reason (e.g. older browser or CORS restriction)
+              return cache.add(asset).catch((err2) => {
+                console.error(`[Service Worker] Failed to cache asset: ${asset}`, err2);
+              });
+            });
+        })
       );
     }).then(() => self.skipWaiting())
   );
@@ -51,64 +64,36 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch interceptor with hybrid Network-First/Cache-First strategy
+// Fetch interceptor with Cache-First strategy
 self.addEventListener('fetch', (event) => {
   // Only handle GET requests
   if (event.request.method !== 'GET') return;
 
   const url = new URL(event.request.url);
 
-  // Check if it's the HTML page, manifest, or a root navigation request
-  const isHtmlOrManifest = 
-    url.pathname.endsWith('index.html') || 
-    url.pathname === '/' || 
-    url.pathname.endsWith('manifest.json') ||
-    (url.origin === location.origin && (url.pathname === '' || url.pathname === '/'));
+  event.respondWith(
+    caches.match(event.request).then((cachedResponse) => {
+      if (cachedResponse) {
+        return cachedResponse;
+      }
 
-  if (isHtmlOrManifest) {
-    // Network-First strategy to ensure users get the latest version if online, falling back to cache
-    event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          if (response.status === 200) {
-            const responseClone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, responseClone);
-            });
-          }
-          return response;
-        })
-        .catch(() => {
-          console.log('[Service Worker] Fetch failed, serving HTML/manifest from cache');
-          return caches.match(event.request).then((cachedResponse) => {
-            if (cachedResponse) return cachedResponse;
-            // If completely offline and not in cache, fallback to main index.html
-            return caches.match('./index.html');
+      return fetch(event.request).then((response) => {
+        // If successful response and matches target dynamic cache domains or is same origin, cache it on-the-fly
+        const isEligibleDomain = DYNAMIC_CACHE_DOMAINS.some(domain => url.hostname.includes(domain));
+        if (response.status === 200 && (isEligibleDomain || url.origin === location.origin)) {
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseClone);
           });
-        })
-    );
-  } else {
-    // Cache-First strategy for images, icons, fonts, and scripts
-    event.respondWith(
-      caches.match(event.request).then((cachedResponse) => {
-        if (cachedResponse) {
-          return cachedResponse;
         }
-
-        return fetch(event.request).then((response) => {
-          // If successful response and matches target dynamic cache domains, cache it on-the-fly
-          const isEligibleDomain = DYNAMIC_CACHE_DOMAINS.some(domain => url.hostname.includes(domain));
-          if (response.status === 200 && (isEligibleDomain || url.origin === location.origin)) {
-            const responseClone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, responseClone);
-            });
-          }
-          return response;
-        }).catch((err) => {
-          console.error('[Service Worker] Dynamic fetch failed for:', event.request.url, err);
-        });
-      })
-    );
-  }
+        return response;
+      }).catch((err) => {
+        console.error('[Service Worker] Fetch failed for:', event.request.url, err);
+        // If it's a navigation request and we are completely offline/failed, fallback to cached index.html
+        if (event.request.mode === 'navigate') {
+          return caches.match('./index.html') || caches.match('/');
+        }
+      });
+    })
+  );
 });
