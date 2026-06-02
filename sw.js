@@ -64,13 +64,45 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch interceptor with Cache-First strategy
+// Fetch interceptor with hybrid strategies
 self.addEventListener('fetch', (event) => {
   // Only handle GET requests
   if (event.request.method !== 'GET') return;
 
   const url = new URL(event.request.url);
+  const isNavigation = event.request.mode === 'navigate' || 
+                       url.pathname.endsWith('/') || 
+                       url.pathname.endsWith('/index.html');
 
+  if (isNavigation) {
+    // Stale-While-Revalidate strategy for the main document
+    event.respondWith(
+      caches.match(event.request).then((cachedResponse) => {
+        const fetchPromise = fetch(event.request)
+          .then((networkResponse) => {
+            if (networkResponse.status === 200) {
+              const responseClone = networkResponse.clone();
+              caches.open(CACHE_NAME).then((cache) => {
+                cache.put(event.request, responseClone);
+              });
+            }
+            return networkResponse;
+          })
+          .catch((err) => {
+            console.debug('[Service Worker] Background fetch failed for navigation:', err);
+          });
+
+        return cachedResponse || fetchPromise;
+      }).catch((err) => {
+        console.error('[Service Worker] Match failed for navigation:', err);
+        // Fallback if match itself fails
+        return caches.match('./index.html') || caches.match('/');
+      })
+    );
+    return;
+  }
+
+  // Cache-First strategy for other static assets
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {
@@ -89,10 +121,6 @@ self.addEventListener('fetch', (event) => {
         return response;
       }).catch((err) => {
         console.error('[Service Worker] Fetch failed for:', event.request.url, err);
-        // If it's a navigation request and we are completely offline/failed, fallback to cached index.html
-        if (event.request.mode === 'navigate') {
-          return caches.match('./index.html') || caches.match('/');
-        }
       });
     })
   );
