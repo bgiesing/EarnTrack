@@ -1293,6 +1293,26 @@
       color: var(--md-on-error-container);
     }
 
+    .edit-btn-inline {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 999px;
+      transition: all 0.15s var(--motion);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+    }
+
+    .edit-btn-inline:hover {
+      background: var(--md-secondary-container);
+      color: var(--md-primary);
+    }
+
     .empty-state {
       text-align: center;
       padding: 3rem;
@@ -1713,10 +1733,23 @@
       transform: scale(1);
     }
 
+    .edit-modal-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .edit-modal-actions {
+      display: flex;
+      gap: 0.75rem;
+      margin-top: 1.25rem;
+      width: 100%;
+    }
+
     .modal-close-btn {
       position: absolute;
-      top: 14px;
-      right: 14px;
+      top: 32px;
+      right: 32px;
       background: none;
       border: none;
       font-size: 16px;
@@ -1866,7 +1899,7 @@
       border-radius: var(--radius-sm);
       box-shadow: 0 8px 32px var(--md-shadow);
       padding: 16px;
-      z-index: 1000;
+      z-index: 3000;
       width: 280px;
       font-family: var(--sans);
       display: none;
@@ -1916,6 +1949,13 @@
     .m3-calendar-btn:hover {
       background: var(--md-surface-container-highest);
       color: var(--text);
+    }
+
+    .m3-calendar-body {
+      height: 185px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
 
     .m3-calendar-weekdays {
@@ -2214,6 +2254,36 @@
         justify-content: flex-start;
       }
 
+      .modal-close-btn {
+        top: 1.5rem !important;
+        right: 1.5rem !important;
+        transform: translateY(-4px) !important;
+      }
+
+      .edit-modal-card {
+        padding-bottom: 140px !important;
+      }
+
+      .edit-modal-actions {
+        position: absolute !important;
+        bottom: 1.5rem !important;
+        left: 1.5rem !important;
+        right: 1.5rem !important;
+        width: calc(100% - 3rem) !important;
+        margin-top: 0 !important;
+        display: flex !important;
+        flex-direction: column-reverse !important;
+        gap: 0.75rem !important;
+      }
+
+      .edit-modal-actions button {
+        width: 100% !important;
+        flex: none !important;
+        min-height: 44px !important;
+        height: 44px !important;
+        margin: 0 !important;
+      }
+
       .oobe-modal-card {
         justify-content: center;
       }
@@ -2341,8 +2411,8 @@
         width: 100% !important;
       }
 
-      .mobile-add-stack .add-row>*:nth-child(6) {
-        margin-top: 1rem !important;
+      .mobile-add-stack .add-row>*:last-child {
+        margin-top: 1.2rem !important;
       }
 
       .mobile-add-stack .add-btn {
@@ -2518,7 +2588,7 @@
       }
 
       /* Mobile calendar backdrop overlay */
-      #m3CalendarMobile {
+      #m3Calendar {
         position: fixed !important;
         top: 0 !important;
         left: 0 !important;
@@ -2538,7 +2608,7 @@
       }
 
       /* Make it use flex display when active */
-      #m3CalendarMobile[style*="display: block"] {
+      #m3Calendar[style*="block"] {
         display: flex !important;
       }
 
@@ -2549,12 +2619,22 @@
         border-radius: var(--radius) !important;
         box-shadow: 0 12px 48px var(--md-shadow) !important;
         padding: 20px !important;
-        width: 300px !important;
+        width: 92% !important;
+        max-width: 360px !important;
         box-sizing: border-box !important;
         display: flex !important;
         flex-direction: column !important;
         gap: 12px !important;
         animation: m3ScaleIn 0.3s var(--motion) !important;
+      }
+
+      .m3-calendar-body {
+        height: 235px !important;
+      }
+
+      .edit-modal-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1.25rem !important;
       }
 
       @keyframes m3ScaleIn {
@@ -2682,7 +2762,7 @@
       }
 
       /* Increase button sizes and touch targets */
-      button:not(.del-btn):not(.m3-calendar-btn):not(.seed-pill),
+      button:not(.del-btn):not(.m3-calendar-btn):not(.seed-pill):not(.edit-btn-inline),
       .add-btn,
       .export-btn,
       .btn-load-more,
@@ -2810,6 +2890,35 @@
         width: 28px !important;
         height: 28px !important;
         font-size: 17px !important;
+      }
+
+      .mobile-study-actions .edit-btn-inline {
+        background: transparent !important;
+        color: var(--muted) !important;
+        border: none !important;
+        width: 32px !important;
+        height: 32px !important;
+        border-radius: 99px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 0 !important;
+        min-height: 32px !important;
+        cursor: pointer !important;
+        box-shadow: none !important;
+        transition: background 0.15s var(--motion), color 0.15s var(--motion) !important;
+      }
+
+      .mobile-study-actions .edit-btn-inline:active {
+        background: var(--md-secondary-container) !important;
+        color: var(--md-on-secondary-container) !important;
+      }
+
+      .mobile-study-actions .edit-btn-inline svg {
+        width: 16px !important;
+        height: 16px !important;
+        stroke: currentColor !important;
+        display: block !important;
       }
 
       /* Studies tab count text & full-width search alignment */
@@ -3376,6 +3485,18 @@
                 <div class="field-label">Minutes</div>
                 <input type="number" class="field-input" id="studyMins" placeholder="0" min="1" step="1">
               </div>
+              <div>
+                <div class="field-label">Status</div>
+                <select class="field-input" id="studyStatus" style="background-color: var(--md-surface-container);">
+                  <option value="APPROVED">Approved</option>
+                  <option value="AWAITING REVIEW">Awaiting review</option>
+                  <option value="PARTIALLY APPROVED">Partially approved</option>
+                  <option value="SCREENED OUT">Screened out</option>
+                  <option value="RETURNED">Returned</option>
+                  <option value="REJECTED">Rejected</option>
+                  <option value="TIMED-OUT">Timed-out</option>
+                </select>
+              </div>
               <div style="position: relative;">
                 <div class="field-label">Date &amp; Time</div>
                 <div style="position: relative; display: flex; align-items: center;">
@@ -3390,7 +3511,6 @@
                     <line x1="3" y1="10" x2="21" y2="10"></line>
                   </svg>
                 </div>
-                <div id="m3Calendar" class="m3-calendar"></div>
               </div>
               <div style="display:flex; align-items:flex-end;">
                 <button class="add-btn" onclick="addManual()">+ Add</button>
@@ -3533,6 +3653,18 @@
               <div class="field-label">Minutes</div>
               <input type="number" class="field-input" id="studyMinsMobile" placeholder="0" min="1" step="1">
             </div>
+            <div>
+              <div class="field-label">Status</div>
+              <select class="field-input" id="studyStatusMobile" style="background-color: var(--md-surface-container);">
+                <option value="APPROVED">Approved</option>
+                <option value="AWAITING REVIEW">Awaiting review</option>
+                <option value="PARTIALLY APPROVED">Partially approved</option>
+                <option value="SCREENED OUT">Screened out</option>
+                <option value="RETURNED">Returned</option>
+                <option value="REJECTED">Rejected</option>
+                <option value="TIMED-OUT">Timed-out</option>
+              </select>
+            </div>
             <div style="position:relative;">
               <div class="field-label">Date &amp; Time</div>
               <div style="position:relative; display:flex; align-items:center;">
@@ -3547,7 +3679,6 @@
                   <line x1="3" y1="10" x2="21" y2="10"></line>
                 </svg>
               </div>
-              <div id="m3CalendarMobile" class="m3-calendar"></div>
             </div>
             <div style="display:flex; align-items:flex-end;">
               <button class="add-btn" onclick="addManualMobile()">+ Add</button>
@@ -3811,6 +3942,71 @@
     </div>
   </div>
 
+  <div class="modal-overlay" id="editModal" onclick="closeEditModalOnBackdrop(event)">
+    <div class="modal-card edit-modal-card">
+      <button class="modal-close-btn" onclick="closeEditModal()">✕</button>
+      <h2 style="margin-top: 0; margin-bottom: 1.5rem; font-size: 1.25rem; font-weight: 600; color: var(--text); font-family: var(--sans);">Edit Study</h2>
+      
+      <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+        <div>
+          <div class="field-label">Study name</div>
+          <input type="text" class="field-input" id="editStudyName" placeholder="e.g. Memory &amp; attention task" style="width: 100%; box-sizing: border-box;">
+        </div>
+        
+        <div class="edit-modal-grid">
+          <div>
+            <div class="field-label" id="editPayFieldLabel">Pay</div>
+            <input type="number" class="field-input" id="editStudyPay" placeholder="0.00" min="0" step="0.01" style="width: 100%; box-sizing: border-box;">
+          </div>
+          <div>
+            <div class="field-label" id="editBonusFieldLabel">Bonus</div>
+            <input type="number" class="field-input" id="editStudyBonus" placeholder="0.00" min="0" step="0.01" style="width: 100%; box-sizing: border-box;">
+          </div>
+        </div>
+
+        <div class="edit-modal-grid">
+          <div>
+            <div class="field-label">Minutes</div>
+            <input type="number" class="field-input" id="editStudyMins" placeholder="0" min="1" step="1" style="width: 100%; box-sizing: border-box;">
+          </div>
+          <div>
+            <div class="field-label">Status</div>
+            <select class="field-input" id="editStudyStatus" style="width: 100%; box-sizing: border-box; background-color: var(--md-surface-container);">
+              <option value="APPROVED">Approved</option>
+              <option value="AWAITING REVIEW">Awaiting review</option>
+              <option value="PARTIALLY APPROVED">Partially approved</option>
+              <option value="SCREENED OUT">Screened out</option>
+              <option value="RETURNED">Returned</option>
+              <option value="REJECTED">Rejected</option>
+              <option value="TIMED-OUT">Timed-out</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="position: relative;">
+          <div class="field-label">Date &amp; Time</div>
+          <div style="position: relative; display: flex; align-items: center;">
+            <input type="text" class="field-input" id="editStudyDate" readonly
+              style="cursor: pointer; padding-right: 32px; width: 100%; box-sizing: border-box;" onclick="toggleM3CalendarEdit(event)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round"
+              style="position: absolute; right: 10px; width: 16px; height: 16px; color: var(--muted); pointer-events: none;">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+          </div>
+          </div>
+
+        <div class="edit-modal-actions">
+          <button class="add-btn" onclick="saveEditEntry()" style="flex: 1; height: 38px; padding: 0 16px; font-family: var(--sans); font-size: 13px; font-weight: 600; border-radius: 999px; cursor: pointer;">Save Changes</button>
+          <button class="export-btn" onclick="deleteEditingEntry()" style="flex: 1; height: 38px; padding: 0 16px; font-family: var(--sans); font-size: 13px; font-weight: 600; color: var(--red); border-color: color-mix(in srgb, var(--md-error) 32%, transparent); border-radius: 999px; margin: 0; display: flex; align-items: center; justify-content: center; box-sizing: border-box; cursor: pointer;">Delete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-overlay" id="settingsModal" onclick="closeSettingsModalOnBackdrop(event)">
     <div class="modal-card settings-modal-card">
       <button class="modal-close-btn" onclick="closeSettingsModal()">✕</button>
@@ -3975,7 +4171,7 @@
       <div class="whats-new-header">
         <span class="whats-new-icon">✨</span>
         <h2 class="whats-new-title">What's New</h2>
-        <span class="whats-new-ver-pill" id="whatsNewVerPill">v3.0.1</span>
+        <span class="whats-new-ver-pill" id="whatsNewVerPill">v3.1</span>
         <button class="whats-new-close-btn" onclick="closeWhatsNewModal()" title="Dismiss">✕</button>
       </div>
 
@@ -3998,11 +4194,11 @@
 
       <div class="changelog-entries">
 
-        <!-- v3.0.1 (Newest) -->
+        <!-- v3.1 (Newest) -->
         <details class="changelog-item" name="changelog" open>
           <summary>
             <div class="changelog-header">
-              <span class="changelog-ver">v3.0.1</span>
+              <span class="changelog-ver">v3.1</span>
               <div style="display: flex; align-items: center; gap: 8px; margin-left: auto;">
                 <span class="changelog-date">2026-06-01</span>
                 <span class="changelog-icon">▼</span>
@@ -4011,6 +4207,8 @@
           </summary>
           <div class="changelog-content">
             <ul>
+              <li><strong>Study Editing</strong>: You can now edit all details of past entries (Study Name, Date, Pay, Bonus, Time, Status).</li>
+              <li><strong>Manual Logging Status</strong>: Manual entry now lets you select the study's approval status directly from a dropdown before adding.</li>
               <li><strong>CSV Export Fixes</strong>: Resolved a bug where exporting to CSV threw a ReferenceError, and
                 redesigned the export filename format to now include the active period (e.g.
                 <code>Mar-2026-EarnTrack-2026-06-01.csv</code>) for better clarity.
@@ -4218,6 +4416,8 @@
   </div>
 
 
+  <div id="m3Calendar" class="m3-calendar"></div>
+
   <div class="confirm-overlay" id="confirmOverlay">
     <div class="confirm-box">
       <h3>Clear all data?</h3>
@@ -4231,16 +4431,27 @@
 
   <script>
     // ─── State ───────────────────────────────────────────────────────────────────
-    const APP_VERSION = '3.0.1';
+    const APP_VERSION = '3.1';
     let entries = JSON.parse(localStorage.getItem('prolific_entries') || '[]');
+    let stateVersion = 0;
 
-    // Migration: ensure all entries have a bonus field
+    // Migration: ensure all entries have unique IDs and a bonus field
+    const seenIds = new Set();
+    let migrationNeeded = false;
     entries = entries.map(e => {
       if (e.bonus === undefined) {
         e.bonus = 0;
       }
+      if (!e.id || seenIds.has(String(e.id))) {
+        e.id = 'entry_' + Math.random().toString(36).substring(2, 15) + '_' + Date.now();
+        migrationNeeded = true;
+      }
+      seenIds.add(String(e.id));
       return e;
     });
+    if (migrationNeeded) {
+      localStorage.setItem('prolific_entries', JSON.stringify(entries));
+    }
 
     function enrichEntries(list) {
       list.forEach(e => {
@@ -4938,6 +5149,7 @@
     }
 
     function save() {
+      stateVersion++;
       try {
         localStorage.setItem('prolific_entries', JSON.stringify(entries));
         localStorage.setItem('prolific_goal', weeklyGoal);
@@ -5259,6 +5471,10 @@
       // Update goal symbol and manual add label
       updateLabel('payFieldLabel', 'Pay (' + currSymbol() + ')');
       updateLabel('bonusFieldLabel', 'Bonus (' + currSymbol() + ')');
+      const editPayFieldLabel = document.getElementById('editPayFieldLabel');
+      if (editPayFieldLabel) editPayFieldLabel.textContent = 'Pay (' + currSymbol() + ')';
+      const editBonusFieldLabel = document.getElementById('editBonusFieldLabel');
+      if (editBonusFieldLabel) editBonusFieldLabel.textContent = 'Bonus (' + currSymbol() + ')';
 
       // Update step attributes and placeholders based on selected currency
       const stepVal = currency === 'BTC' ? '0.00000001' : '0.01';
@@ -5272,6 +5488,26 @@
       if (bonusInput) {
         bonusInput.step = stepVal;
         bonusInput.placeholder = currency === 'BTC' ? '0.00000000' : '0.00';
+      }
+      const payInputMobile = document.getElementById('studyPayMobile');
+      if (payInputMobile) {
+        payInputMobile.step = stepVal;
+        payInputMobile.placeholder = currency === 'BTC' ? '0.00000000' : '0.00';
+      }
+      const bonusInputMobile = document.getElementById('studyBonusMobile');
+      if (bonusInputMobile) {
+        bonusInputMobile.step = stepVal;
+        bonusInputMobile.placeholder = currency === 'BTC' ? '0.00000000' : '0.00';
+      }
+      const editPayInput = document.getElementById('editStudyPay');
+      if (editPayInput) {
+        editPayInput.step = stepVal;
+        editPayInput.placeholder = currency === 'BTC' ? '0.00000000' : '0.00';
+      }
+      const editBonusInput = document.getElementById('editStudyBonus');
+      if (editBonusInput) {
+        editBonusInput.step = stepVal;
+        editBonusInput.placeholder = currency === 'BTC' ? '0.00000000' : '0.00';
       }
       const goalInput = document.getElementById('goalInput');
       if (goalInput) goalInput.step = goalStepVal;
@@ -5363,7 +5599,7 @@
           <td class="td-time">${e.mins}m</td>
           <td><span class="rate-badge ${rateCls}">${fmtRate(rate)}</span></td>
           <td><span class="status-badge ${statusCls}">${statusLabel}</span></td>
-          <td><button class="del-btn" onclick="deleteEntry(${e.id})">✕</button></td>
+          <td><button class="edit-btn-inline" onclick="openEditModal('${e.id}')" aria-label="Edit entry"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display: block;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button></td>
         </tr>`;
         }).join('')}
       </tbody>
@@ -5405,7 +5641,7 @@
       const isDesktop = !isMobile;
       const isMobileDashboard = isMobile && document.getElementById('mobilePanel-dashboard')?.classList.contains('active');
 
-      const chartKey = currency + '|' + chartRange + '|' + currentWeekOffset + '|' + latestKey + '|' + document.documentElement.dataset.theme + '|' + (RATES[currency] || 1) + '|' + themeSeed.h + '|' + themeSeed.s + '|' + weekStartDay;
+      const chartKey = currency + '|' + chartRange + '|' + currentWeekOffset + '|' + latestKey + '|' + document.documentElement.dataset.theme + '|' + (RATES[currency] || 1) + '|' + themeSeed.h + '|' + themeSeed.s + '|' + weekStartDay + '|' + stateVersion;
 
       if (isDesktop && chartKey !== lastChartKey) {
         renderChart('earningsChart');
@@ -5472,7 +5708,7 @@
                   </div>
                   <div class="mobile-study-actions">
                     <span class="rate-badge ${rateCls}">${fmtRate(rate)}</span>
-                    <button class="del-btn" onclick="deleteEntry(${e.id})" aria-label="Delete entry">✕</button>
+                    <button class="edit-btn-inline" onclick="openEditModal('${e.id}')" aria-label="Edit entry"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="display: block;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 1 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
                   </div>
                 </div>
               </div>`;
@@ -5789,6 +6025,7 @@
       let bonus = parseFloat(document.getElementById('studyBonus' + suffix)?.value) || 0;
       const mins = parseInt(document.getElementById('studyMins' + suffix)?.value);
       const date = document.getElementById('studyDate' + suffix)?.value;
+      const status = document.getElementById('studyStatus' + suffix)?.value || 'APPROVED';
       if (isNaN(pay) || isNaN(mins) || mins < 1 || pay < 0 || !date) {
         alert('Please fill in pay, duration, date, and time.');
         return;
@@ -5799,7 +6036,7 @@
         bonus = bonus / (RATES[currency] || 1);
       }
 
-      const newEntry = { id: Date.now(), name, pay, bonus, mins, date: parseInputDateTime(date).toISOString(), status: 'APPROVED', source: 'manual' };
+      const newEntry = { id: 'entry_' + Math.random().toString(36).substring(2, 15) + '_' + Date.now(), name, pay, bonus, mins, date: parseInputDateTime(date).toISOString(), status, source: 'manual' };
       newEntry._ts = new Date(newEntry.date).getTime();
       entries.push(newEntry);
       save();
@@ -5807,6 +6044,9 @@
       document.getElementById('studyPay' + suffix).value = '';
       document.getElementById('studyBonus' + suffix).value = '';
       document.getElementById('studyMins' + suffix).value = '';
+      if (document.getElementById('studyStatus' + suffix)) {
+        document.getElementById('studyStatus' + suffix).value = 'APPROVED';
+      }
       document.getElementById('studyDate' + suffix).value = todayDateTimeStr();
       render();
     }
@@ -5815,9 +6055,105 @@
       addManualEntry(false);
     }
 
+    // ─── Edit Modal JS implementation ─────────────────────────────────────────────
+    let currentEditingId = null;
+
+    function openEditModal(id) {
+      const entry = entries.find(e => String(e.id) === String(id));
+      if (!entry) return;
+
+      currentEditingId = id;
+
+      // Populate fields
+      document.getElementById('editStudyName').value = entry.name || '';
+      
+      // Pay and bonus values in the input must be displayed in the user's selected currency
+      let payVal = entry.pay;
+      let bonusVal = entry.bonus || 0;
+      if (currency !== 'GBP') {
+        payVal = payVal * (RATES[currency] || 1);
+        bonusVal = bonusVal * (RATES[currency] || 1);
+      }
+      // Round appropriately
+      const decimalPlaces = currency === 'BTC' ? 8 : 2;
+      document.getElementById('editStudyPay').value = payVal.toFixed(decimalPlaces);
+      document.getElementById('editStudyBonus').value = bonusVal.toFixed(decimalPlaces);
+      document.getElementById('editStudyMins').value = entry.mins || '';
+      
+      // Date and Time formatting
+      const dateObj = new Date(entry.date);
+      document.getElementById('editStudyDate').value = formatDateTimeForInput(dateObj);
+      
+      // Status option matching
+      const statusSelect = document.getElementById('editStudyStatus');
+      if (statusSelect) {
+        statusSelect.value = (entry.status || 'APPROVED').toUpperCase();
+      }
+
+      const modal = document.getElementById('editModal');
+      if (modal) modal.classList.add('open');
+    }
+
+    function closeEditModal() {
+      const modal = document.getElementById('editModal');
+      if (modal) modal.classList.remove('open');
+      currentEditingId = null;
+      // Also hide calendar if open
+      closeM3Calendar();
+    }
+
+    function closeEditModalOnBackdrop(event) {
+      if (event.target.id === 'editModal') {
+        closeEditModal();
+      }
+    }
+
+    function saveEditEntry() {
+      if (!currentEditingId) return;
+      const name = document.getElementById('editStudyName')?.value.trim() || 'Unnamed study';
+      let pay = parseFloat(document.getElementById('editStudyPay')?.value);
+      let bonus = parseFloat(document.getElementById('editStudyBonus')?.value) || 0;
+      const mins = parseInt(document.getElementById('editStudyMins')?.value);
+      const date = document.getElementById('editStudyDate')?.value;
+      const status = document.getElementById('editStudyStatus')?.value || 'APPROVED';
+
+      if (isNaN(pay) || isNaN(mins) || mins < 1 || pay < 0 || !date) {
+        alert('Please fill in pay, duration, date, and time.');
+        return;
+      }
+
+      // Convert input currency back to base GBP currency
+      if (currency !== 'GBP') {
+        pay = pay / (RATES[currency] || 1);
+        bonus = bonus / (RATES[currency] || 1);
+      }
+
+      const entryIndex = entries.findIndex(e => String(e.id) === String(currentEditingId));
+      if (entryIndex !== -1) {
+        entries[entryIndex].name = name;
+        entries[entryIndex].pay = pay;
+        entries[entryIndex].bonus = bonus;
+        entries[entryIndex].mins = mins;
+        entries[entryIndex].date = parseInputDateTime(date).toISOString();
+        entries[entryIndex]._ts = new Date(entries[entryIndex].date).getTime();
+        entries[entryIndex].status = status;
+        save();
+        render();
+        closeEditModal();
+      }
+    }
+
+    function deleteEditingEntry() {
+      if (!currentEditingId) return;
+      if (confirm('Are you sure you want to delete this study?')) {
+        deleteEntry(currentEditingId);
+        closeEditModal();
+      }
+    }
+
     // ─── Delete ───────────────────────────────────────────────────────────────────
     function deleteEntry(id) {
-      entries = entries.filter(e => e.id !== id);
+      entries = entries.filter(e => String(e.id) !== String(id));
       save();
       render();
     }
@@ -6286,7 +6622,7 @@
         }
 
         const entry = {
-          id: Date.now() + i,
+          id: 'entry_' + Math.random().toString(36).substring(2, 15) + '_' + Date.now() + '_' + i,
           name,
           pay,
           bonus: bonusPayGBP,
@@ -6625,48 +6961,78 @@
     let selectedCalendarDate = null;
     let calendarHour = 12;
     let calendarMinute = 0;
-    let calendarIsMobile = false;
+    let calendarInputId = 'studyDate';
+    let calendarDivId = 'm3Calendar';
 
-    function toggleM3CalendarCommon(e, isMobile) {
+    function toggleM3CalendarCommon(e, inputId) {
       if (e) e.stopPropagation();
-      calendarIsMobile = isMobile;
-      const calId = isMobile ? 'm3CalendarMobile' : 'm3Calendar';
-      const inputId = isMobile ? 'studyDateMobile' : 'studyDate';
+      calendarInputId = inputId;
+      calendarDivId = 'm3Calendar';
 
-      const cal = document.getElementById(calId);
+      const cal = document.getElementById('m3Calendar');
       if (!cal) return;
 
-      // Close other calendar first
-      const otherCalId = isMobile ? 'm3Calendar' : 'm3CalendarMobile';
-      const otherCal = document.getElementById(otherCalId);
-      if (otherCal) otherCal.style.display = 'none';
-
-      if (cal.style.display === 'block') {
+      if (cal.style.display === 'block' && cal.dataset.activeInput === inputId) {
         cal.style.display = 'none';
+        cal.dataset.activeInput = '';
       } else {
         const input = document.getElementById(inputId);
         const parsed = input && input.value ? parseInputDateTime(input.value) : new Date();
 
         selectedCalendarDate = new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate());
-        calendarDate = isMobile ? new Date(parsed.getFullYear(), parsed.getMonth(), 1) : new Date(parsed);
+        calendarDate = new Date(parsed);
         calendarHour = parsed.getHours();
         calendarMinute = parsed.getMinutes();
 
         cal.style.display = 'block';
+        cal.dataset.activeInput = inputId;
+
+        // Position dynamically on desktop
+        if (window.innerWidth >= 768) {
+          const rect = input.getBoundingClientRect();
+          cal.style.position = 'fixed';
+          
+          // First, render the inner HTML so we can get its exact rendered height
+          renderM3CalendarCommon();
+          
+          const calHeight = cal.offsetHeight || 360;
+          const spaceBelow = window.innerHeight - rect.bottom;
+          const spaceAbove = rect.top;
+
+          if (spaceBelow < calHeight + 16 && spaceAbove > spaceBelow) {
+            // Position above the input field
+            cal.style.top = (rect.top - calHeight - 8) + 'px';
+          } else {
+            // Position below the input field
+            cal.style.top = (rect.bottom + 8) + 'px';
+          }
+
+          const leftPos = Math.min(rect.left, window.innerWidth - 320);
+          cal.style.left = Math.max(16, leftPos) + 'px';
+          cal.style.bottom = 'auto';
+          cal.style.right = 'auto';
+        } else {
+          // On mobile, let CSS positioning take over
+          cal.style.position = '';
+          cal.style.top = '';
+          cal.style.left = '';
+          cal.style.bottom = '';
+          cal.style.right = '';
+        }
+
         renderM3CalendarCommon();
       }
     }
 
     function renderM3CalendarCommon() {
-      const calId = calendarIsMobile ? 'm3CalendarMobile' : 'm3Calendar';
-      const cal = document.getElementById(calId);
+      const cal = document.getElementById('m3Calendar');
       if (!cal) return;
 
       const year = calendarDate.getFullYear();
       const month = calendarDate.getMonth();
 
       const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-      const titleText = calendarIsMobile
+      const titleText = window.innerWidth < 768
         ? calendarDate.toLocaleString('en-GB', { month: 'long', year: 'numeric' })
         : `${monthNames[month]} ${year}`;
 
@@ -6685,14 +7051,15 @@
 
       let calendarInnerHtml = `
         <div class="m3-calendar-header" onclick="event.stopPropagation()">
-          <button type="button" class="m3-calendar-btn" onclick="${calendarIsMobile ? 'changeM3MonthMobile' : 'changeM3Month'}(-1, event)">‹</button>
+          <button type="button" class="m3-calendar-btn" onclick="changeM3Month(-1, event)">‹</button>
           <span class="m3-calendar-title">${titleText}</span>
-          <button type="button" class="m3-calendar-btn" onclick="${calendarIsMobile ? 'changeM3MonthMobile' : 'changeM3Month'}(1, event)">›</button>
+          <button type="button" class="m3-calendar-btn" onclick="changeM3Month(1, event)">›</button>
         </div>
         <div class="m3-calendar-weekdays" onclick="event.stopPropagation()">
           ${weekdaysHtml}
         </div>
-        <div class="m3-calendar-days" onclick="event.stopPropagation()">
+        <div class="m3-calendar-body" onclick="event.stopPropagation()">
+          <div class="m3-calendar-days">
       `;
 
       for (let i = 0; i < emptyCells; i++) {
@@ -6702,10 +7069,12 @@
       for (let day = 1; day <= totalDays; day++) {
         const isSelected = isSameMonth && selectedCalendarDate.getDate() === day;
         const cls = isSelected ? 'm3-calendar-day selected' : 'm3-calendar-day';
-        calendarInnerHtml += `<span class="${cls}" onclick="${calendarIsMobile ? 'selectM3DayMobile' : 'selectM3Day'}(${day}, event)">${day}</span>`;
+        calendarInnerHtml += `<span class="${cls}" onclick="selectM3Day(${day}, event)">${day}</span>`;
       }
 
-      calendarInnerHtml += `</div>`;
+      calendarInnerHtml += `
+          </div>
+        </div>`;
 
       // Time Selector Row
       calendarInnerHtml += `
@@ -6713,7 +7082,7 @@
         <div class="m3-calendar-time-row" onclick="event.stopPropagation()">
           <span class="m3-calendar-time-label">Time</span>
           <div class="m3-calendar-time-inputs">
-            <select class="m3-calendar-time-select" id="${calendarIsMobile ? 'm3CalHourMobile' : 'm3CalHour'}" onchange="${calendarIsMobile ? 'calendarHourMobile = +this.value' : 'updateM3Hour(this.value)'}">
+            <select class="m3-calendar-time-select" id="m3CalHour" onchange="updateM3Hour(this.value)">
       `;
 
       const displayHour = calendarHour % 12 === 0 ? 12 : calendarHour % 12;
@@ -6734,7 +7103,7 @@
       calendarInnerHtml += `
             </select>
             <span class="m3-calendar-time-colon">:</span>
-            <select class="m3-calendar-time-select" id="${calendarIsMobile ? 'm3CalMinuteMobile' : 'm3CalMinute'}" onchange="${calendarIsMobile ? 'calendarMinuteMobile = +this.value' : 'calendarMinute = parseInt(this.value)'}">
+            <select class="m3-calendar-time-select" id="m3CalMinute" onchange="calendarMinute = parseInt(this.value)">
       `;
       for (let m = 0; m < 60; m++) {
         const val = String(m).padStart(2, '0');
@@ -6748,7 +7117,7 @@
       if (timeFormat === '12h') {
         const isPm = calendarHour >= 12;
         calendarInnerHtml += `
-            <select class="m3-calendar-time-select" id="${calendarIsMobile ? 'm3CalAmPmMobile' : 'm3CalAmPm'}" onchange="${calendarIsMobile ? 'setM3AmPmMobile(this.value)' : 'updateM3AmPm(this.value)'}" style="margin-left: 4px;">
+            <select class="m3-calendar-time-select" id="m3CalAmPm" onchange="updateM3AmPm(this.value)" style="margin-left: 4px;">
               <option value="AM" ${!isPm ? 'selected' : ''}>AM</option>
               <option value="PM" ${isPm ? 'selected' : ''}>PM</option>
             </select>
@@ -6763,17 +7132,22 @@
       // Confirm & Cancel Buttons Footer
       calendarInnerHtml += `
         <div class="m3-calendar-footer" onclick="event.stopPropagation()">
-          <button type="button" class="m3-calendar-footer-btn cancel" onclick="${calendarIsMobile ? 'closeMobileCalendar' : 'closeM3Calendar'}(event)">Cancel</button>
-          <button type="button" class="m3-calendar-footer-btn confirm" onclick="${calendarIsMobile ? 'confirmM3CalendarMobile' : 'confirmM3Calendar'}(event)">${calendarIsMobile ? 'OK' : 'Confirm'}</button>
+          <button type="button" class="m3-calendar-footer-btn cancel" onclick="closeM3Calendar(event)">Cancel</button>
+          <button type="button" class="m3-calendar-footer-btn confirm" onclick="confirmM3Calendar(event)">Confirm</button>
         </div>
       `;
 
-      if (calendarIsMobile) {
-        cal.innerHTML = `
-          <div class="m3-calendar-modal-card" onclick="event.stopPropagation()">
-            ${calendarInnerHtml}
-          </div>
-        `;
+      if (window.innerWidth < 768) {
+        let card = cal.querySelector('.m3-calendar-modal-card');
+        if (!card) {
+          cal.innerHTML = `
+            <div class="m3-calendar-modal-card" onclick="event.stopPropagation()">
+              ${calendarInnerHtml}
+            </div>
+          `;
+        } else {
+          card.innerHTML = calendarInnerHtml;
+        }
       } else {
         cal.innerHTML = calendarInnerHtml;
       }
@@ -6811,22 +7185,24 @@
       if (e) e.stopPropagation();
       if (!selectedCalendarDate) return;
       const finalDate = new Date(selectedCalendarDate.getFullYear(), selectedCalendarDate.getMonth(), selectedCalendarDate.getDate(), calendarHour, calendarMinute);
-      const inputId = calendarIsMobile ? 'studyDateMobile' : 'studyDate';
-      const input = document.getElementById(inputId);
+      const input = document.getElementById(calendarInputId);
       if (input) input.value = formatDateTimeForInput(finalDate);
       closeM3Calendar();
     }
 
     function closeM3Calendar(e) {
       if (e) e.stopPropagation();
-      const calId = calendarIsMobile ? 'm3CalendarMobile' : 'm3Calendar';
-      const cal = document.getElementById(calId);
-      if (cal) cal.style.display = 'none';
+      const cal = document.getElementById('m3Calendar');
+      if (cal) {
+        cal.style.display = 'none';
+        cal.dataset.activeInput = '';
+      }
     }
 
     // ─── Forwarders to preserve exact backward compatibility ─────────────────────
-    function toggleM3Calendar(e) { toggleM3CalendarCommon(e, false); }
-    function toggleM3CalendarMobile(e) { toggleM3CalendarCommon(e, true); }
+    function toggleM3Calendar(e) { toggleM3CalendarCommon(e, 'studyDate'); }
+    function toggleM3CalendarMobile(e) { toggleM3CalendarCommon(e, 'studyDateMobile'); }
+    function toggleM3CalendarEdit(e) { toggleM3CalendarCommon(e, 'editStudyDate'); }
     function changeM3MonthMobile(dir, e) { changeM3Month(dir, e); }
     function selectM3DayMobile(day, e) { selectM3Day(day, e); }
     function setM3AmPmMobile(val) { updateM3AmPm(val); }
@@ -6845,9 +7221,10 @@
 
     document.addEventListener('click', () => {
       const cal = document.getElementById('m3Calendar');
-      if (cal) cal.style.display = 'none';
-      const calM = document.getElementById('m3CalendarMobile');
-      if (calM) calM.style.display = 'none';
+      if (cal) {
+        cal.style.display = 'none';
+        cal.dataset.activeInput = '';
+      }
     });
 
     // ─── Mobile Tab Switching ─────────────────────────────────────────────────────
