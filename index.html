@@ -5824,6 +5824,9 @@
 
     // ─── CSV Import ───────────────────────────────────────────────────────────────
     function parseCSV(text, filename = '') {
+      if (text.startsWith('\ufeff')) {
+        text = text.substring(1);
+      }
       const lines = text.split(/\r?\n/).filter(l => l.trim());
       if (lines.length < 2) return { added: 0, skipped: 0, error: 'CSV appears empty' };
 
@@ -6178,12 +6181,18 @@
         const cols = parseCSVLine(lines[i]);
         if (!cols || cols.length < 2) continue;
 
-        const prolificId = !isCloudResearch && idxId !== -1 ? cols[idxId]?.trim() : null;
+        let prolificId = !isCloudResearch && idxId !== -1 ? cols[idxId]?.trim() : null;
+        if (isEarnTrack && idxId !== -1 && cols[idxId]?.trim()) {
+          prolificId = cols[idxId].trim();
+        }
         if (prolificId && existingIds.has(prolificId)) { skipped++; continue; }
         const projectId = isCloudResearch && idxProjectId !== -1 ? cols[idxProjectId]?.trim() : '';
         const completionCode = isCloudResearch && idxCompletionCode !== -1 ? cols[idxCompletionCode]?.trim() : '';
         const endRaw = idxEnd !== -1 ? cols[idxEnd]?.trim() : '';
-        const cloudResearchId = isCloudResearch && projectId ? projectId + '|' + (completionCode || endRaw) : null;
+        let cloudResearchId = isCloudResearch && projectId ? projectId + '|' + (completionCode || endRaw) : null;
+        if (isEarnTrack && idxProjectId !== -1 && cols[idxProjectId]?.trim()) {
+          cloudResearchId = cols[idxProjectId].trim();
+        }
         if (cloudResearchId && existingCloudResearchIds.has(cloudResearchId)) { skipped++; continue; }
 
         const name = idxName !== -1 ? (cols[idxName] || '').trim() || 'Unnamed study' : 'Study ' + i;
@@ -6210,7 +6219,10 @@
         const hasCompletion = end && !isNaN(end);
 
         // Deduplicate using normalized fingerprint (ISO Date)
-        const parsedDate = start && !isNaN(start) ? start : (end && !isNaN(end) ? end : null);
+        let parsedDate = end && !isNaN(end) ? end : (start && !isNaN(start) ? start : null);
+        if (!parsedDate) {
+          parsedDate = inferDateFromNeighborRows(i) || new Date();
+        }
         let normFingerprint = name + '|';
         if (parsedDate) {
           const dCopy = new Date(parsedDate.getTime());
@@ -6564,7 +6576,7 @@
         const totalPay = (e.pay + (e.bonus || 0)) * multiplier;
         const rate = e.mins > 0 ? (totalPay / (e.mins / 60)).toFixed(currency === 'BTC' ? 8 : 2) : '';
         const submissionId = e.prolificId || '';
-        const projectId = e.cloudResearchId ? e.cloudResearchId.split('|')[0] : '';
+        const projectId = e.cloudResearchId || '';
         const sourceVal = e.source || '';
         const formattedDate = new Date(e.date).toISOString().replace('T', ' ').substring(0, 19);
         rows.push([
