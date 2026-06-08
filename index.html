@@ -4195,8 +4195,26 @@
 
       <div class="changelog-entries">
 
-        <!-- v3.1 (Newest) -->
+        <!-- v3.1.1 (Newest) -->
         <details class="changelog-item" name="changelog" open>
+          <summary>
+            <div class="changelog-header">
+              <span class="changelog-ver">v3.1.1</span>
+              <div style="display: flex; align-items: center; gap: 8px; margin-left: auto;">
+                <span class="changelog-date">2026-06-08</span>
+                <span class="changelog-icon">▼</span>
+              </div>
+            </div>
+          </summary>
+          <div class="changelog-content">
+            <ul>
+              <li><strong>CSV Import Updates</strong>: Importing a new CSV now correctly updates previously imported entries if their details (like approval status, pay, or bonuses) have changed, rather than silently skipping them.</li>
+            </ul>
+          </div>
+        </details>
+
+        <!-- v3.1 -->
+        <details class="changelog-item" name="changelog">
           <summary>
             <div class="changelog-header">
               <span class="changelog-ver">v3.1</span>
@@ -4432,7 +4450,7 @@
 
   <script>
     // ─── State ───────────────────────────────────────────────────────────────────
-    const APP_VERSION = '3.1';
+    const APP_VERSION = '3.1.1';
     let entries = JSON.parse(localStorage.getItem('prolific_entries') || '[]');
     let stateVersion = 0;
 
@@ -5033,6 +5051,7 @@
       }
 
       let totalAdded = 0;
+      let totalUpdated = 0;
       let totalSkipped = 0;
       let hasError = false;
       let errorMsg = '';
@@ -5047,6 +5066,7 @@
             errorMsg = result.error;
           } else {
             totalAdded += result.added;
+            totalUpdated += result.updated || 0;
             totalSkipped += result.skipped;
           }
           processed++;
@@ -5067,15 +5087,16 @@
       });
 
       function handleFinished() {
-        if (hasError && totalAdded === 0) {
+        if (hasError && totalAdded === 0 && totalUpdated === 0) {
           displayToast('Error: ' + errorMsg, true, type);
         } else {
           let msg = `${totalAdded} studies imported`;
+          if (totalUpdated > 0) msg += `, ${totalUpdated} updated`;
           if (totalSkipped > 0) msg += `, ${totalSkipped} skipped`;
           if (hasError) msg += ` (some files failed: ${errorMsg})`;
           displayToast(msg, false, type);
           render();
-          if (onComplete) onComplete(totalAdded, totalSkipped);
+          if (onComplete) onComplete(totalAdded, totalSkipped, totalUpdated);
         }
       }
     }
@@ -6288,19 +6309,26 @@
         }
       }
 
-      const existingIds = new Set(entries.filter(e => e.prolificId).map(e => e.prolificId));
-      const existingCloudResearchIds = new Set(entries.filter(e => e.cloudResearchId).map(e => e.cloudResearchId));
-      const existingFingerprints = new Set(entries.filter(e => e.fingerprint).map(e => e.fingerprint));
-      const existingNormFingerprints = new Set(entries.map(e => {
+      const entryByProlificId = new Map();
+      const entryByCloudId = new Map();
+      const entryByFingerprint = new Map();
+      const entryByNormFingerprint = new Map();
+
+      entries.forEach(e => {
+        if (e.prolificId) entryByProlificId.set(e.prolificId, e);
+        if (e.cloudResearchId) entryByCloudId.set(e.cloudResearchId, e);
+        if (e.fingerprint) entryByFingerprint.set(e.fingerprint, e);
+        
         const d = e.date ? new Date(e.date) : null;
         if (d && !isNaN(d)) {
           const dCopy = new Date(d.getTime());
           dCopy.setMilliseconds(0);
-          return e.name + '|' + dCopy.toISOString();
+          entryByNormFingerprint.set(e.name + '|' + dCopy.toISOString(), e);
+        } else {
+          entryByNormFingerprint.set(e.name + '|', e);
         }
-        return e.name + '|';
-      }));
-      let added = 0, skipped = 0;
+      });
+      let added = 0, skipped = 0, updated = 0;
 
       // Convert CSV money into the internal base (GBP).
       function parseMoneyToGBP(raw, defaultCurrency = 'GBP') {
@@ -6522,7 +6550,6 @@
         if (isEarnTrack && idxId !== -1 && cols[idxId]?.trim()) {
           prolificId = cols[idxId].trim();
         }
-        if (prolificId && existingIds.has(prolificId)) { skipped++; continue; }
         const projectId = isCloudResearch && idxProjectId !== -1 ? cols[idxProjectId]?.trim() : '';
         const completionCode = isCloudResearch && idxCompletionCode !== -1 ? cols[idxCompletionCode]?.trim() : '';
         const endRaw = idxEnd !== -1 ? cols[idxEnd]?.trim() : '';
@@ -6530,13 +6557,11 @@
         if (isEarnTrack && idxProjectId !== -1 && cols[idxProjectId]?.trim()) {
           cloudResearchId = cols[idxProjectId].trim();
         }
-        if (cloudResearchId && existingCloudResearchIds.has(cloudResearchId)) { skipped++; continue; }
 
         const name = idxName !== -1 ? (cols[idxName] || '').trim() || 'Unnamed study' : 'Study ' + i;
         const status = normalizeImportStatus(idxStatus !== -1 ? cols[idxStatus] : 'APPROVED');
         const startRaw = idxStart !== -1 ? cols[idxStart]?.trim() : '';
         const fingerprint = name + '|' + (startRaw || endRaw || '');
-        if (!prolificId && !cloudResearchId && existingFingerprints.has(fingerprint)) { skipped++; continue; }
 
         const defaultCurrency = isCloudResearch ? 'USD' : csvCurrency;
         const rewardPayGBP = isCloudResearch
@@ -6560,13 +6585,6 @@
         if (!parsedDate) {
           parsedDate = inferDateFromNeighborRows(i) || new Date();
         }
-        let normFingerprint = name + '|';
-        if (parsedDate) {
-          const dCopy = new Date(parsedDate.getTime());
-          dCopy.setMilliseconds(0);
-          normFingerprint = name + '|' + dCopy.toISOString();
-        }
-        if (existingNormFingerprints.has(normFingerprint)) { skipped++; continue; }
 
         // Determine payment based on status while preserving unpaid records for stats.
         if (status === 'RETURNED' || status === 'TIMED-OUT' || status === 'REJECTED') {
@@ -6622,6 +6640,55 @@
           rowSource = cols[idxSource].trim();
         }
 
+        // Find existing entry
+        let existingEntry = null;
+        if (prolificId) {
+          existingEntry = entryByProlificId.get(prolificId);
+        }
+        if (!existingEntry && cloudResearchId) {
+          existingEntry = entryByCloudId.get(cloudResearchId);
+        }
+        if (!existingEntry && fingerprint) {
+          existingEntry = entryByFingerprint.get(fingerprint);
+        }
+        if (!existingEntry && parsedDate) {
+          const dCopyNew = new Date(parsedDate.getTime());
+          dCopyNew.setMilliseconds(0);
+          existingEntry = entryByNormFingerprint.get(name + '|' + dCopyNew.toISOString());
+        }
+
+        if (existingEntry) {
+          let updatedItem = false;
+          if (existingEntry.status !== status) {
+            existingEntry.status = status;
+            updatedItem = true;
+          }
+          if (existingEntry.pay !== pay) {
+            existingEntry.pay = pay;
+            updatedItem = true;
+          }
+          if (existingEntry.bonus !== bonusPayGBP) {
+            existingEntry.bonus = bonusPayGBP;
+            updatedItem = true;
+          }
+          if (mins !== 1 && existingEntry.mins !== mins) {
+            existingEntry.mins = mins;
+            updatedItem = true;
+          }
+          if (dateStr && existingEntry.date !== dateStr) {
+            existingEntry.date = dateStr;
+            delete existingEntry._ts;
+            updatedItem = true;
+          }
+
+          if (updatedItem) {
+            updated++;
+          } else {
+            skipped++;
+          }
+          continue;
+        }
+
         const entry = {
           id: 'entry_' + Math.random().toString(36).substring(2, 15) + '_' + Date.now() + '_' + i,
           name,
@@ -6636,15 +6703,20 @@
         if (prolificId) entry.prolificId = prolificId;
         if (cloudResearchId) entry.cloudResearchId = cloudResearchId;
         entries.push(entry);
-        if (prolificId) existingIds.add(prolificId);
-        if (cloudResearchId) existingCloudResearchIds.add(cloudResearchId);
-        if (!prolificId) existingFingerprints.add(fingerprint);
-        if (parsedDate) existingNormFingerprints.add(normFingerprint);
+
+        if (prolificId) entryByProlificId.set(prolificId, entry);
+        if (cloudResearchId) entryByCloudId.set(cloudResearchId, entry);
+        if (fingerprint) entryByFingerprint.set(fingerprint, entry);
+        if (parsedDate) {
+          const dCopyNew = new Date(parsedDate.getTime());
+          dCopyNew.setMilliseconds(0);
+          entryByNormFingerprint.set(name + '|' + dCopyNew.toISOString(), entry);
+        }
         added++;
       }
 
       save();
-      return { added, skipped, error: null };
+      return { added, skipped, updated, error: null };
     }
 
     function parseCSVLine(line) {
